@@ -31,11 +31,6 @@ func getenv(key, fallback string) string {
 	return fallback
 }
 
-type tokenMeta struct {
-	decimals    uint8
-	totalSupply *big.Int
-}
-
 func validateTokenAddr(addr string) error {
 	if len(addr) != 42 || !strings.HasPrefix(addr, "0x") || strings.ToLower(addr) != addr {
 		return errors.New("token address must be 42 lowercase chars: 0x + 40 hex digits")
@@ -59,28 +54,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := &polygonscan.Client{APIKey: apiKeyTrim, ChainID: *chainID}
+	client := polygonscan.NewClinet(*apiKey)
 
-	dec, sup, err := client.ERC20MetaFromExplorer(tokenLower)
+	meta, err := client.GetTokenMetadata(*tokenAddr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "explorer token metadata: %v\n", err)
 		os.Exit(1)
 	}
-	meta := tokenMeta{decimals: dec, totalSupply: sup}
+	supplyBI := meta.TotalSupply
+	dec8 := meta.Decimals
 
 	txs, err := client.FetchAllTokenTx(*tokenAddr, 1000, *scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "explorer API: %v\n", err)
 		os.Exit(1)
 	}
-	boughtDays, metricFromContract := buildBoughtTimeline(txs, tokenLower)
+	boughtDays, metricFromContract := buildBoughtTimeline(txs, *tokenAddr)
 
-	fmt.Printf("Token %s\n", tokenLower)
-	fmt.Printf("totalSupply: %s (%s raw)\n", formatUnits(meta.totalSupply, meta.decimals), meta.totalSupply.String())
+	fmt.Printf("Token %s\n", *tokenAddr)
+	fmt.Printf("totalSupply: %s (%d whole tokens as int64, %s raw)\n", formatTokenAmountExact(supplyBI, dec8), meta.TotalSupply, supplyBI.String())
 	fmt.Printf("tokentx rows (fetched): %d\n", len(txs))
 	if len(boughtDays) > 0 {
 		lastCum := boughtDays[len(boughtDays)-1].cum
-		fmt.Printf("%% bought (cumulative): %s%% (%s tokens)\n", pctBoughtDisplay(lastCum, meta.totalSupply), formatTokenAmountExact(lastCum, meta.decimals))
+		fmt.Printf("%% bought (cumulative): %s%% (%s tokens)\n", pctBoughtDisplay(lastCum, supplyBI), formatTokenAmountExact(lastCum, dec8))
 	} else {
 		fmt.Printf("%% bought (cumulative): n/a (no transfer window in fetched history)\n")
 	}
@@ -92,10 +88,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	printHolders(os.Stdout, balances, meta.totalSupply, meta.decimals, *topHolders)
+	printHolders(os.Stdout, balances, supplyBI, dec8, *topHolders)
 	firstTS, lastTS, ok := transferTimeBounds(txs)
 	if len(boughtDays) > 0 {
-		printBoughtTimeline(os.Stdout, boughtDays, meta.totalSupply, meta.decimals, firstTS, lastTS, ok, metricFromContract)
+		printBoughtTimeline(os.Stdout, boughtDays, supplyBI, dec8, firstTS, lastTS, ok, metricFromContract)
 	}
 }
 
@@ -108,10 +104,7 @@ type boughtDayRow struct {
 
 func transferTimeBounds(txs []polygonscan.TokenTransfer) (first, last int64, ok bool) {
 	for _, t := range txs {
-		if t.TxreceiptStatus == "0" {
-			continue
-		}
-		ts, err := strconv.ParseInt(strings.TrimSpace(t.TimeStamp), 10, 64)
+		ts, err := strconv.ParseInt(t.TimeStamp, 10, 64)
 		if err != nil {
 			continue
 		}
@@ -137,10 +130,7 @@ func buildBoughtTimeline(txs []polygonscan.TokenTransfer, tokenAddr string) ([]b
 	gotBound := false
 
 	for _, t := range txs {
-		if t.TxreceiptStatus == "0" {
-			continue
-		}
-		tsi, err := strconv.ParseInt(strings.TrimSpace(t.TimeStamp), 10, 64)
+		tsi, err := strconv.ParseInt(t.TimeStamp, 10, 64)
 		if err != nil {
 			continue
 		}
@@ -276,8 +266,8 @@ func printBoughtTimeline(w io.Writer, rows []boughtDayRow, totalSupply *big.Int,
 		fmt.Fprintf(w, line, r.dayUTC, pctBoughtDisplay(r.cum, totalSupply), tok, delta)
 	}
 
-	eta := linearETA100(firstTS, lastTS, lastCum, totalSupply, boundsOK)
-	fmt.Fprintf(w, "\nLinear ETA to 100%% bought (constant rate from first→last tx time): %s\n", eta)
+	eta := linearETA100(firstTS, lastTS, lastCum, totalSupply, boundsOK, decimals)
+	fmt.Fprintf(w, "\n100%% bought — linear ETA (below 100%%) or elapsed only (already ≥100%%); both include first→last transfer window in fetched history: %s\n", eta)
 }
 
 func pctBoughtDisplay(cum, supply *big.Int) string {

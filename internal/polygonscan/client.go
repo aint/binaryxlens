@@ -3,6 +3,7 @@ package polygonscan
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -14,48 +15,29 @@ import (
 	"time"
 )
 
-// DefaultBaseURL is Etherscan API v2 (multichain); use chainid=137 for Polygon PoS.
-const DefaultBaseURL = "https://api.etherscan.io/v2/api"
+const (
+	apiBaseURL         = "https://api.etherscan.io/v2/api"
+	polygonChainID     = 137
+	minRequestInterval = 400 * time.Millisecond
+)
 
-// PolygonChainID is Polygon PoS mainnet for Etherscan API v2.
-const PolygonChainID = 137
-
-// defaultMinRequestInterval spaces calls for free-tier caps (often ~3 calls/sec).
-const defaultMinRequestInterval = 400 * time.Millisecond
-
-// Client calls the Etherscan-compatible explorer API (v2: base + chainid + unified API key).
 type Client struct {
-	HTTP    *http.Client
-	BaseURL string
-	APIKey  string
-	// ChainID selects the chain for v2 (default PolygonChainID when 0).
-	ChainID int
-	// MinRequestInterval is the minimum time between completed requests (0 = defaultMinRequestInterval).
-	MinRequestInterval time.Duration
-
+	c             *http.Client
+	apiKey        string
 	mu            sync.Mutex
 	lastRequestAt time.Time
 }
 
-func (c *Client) base() string {
-	if c.BaseURL != "" {
-		return strings.TrimRight(c.BaseURL, "/")
+func NewClinet(apiKey string) *Client {
+	if apiKey == "" {
+		panic("polygonscan api key is empty")
 	}
-	return DefaultBaseURL
-}
-
-func (c *Client) client() *http.Client {
-	if c.HTTP != nil {
-		return c.HTTP
+	return &Client{
+		c:       http.DefaultClient,
+		apiKey:  apiKey,
+		mu:      sync.Mutex{},
+		lastRequestAt: time.Time{},
 	}
-	return http.DefaultClient
-}
-
-func (c *Client) chainID() int {
-	if c.ChainID != 0 {
-		return c.ChainID
-	}
-	return PolygonChainID
 }
 
 // TokenTransfer is one row from module=account&action=tokentx.
@@ -68,22 +50,17 @@ type TokenTransfer struct {
 	Value           string `json:"value"`
 	TokenDecimal    string `json:"tokenDecimal"`
 	ContractAddress string `json:"contractAddress"`
-	TxreceiptStatus string `json:"txreceipt_status"`
 }
 
 // FetchAllTokenTx paginates tokentx until a page returns fewer than offset rows or maxPages reached (0 = unlimited).
-func (c *Client) FetchAllTokenTx(contract string, sort string, offset, maxPages int, pause time.Duration) ([]TokenTransfer, error) {
-	if c.APIKey == "" {
-		return nil, fmt.Errorf("polygonscan api key is empty")
-	}
+func (c *Client) FetchAllTokenTx(contract string, offset int, pause time.Duration) ([]TokenTransfer, error) {
 	if offset <= 0 {
 		offset = 1000
 	}
-	if sort == "" {
-		sort = "asc"
-	}
+	sort := "asc"
 	var all []TokenTransfer
-	for page := 1; maxPages == 0 || page <= maxPages; page++ {
+	page := 1
+	for {
 		batch, err := c.tokenTxPage(contract, page, offset, sort)
 		if err != nil {
 			return all, err
@@ -98,6 +75,7 @@ func (c *Client) FetchAllTokenTx(contract string, sort string, offset, maxPages 
 		if pause > 0 {
 			time.Sleep(pause)
 		}
+		page++
 	}
 	return all, nil
 }
@@ -125,7 +103,6 @@ func (c *Client) tokenTxPage(contract string, page, offset int, sort string) ([]
 		return nil, fmt.Errorf("decode envelope: %w", err)
 	}
 	if envelope.Status != "1" {
-		// Some errors return result as string
 		var msg string
 		_ = json.Unmarshal(envelope.Result, &msg)
 		if msg != "" {
@@ -141,20 +118,12 @@ func (c *Client) tokenTxPage(contract string, page, offset int, sort string) ([]
 	return rows, nil
 }
 
-func (c *Client) minInterval() time.Duration {
-	if c.MinRequestInterval > 0 {
-		return c.MinRequestInterval
-	}
-	return defaultMinRequestInterval
-}
-
 func (c *Client) throttle() {
-	min := c.minInterval()
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.lastRequestAt.IsZero() {
-		if elapsed := time.Since(c.lastRequestAt); elapsed < min {
-			time.Sleep(min - elapsed)
+		if elapsed := time.Since(c.lastRequestAt); elapsed < minRequestInterval {
+			time.Sleep(minRequestInterval - elapsed)
 		}
 	}
 }
@@ -170,14 +139,14 @@ func responseLooksRateLimited(body []byte) bool {
 }
 
 func (c *Client) get(q url.Values) ([]byte, error) {
-	if strings.TrimSpace(c.APIKey) == "" {
-		return nil, fmt.Errorf("api key is empty")
+	if strings.TrimSpace(c.apiKey) == "" {
+		return nil, errors.New("api key is empty")
 	}
-	q.Set("apikey", strings.TrimSpace(c.APIKey))
+	q.Set("apikey", strings.TrimSpace(c.apiKey))
 	if q.Get("chainid") == "" {
-		q.Set("chainid", strconv.Itoa(c.chainID()))
+		q.Set("chainid", strconv.Itoa(polygonChainID))
 	}
-	u, err := url.Parse(c.base())
+	u, err := url.Parse(apiBaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +169,7 @@ func (c *Client) get(q url.Values) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		resp, err := c.client().Do(req)
+		resp, err := c.c.Do(req)
 		if err != nil {
 			c.markRequestDone()
 			return nil, err
@@ -252,9 +221,6 @@ func ReplayBalances(rows []TokenTransfer) (map[string]*big.Int, error) {
 	}
 
 	for _, r := range rows {
-		if r.TxreceiptStatus == "0" {
-			continue
-		}
 		v, ok := new(big.Int).SetString(r.Value, 10)
 		if !ok {
 			return nil, fmt.Errorf("parse value %q", r.Value)
