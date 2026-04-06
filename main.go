@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -34,17 +36,14 @@ type tokenMeta struct {
 	totalSupply *big.Int
 }
 
-func normalizeTokenAddr(s string) (string, error) {
-	a := strings.ToLower(strings.TrimSpace(s))
-	if len(a) != 42 || !strings.HasPrefix(a, "0x") {
-		return "", fmt.Errorf("token address must be 42 chars: 0x + 40 hex digits")
+func validateTokenAddr(addr string) error {
+	if len(addr) != 42 || !strings.HasPrefix(addr, "0x") || strings.ToLower(addr) != addr {
+		return errors.New("token address must be 42 lowercase chars: 0x + 40 hex digits")
 	}
-	for _, r := range a[2:] {
-		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')) {
-			return "", fmt.Errorf("token address must be hex")
-		}
+	if _, err := hex.DecodeString(addr[2:]); err != nil {
+		return errors.New("token address must be hex")
 	}
-	return a, nil
+	return nil
 }
 
 func main() {
@@ -59,10 +58,9 @@ func main() {
 
 	apiKeyTrim := strings.TrimSpace(*apiKey)
 
-	tokenLower, err := normalizeTokenAddr(*tokenAddr)
-	if err != nil {
+	if err := validateTokenAddr(*tokenAddr); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	client := &polygonscan.Client{APIKey: apiKeyTrim, ChainID: *chainID}
