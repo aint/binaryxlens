@@ -62,4 +62,5 @@ func main() {
 	internal.PrintHolders(txs, totalSupply, decimal, *topHolders)
 	internal.PrintDailySeries(txs, *tokenAddr, totalSupply, decimal)
 	internal.PrintETA(txs, *tokenAddr, decimal, totalSupply, boughtAmount)
+	internal.WriteDailySeriesHTML(fmt.Sprintf("%s.html", token.Name), txs, tokenAddr, decimal)
 }

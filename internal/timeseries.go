@@ -24,7 +24,7 @@ func PrintDailySeries(txs []polygonscan.TokenTransfer, tokenAddr string, totalSu
 			continue
 		}
 		cum.Add(cum, r.Value)
-		fmt.Printf("%-12s %12s %12s%%\n", r.Day.Format("2006-01-02"), FormatBigInt(r.Value, decimals), PercentOf(cum, totalSupply))
+		fmt.Printf("%-12s %12s %12s%%\n", r.Day.Format(timeDateOnly), FormatBigInt(r.Value, decimals), PercentOf(cum, totalSupply))
 	}
 }
 

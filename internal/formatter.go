@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const timeDateOnly = "2006-01-02"
+
 func FormatBigInt(raw *big.Int, decimals uint8) string {
 	if raw == nil || raw.Sign() == 0 {
 		return "0"
