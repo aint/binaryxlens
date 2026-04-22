@@ -61,7 +61,14 @@ func main() {
 
 	internal.PrintHolders(txs, totalSupply, decimal, *topHolders)
 	internal.PrintDailySeries(txs, tokenAddr, totalSupply, decimal)
-	internal.PrintETA(txs, tokenAddr, decimal, totalSupply, boughtAmount)
+	etas, err := internal.MovingAverageETA(txs, tokenAddr, decimal, totalSupply, boughtAmount)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "calculate ETA: %v\n", err)
+		os.Exit(1)
+	}
+	for _, eta := range etas {
+		fmt.Printf("ETA: %s: %s tok/day → ~%d calendar days → %s\n", eta.Window, eta.Rate, eta.Days, eta.Time.Format(time.DateOnly))
+	}
 
 	internal.WriteDailySeriesHTML(fmt.Sprintf("%s.html", token.Name), txs, tokenAddr, decimal)
 }

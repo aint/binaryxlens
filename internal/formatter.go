@@ -34,5 +34,17 @@ func PercentOf(part, whole *big.Int) string {
 	}
 	r := new(big.Rat).SetFrac(part, whole)
 	r = new(big.Rat).Mul(r, big.NewRat(100, 1))
-	return r.FloatString(4)
+	return r.FloatString(2)
+}
+
+func FormatBigRat(rawAmount *big.Rat, decimals uint8, prec int) string {
+	if rawAmount == nil || rawAmount.Sign() == 0 {
+		return "0"
+	}
+	scale := big.NewInt(1)
+	if decimals > 0 {
+		scale = new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
+	}
+	human := new(big.Rat).Quo(rawAmount, new(big.Rat).SetInt(scale))
+	return human.FloatString(prec)
 }

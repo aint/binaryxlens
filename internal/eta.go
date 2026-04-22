@@ -3,53 +3,57 @@ package internal
 import (
 	"fmt"
 	"math/big"
-	"os"
 	"time"
 
 	"github.com/aint/cryptotokenlens/internal/polygonscan"
 )
 
-// PrintETA prints up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
-func PrintETA(txs []polygonscan.TokenTransfer, tokenAddr string, decimals uint8, totalSupply, boughtAmount *big.Int) {
+var trailingWindows = map[string]int{
+	"last 7 UTC days": 7,
+	"last 30 UTC days": 30,
+	"full history (all calendar days)": -1,
+}
+
+// MovingAverageETA returns up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
+func MovingAverageETA(txs []polygonscan.TokenTransfer, tokenAddr string, decimals uint8, totalSupply, boughtAmount *big.Int) ([]ETA, error) {
 	if boughtAmount == nil {
 		boughtAmount = big.NewInt(0)
 	}
 	remaining := new(big.Int).Sub(totalSupply, boughtAmount)
 	if remaining.Sign() <= 0 {
-		fmt.Println("ETA: n/a (cumulative bought already ≥ totalSupply)")
-		return
+		return nil, fmt.Errorf("cumulative bought already ≥ totalSupply")
 	}
 
 	dailySeries, err := buildDailySeries(txs, tokenAddr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "build timeline: %v\n", err)
-		return
+		return nil, err
 	}
 	if len(dailySeries) < 7 {
-		fmt.Println("ETA: n/a (not enough data to calculate ETA)")
-		return
+		return nil, fmt.Errorf("not enough data to calculate ETA")
 	}
 
-	type trailingWindow struct {
-		name string
-		days int
-	}
-	windows := []trailingWindow{
-		{"last 7 UTC days", min(7, len(dailySeries))},
-		{"last 30 UTC days", min(30, len(dailySeries))},
-		{"full history (all calendar days)", len(dailySeries)},
+	trailingWindows = map[string]int{
+		"last 7 UTC days": min(7, len(dailySeries)),
+		"last 30 UTC days": min(30, len(dailySeries)),
+		"full history (all calendar days)": len(dailySeries),
 	}
 
-	fmt.Println("ETA extrapolation (constant rate after last data day; each row uses trailing w-day mean of daily Δ):")
-
-	for _, w := range windows {
-		eta, days, rate, err := etaFromTrailingWindow(dailySeries, remaining, w.days, decimals)
+	etas := make([]ETA, 0, len(trailingWindows))
+	for name, days := range trailingWindows {
+		eta, days, rate, err := etaFromTrailingWindow(dailySeries, remaining, days, decimals)
 		if err != nil {
-			fmt.Printf("  %s (w=%d): n/a — %s\n", w.name, w.days, err.Error())
-			continue
+			return nil, err
 		}
-		fmt.Printf("  %s (w=%d): avg Δ≈%s tok/day → ~%d calendar days → %s\n", w.name, w.days, rate, days, eta.Format(time.RFC3339))
+		etas = append(etas, ETA{Time: eta, Days: days, Rate: rate, Window: name})
 	}
+	return etas, nil
+}
+
+type ETA struct {
+	Time time.Time
+	Days int64
+	Rate string
+	Window string
 }
 
 func etaFromTrailingWindow(dailySeries []dailyPoint, remaining *big.Int, w int, decimals uint8) (time.Time, int64, string, error) {
@@ -78,7 +82,7 @@ func etaFromTrailingWindow(dailySeries []dailyPoint, remaining *big.Int, w int, 
 
 	lastDay := dailySeries[len(dailySeries)-1].Day
 	eta := lastDay.AddDate(0, 0, int(daysInt))
-	rate := FormatBigInt(new(big.Int).Quo(sum, big.NewInt(int64(w))), decimals)
+	rate := FormatBigRat(avgRat, decimals, 1)
 	return eta, daysInt, rate, nil
 }
 
