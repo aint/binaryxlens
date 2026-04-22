@@ -3,32 +3,20 @@ package internal
 import (
 	"fmt"
 	"math/big"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/aint/cryptotokenlens/internal/polygonscan"
 )
 
-func PrintDailySeries(txs []polygonscan.TokenTransfer, tokenAddr string, totalSupply *big.Int, decimals uint8) {
-	timeline, err := buildDailySeries(txs, tokenAddr)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "build timeline: %v\n", err)
-		return
-	}
-	fmt.Printf("\nTimeline\n")
-	fmt.Printf("%-12s %12s %12s\n", "day", "Δ", "% of supply")
-	cum := big.NewInt(0)
-	for _, r := range timeline {
-		if r.Value.Sign() == 0 {
-			continue
-		}
-		cum.Add(cum, r.Value)
-		fmt.Printf("%-12s %12s %12s%%\n", r.Day.Format(timeDateOnly), FormatBigInt(r.Value, decimals), PercentOf(cum, totalSupply))
-	}
+type DailyPoint struct {
+	Day        time.Time
+	Value      *big.Int
+	CumValue   *big.Int
+	CumPercent float64
 }
 
-func buildDailySeries(txs []polygonscan.TokenTransfer, tokenAddr string) ([]dailyPoint, error) {
+func DailySeries(txs []polygonscan.TokenTransfer, tokenAddr string, totalSupply *big.Int) ([]DailyPoint, error) {
 	var start, end time.Time
 	timelineMap := make(map[time.Time]*big.Int)
 	for _, t := range txs {
@@ -58,19 +46,20 @@ func buildDailySeries(txs []polygonscan.TokenTransfer, tokenAddr string) ([]dail
 		}
 	}
 
-	dailySeries := make([]dailyPoint, 0, len(timelineMap))
+	cumValue := big.NewInt(0)
+	dailySeries := make([]DailyPoint, 0, len(timelineMap))
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 		value, ok := timelineMap[d]
 		if !ok {
 			value = big.NewInt(0)
 		}
-		dailySeries = append(dailySeries, dailyPoint{Day: d, Value: value})
+		cumValue = new(big.Int).Add(cumValue, value)
+		pct, _ := new(big.Rat).Mul(
+			new(big.Rat).SetFrac(cumValue, totalSupply),
+			big.NewRat(100, 1),
+		).Float64()
+		dailySeries = append(dailySeries, DailyPoint{Day: d, Value: value, CumValue: cumValue, CumPercent: pct})
 	}
 
 	return dailySeries, nil
-}
-
-type dailyPoint struct {
-	Day   time.Time
-	Value *big.Int
 }

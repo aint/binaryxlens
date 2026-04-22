@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/big"
 	"time"
-
-	"github.com/aint/cryptotokenlens/internal/polygonscan"
 )
 
 var trailingWindows = map[string]int{
@@ -15,7 +13,7 @@ var trailingWindows = map[string]int{
 }
 
 // MovingAverageETA returns up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
-func MovingAverageETA(txs []polygonscan.TokenTransfer, tokenAddr string, decimals uint8, totalSupply, boughtAmount *big.Int) ([]ETA, error) {
+func MovingAverageETA(dailySeries []DailyPoint, decimals uint8, totalSupply, boughtAmount *big.Int) ([]ETA, error) {
 	if boughtAmount == nil {
 		boughtAmount = big.NewInt(0)
 	}
@@ -24,10 +22,6 @@ func MovingAverageETA(txs []polygonscan.TokenTransfer, tokenAddr string, decimal
 		return nil, fmt.Errorf("cumulative bought already ≥ totalSupply")
 	}
 
-	dailySeries, err := buildDailySeries(txs, tokenAddr)
-	if err != nil {
-		return nil, err
-	}
 	if len(dailySeries) < 7 {
 		return nil, fmt.Errorf("not enough data to calculate ETA")
 	}
@@ -56,7 +50,7 @@ type ETA struct {
 	Window string
 }
 
-func etaFromTrailingWindow(dailySeries []dailyPoint, remaining *big.Int, w int, decimals uint8) (time.Time, int64, string, error) {
+func etaFromTrailingWindow(dailySeries []DailyPoint, remaining *big.Int, w int, decimals uint8) (time.Time, int64, string, error) {
 	sum := big.NewInt(0)
 	from := len(dailySeries) - w
 	for j := from; j < len(dailySeries); j++ {

@@ -60,15 +60,29 @@ func main() {
 	fmt.Println()
 
 	internal.PrintHolders(txs, totalSupply, decimal, *topHolders)
-	internal.PrintDailySeries(txs, tokenAddr, totalSupply, decimal)
-	etas, err := internal.MovingAverageETA(txs, tokenAddr, decimal, totalSupply, boughtAmount)
+
+	dailySeries, err := internal.DailySeries(txs, tokenAddr, totalSupply)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "calculate ETA: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Build daily series: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("\nTimeline\n")
+	fmt.Printf("%-12s %12s %12s\n", "day", "Δ", "% of supply")
+	for _, p := range dailySeries {
+		if p.Value.Sign() == 0 {
+			continue
+		}
+		fmt.Printf("%-12s %12s %12.2f%%\n", p.Day.Format(time.DateOnly), internal.FormatBigInt(p.Value, decimal), p.CumPercent)
+	}
+
+	etas, err := internal.MovingAverageETA(dailySeries, decimal, totalSupply, boughtAmount)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Calculate ETA: %v\n", err)
 		os.Exit(1)
 	}
 	for _, eta := range etas {
-		fmt.Printf("ETA: %s: %s tok/day → ~%d calendar days → %s\n", eta.Window, eta.Rate, eta.Days, eta.Time.Format(time.DateOnly))
+		fmt.Printf("ETA: %s: %s tokens/day → ~%d calendar days → %s\n", eta.Window, eta.Rate, eta.Days, eta.Time.Format(time.DateOnly))
 	}
 
-	internal.WriteDailySeriesHTML(fmt.Sprintf("%s.html", token.Name), txs, tokenAddr, decimal)
+	internal.WriteDailySeriesHTML(fmt.Sprintf("%s.html", token.Name), dailySeries, token.Name, decimal)
 }

@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-
-	"github.com/aint/cryptotokenlens/internal/polygonscan"
 )
 
 //go:embed timeseries_chart.html
@@ -19,18 +17,12 @@ var chartDataPlaceholder = []byte("__CHART_DATA_JSON__")
 
 // WriteDailySeriesHTML writes a single HTML file with embedded Chart.js (CDN) and
 // daily + cumulative series from buildDailySeries (human token units per decimals).
-func WriteDailySeriesHTML(path string, txs []polygonscan.TokenTransfer, tokenAddr string, decimals uint8) {
-	series, err := buildDailySeries(txs, tokenAddr)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "build timeline: %v\n", err)
-		return
-	}
-
+func WriteDailySeriesHTML(path string, series []DailyPoint, tokenName string, decimals uint8) {
 	payload := chartPayload{
 		Labels:     make([]string, 0, len(series)),
 		Daily:      make([]float64, 0, len(series)),
 		Cumulative: make([]float64, 0, len(series)),
-		Title:      fmt.Sprintf("Daily buys (from token) — %s", tokenAddr),
+		Title:      fmt.Sprintf("Daily buys — %s", tokenName),
 	}
 	cum := big.NewInt(0)
 	for _, p := range series {
