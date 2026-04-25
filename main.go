@@ -79,6 +79,7 @@ func printTokenInfo(token internal.Token, totalSupply, boughtAmount *big.Int, de
 	} else {
 		fmt.Printf("%% bought (cumulative): n/a (no transfer window in fetched history)\n")
 	}
+	fmt.Printf("Expected exit: %s\n", token.ETA.String())
 	fmt.Println()
 }
 
