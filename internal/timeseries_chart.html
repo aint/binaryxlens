@@ -15,11 +15,18 @@ h1 { font-size: 1.1rem; font-weight: 600; }
 	max-width: 100%;
 }
 .chart-wrap canvas { display: block; max-width: 100%; }
+#eta-section { margin-top: 1.5rem; }
+#eta-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem; }
+#eta-section table { border-collapse: collapse; font-size: 0.9rem; }
+#eta-section th, #eta-section td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+#eta-section th { background: #f5f5f5; }
+#eta-section .muted { color: #666; font-size: 0.9rem; }
 </style>
 </head>
 <body>
 <h1 id="title"></h1>
 <div class="chart-wrap"><canvas id="c"></canvas></div>
+<section id="eta-section" aria-label="ETA estimates"></section>
 <script>
 const chartData = __CHART_DATA_JSON__;
 document.getElementById("title").textContent = chartData.title || "Daily series";
@@ -71,6 +78,38 @@ new Chart(ctx, {
     }
   }
 });
+
+(function renderETAs() {
+  const sec = document.getElementById("eta-section");
+  const rows = chartData.etas;
+  if (!rows || rows.length === 0) {
+    sec.innerHTML = "<h2>ETA (extrapolation)</h2><p class=\"muted\">No ETA rows (not enough data or could not compute).</p>";
+    return;
+  }
+  const times = rows.map((r) => r.date).filter(Boolean).sort();
+  let band = "";
+  if (times.length >= 2) {
+    band = "<p class=\"muted\">Band (earliest…latest date): <strong>" + times[0] + "</strong> … <strong>" + times[times.length - 1] + "</strong></p>";
+  }
+  let body = rows.map(function (r) {
+    return "<tr><td>" + escapeHtml(r.window) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td><td>" + escapeHtml(r.date) + "</td></tr>";
+  }).join("");
+  sec.innerHTML =
+    "<h2>ETA (moving-average extrapolation)</h2>" +
+    band +
+    "<table><thead><tr><th>Window</th><th>Avg Δ (tokens/day)</th><th>Days to target</th><th>ETA (UTC date)</th></tr></thead><tbody>" +
+    body +
+    "</tbody></table>";
+})();
+
+function escapeHtml(s) {
+  if (s == null || s === "") return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 </script>
 </body>
 </html>

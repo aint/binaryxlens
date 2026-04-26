@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"time"
 )
 
 //go:embed timeseries_chart.html
@@ -15,21 +16,26 @@ var timeseriesChartHTML []byte
 // chartDataPlaceholder must match timeseries_chart.html exactly.
 var chartDataPlaceholder = []byte("__CHART_DATA_JSON__")
 
-// WriteDailySeriesHTML writes a single HTML file with embedded Chart.js (CDN) and
-// daily + cumulative series from buildDailySeries (human token units per decimals).
-func WriteDailySeriesHTML(path string, series []DailyPoint, tokenName string, decimals uint8) {
+func WriteDailySeriesHTML(path string, series []DailyPoint, etas []ETA, tokenName string, decimals uint8) {
 	payload := chartPayload{
 		Labels:     make([]string, 0, len(series)),
 		Daily:      make([]float64, 0, len(series)),
 		Cumulative: make([]float64, 0, len(series)),
 		Title:      fmt.Sprintf("Daily buys — %s", tokenName),
+		ETAs:       make([]chartETA, 0, len(etas)),
 	}
-	cum := big.NewInt(0)
 	for _, p := range series {
 		payload.Labels = append(payload.Labels, p.Day.UTC().Format(timeDateOnly))
 		payload.Daily = append(payload.Daily, rawToHumanFloat(p.Value, decimals))
-		cum = new(big.Int).Add(cum, p.Value)
-		payload.Cumulative = append(payload.Cumulative, rawToHumanFloat(cum, decimals))
+		payload.Cumulative = append(payload.Cumulative, rawToHumanFloat(p.CumValue, decimals))
+	}
+	for _, e := range etas {
+		payload.ETAs = append(payload.ETAs, chartETA{
+			Window: e.Window,
+			Rate:   e.Rate,
+			Days:   e.Days,
+			Date:   e.Time.UTC().Format(time.DateOnly),
+		})
 	}
 
 	jsonBytes, err := json.Marshal(payload)
@@ -52,10 +58,18 @@ func WriteDailySeriesHTML(path string, series []DailyPoint, tokenName string, de
 }
 
 type chartPayload struct {
-	Labels      []string  `json:"labels"`
-	Daily       []float64 `json:"daily"`
-	Cumulative  []float64 `json:"cumulative"`
-	Title       string    `json:"title"`
+	Labels      []string   `json:"labels"`
+	Daily       []float64  `json:"daily"`
+	Cumulative  []float64  `json:"cumulative"`
+	Title       string     `json:"title"`
+	ETAs        []chartETA `json:"etas"`
+}
+
+type chartETA struct {
+	Window string `json:"window"`
+	Rate   string `json:"rate"`
+	Days   int64  `json:"days"`
+	Date   string `json:"date"`
 }
 
 func rawToHumanFloat(raw *big.Int, decimals uint8) float64 {
