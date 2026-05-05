@@ -15,6 +15,8 @@ import (
 type Token struct {
 	TokenDetails
 	Txs            []polygonscan.TokenTransfer
+	DailyPoints    []DailyPoint
+	ETAs           []ETA
 	TotalSupplyRaw *big.Int
 	BoughtRaw      *big.Int
 	RemainingRaw   *big.Int
@@ -42,17 +44,32 @@ func NewToken(tokenDetails TokenDetails, client *polygonscan.Client, scanPause t
 	}
 
 	var err error
-	token.TotalSupplyRaw, err = client.GetTotalSupply(token.Address)
-	if err != nil {
-		return Token{}, fmt.Errorf("get total supply: %v", err)
-	}
-
 	token.Txs, err = client.FetchAllTokenTx(token.Address, 1000, scanPause)
 	if err != nil {
 		return Token{}, fmt.Errorf("fetch all token tx: %v", err)
 	}
 	if len(token.Txs) == 0 {
+		// TODO: mark as new one instead of returning error
 		return Token{}, fmt.Errorf("no transactions found")
+	}
+
+
+	token.TotalSupplyRaw, err = client.GetTotalSupply(token.Address)
+	if err != nil {
+		return Token{}, fmt.Errorf("get total supply: %v", err)
+	}
+
+	token.BoughtRaw = token.boughtRaw()
+	token.RemainingRaw = new(big.Int).Sub(token.TotalSupplyRaw, token.BoughtRaw)
+
+	token.DailyPoints, err = token.dailySeries()
+	if err != nil {
+		return Token{}, fmt.Errorf("build daily series: %v", err)
+	}
+
+	token.ETAs, err = token.movingAverageETA()
+	if err != nil {
+		return Token{}, fmt.Errorf("calculate ETAs: %v", err)
 	}
 
 	token.Decimal, err = token.decimal()
@@ -60,23 +77,20 @@ func NewToken(tokenDetails TokenDetails, client *polygonscan.Client, scanPause t
 		return Token{}, fmt.Errorf("get decimal: %v", err)
 	}
 
-	token.BoughtRaw = token.boughtRaw()
-	token.RemainingRaw = new(big.Int).Sub(token.TotalSupplyRaw, token.BoughtRaw)
-
 	return token, nil
 }
 
-func (token *Token) boughtRaw() *big.Int {
+func (t Token) boughtRaw() *big.Int {
 	boughtAmount := big.NewInt(0)
-	for _, t := range token.Txs {
-		v, ok := new(big.Int).SetString(t.Value, 10)
+	for _, tx := range t.Txs {
+		v, ok := new(big.Int).SetString(tx.Value, 10)
 		if !ok {
-			fmt.Fprintf(os.Stderr, "parse value %q\n", t.Value)
+			fmt.Fprintf(os.Stderr, "parse value %q\n", tx.Value)
 			continue
 		}
 
-		from := strings.ToLower(t.From)
-		if from == token.Address {
+		from := strings.ToLower(tx.From)
+		if from == t.Address {
 			boughtAmount.Add(boughtAmount, v)
 		}
 	}
@@ -84,8 +98,8 @@ func (token *Token) boughtRaw() *big.Int {
 	return boughtAmount
 }
 
-func (token *Token) decimal() (uint8, error) {
-	decimalStr := strings.TrimSpace(token.Txs[0].TokenDecimal)
+func (t Token) decimal() (uint8, error) {
+	decimalStr := strings.TrimSpace(t.Txs[0].TokenDecimal)
 	if decimalStr == "" {
 		return 0, errors.New("decimal missing")
 	}

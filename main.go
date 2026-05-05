@@ -27,34 +27,31 @@ func main() {
 	apiKey := fs.String("api-key", getenv("POLYGONSCAN_API_KEY", defaultExplorerAPIKey), "Etherscan API v2 key (overrides POLYGONSCAN_API_KEY; default is built-in)")
 	scanPause := fs.Duration("scan-pause", 400*time.Millisecond, "Extra pause between tokentx pages (free tier is often ~3 req/sec; client also spaces every call)")
 	topHolders := fs.Int("top-holders", 15, "Show this many largest holders (0 = all)")
+	portfolio := fs.Bool("portfolio", false, "Fetch all registry tokens and write index.html (skips single-token run)")
+	tokensPerPage := fs.Int("index-tokens-per-page", 4, "Tokens per page in portfolio index.html")
 	_ = fs.Parse(os.Args[1:])
 
 	client := polygonscan.NewClinet(*apiKey)
-	token, err := internal.NewToken(internal.LaCasaEspanolaVilla9, client, *scanPause)
+	if *portfolio {
+		if err := internal.WritePortfolioIndex(internal.LaCasaEspanolaVillas, *tokensPerPage, client, *scanPause); err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	token, err := internal.NewToken(internal.LaCasaEspanolaVilla6, client, *scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
 		os.Exit(1)
 	}
 
 	printTokenInfo(token)
-
 	internal.PrintHolders(token, *topHolders)
+	printDailySeries(token.DailyPoints, token.Decimal)
+	printETAs(token.ETAs)
 
-	dailySeries, err := internal.DailySeries(token)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Build daily series: %v\n", err)
-		os.Exit(1)
-	}
-	printDailySeries(dailySeries, token.Decimal)
-
-	etas, err := internal.MovingAverageETA(dailySeries, token)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Calculate ETA: %v\n", err)
-		os.Exit(1)
-	}
-	printETAs(etas)
-
-	internal.WriteDailySeriesHTML(fmt.Sprintf("%s.html", token.Name), token, dailySeries, etas)
+	internal.WriteDailySeriesHTML(fmt.Sprintf("%s.html", token.Name), token)
 }
 
 func printTokenInfo(token internal.Token) {

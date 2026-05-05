@@ -14,13 +14,13 @@ type DailyPoint struct {
 	CumPercent float64
 }
 
-func DailySeries(token Token) ([]DailyPoint, error) {
+func (t Token) dailySeries() ([]DailyPoint, error) {
 	var start, end time.Time
 	timelineMap := make(map[time.Time]*big.Int)
-	for _, t := range token.Txs {
-		ts, err := strconv.ParseInt(t.TimeStamp, 10, 64)
+	for _, tx := range t.Txs {
+		ts, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("parse timestamp %q: %w", t.TimeStamp, err)
+			return nil, fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
 		}
 		day := time.Unix(ts, 0).UTC().Truncate(24 * time.Hour)
 		if start.IsZero() || day.Before(start) {
@@ -30,12 +30,12 @@ func DailySeries(token Token) ([]DailyPoint, error) {
 			end = day
 		}
 
-		value, ok := new(big.Int).SetString(t.Value, 10)
+		value, ok := new(big.Int).SetString(tx.Value, 10)
 		if !ok {
-			return nil, fmt.Errorf("parse value %q: %w", t.Value, err)
+			return nil, fmt.Errorf("parse value %q: %w", tx.Value, err)
 		}
 
-		if t.From == token.Address {
+		if tx.From == t.Address {
 			cur := timelineMap[day]
 			if cur == nil {
 				cur = big.NewInt(0)
@@ -53,11 +53,11 @@ func DailySeries(token Token) ([]DailyPoint, error) {
 		}
 		cumValue = new(big.Int).Add(cumValue, value)
 		pct, _ := new(big.Rat).Mul(
-			new(big.Rat).SetFrac(cumValue, token.TotalSupplyRaw),
+			new(big.Rat).SetFrac(cumValue, t.TotalSupplyRaw),
 			big.NewRat(100, 1),
 		).Float64()
 		dailySeries = append(dailySeries, DailyPoint{Day: d, Value: value, CumValue: cumValue, CumPercent: pct})
-		if cumValue.Cmp(token.TotalSupplyRaw) == 0 {
+		if cumValue.Cmp(t.TotalSupplyRaw) == 0 {
 			break
 		}
 	}

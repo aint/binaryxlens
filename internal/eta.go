@@ -13,30 +13,26 @@ var trailingWindows = map[string]int{
 }
 
 // MovingAverageETA returns up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
-func MovingAverageETA(dailySeries []DailyPoint, token Token) ([]ETA, error) {
-	if token.BoughtRaw == nil {
-		token.BoughtRaw = big.NewInt(0)
-	}
-	remaining := new(big.Int).Sub(token.TotalSupplyRaw, token.BoughtRaw)
-	if remaining.Sign() <= 0 {
+func (t Token) movingAverageETA() ([]ETA, error) {
+	if t.RemainingRaw.Sign() <= 0 {
 		fmt.Println("No ETA: cumulative bought already ≥ total supply")
 		return nil, nil
 	}
 
-	if len(dailySeries) < 7 {
+	if len(t.DailyPoints) < 7 {
 		return nil, fmt.Errorf("not enough data to calculate ETA")
 	}
 
 	// todo: map is random order
 	trailingWindows = map[string]int{
-		"last 7 UTC days": min(7, len(dailySeries)),
-		"last 30 UTC days": min(30, len(dailySeries)),
-		"full history (all calendar days)": len(dailySeries),
+		"last 7 UTC days": min(7, len(t.DailyPoints)),
+		"last 30 UTC days": min(30, len(t.DailyPoints)),
+		"full history (all calendar days)": len(t.DailyPoints),
 	}
 
 	etas := make([]ETA, 0, len(trailingWindows))
 	for name, days := range trailingWindows {
-		eta, days, rate, err := etaFromTrailingWindow(dailySeries, remaining, days, token.Decimal)
+		eta, days, rate, err := t.etaFromTrailingWindow(days)
 		if err != nil {
 			return nil, err
 		}
@@ -52,11 +48,11 @@ type ETA struct {
 	Window string
 }
 
-func etaFromTrailingWindow(dailySeries []DailyPoint, remaining *big.Int, w int, decimal uint8) (time.Time, int64, string, error) {
+func (t Token) etaFromTrailingWindow(w int) (time.Time, int64, string, error) {
 	sum := big.NewInt(0)
-	from := len(dailySeries) - w
-	for j := from; j < len(dailySeries); j++ {
-		sum.Add(sum, dailySeries[j].Value)
+	from := len(t.DailyPoints) - w
+	for j := from; j < len(t.DailyPoints); j++ {
+		sum.Add(sum, t.DailyPoints[j].Value)
 	}
 	// sum / w = avg daily Δ in the window
 	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(sum), big.NewInt(int64(w)))
@@ -65,7 +61,7 @@ func etaFromTrailingWindow(dailySeries []DailyPoint, remaining *big.Int, w int, 
 	}
 
 	// daysRat = remaining / avgRat : If every future day looked like this average, how many days of sales to sell remaining tokens?”
-	remRat := new(big.Rat).SetInt(remaining)
+	remRat := new(big.Rat).SetInt(t.RemainingRaw)
 	daysRat := new(big.Rat).Quo(remRat, avgRat)
 	if daysRat.Sign() < 0 {
 		return time.Time{}, 0, "", fmt.Errorf("negative days (unexpected)")
@@ -76,9 +72,9 @@ func etaFromTrailingWindow(dailySeries []DailyPoint, remaining *big.Int, w int, 
 		return time.Time{}, 0, "", fmt.Errorf("day count out of int64 range")
 	}
 
-	lastDay := dailySeries[len(dailySeries)-1].Day
+	lastDay := t.DailyPoints[len(t.DailyPoints)-1].Day
 	eta := lastDay.AddDate(0, 0, int(daysInt))
-	rate := FormatBigRat(avgRat, decimal, 1)
+	rate := FormatBigRat(avgRat, t.Decimal, 1)
 	return eta, daysInt, rate, nil
 }
 
