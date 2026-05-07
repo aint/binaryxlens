@@ -17,6 +17,7 @@ type Token struct {
 	Txs            []polygonscan.TokenTransfer
 	DailyPoints    []DailyPoint
 	ETAs           []ETA
+	Holders        []Holder
 	TotalSupplyRaw *big.Int
 	BoughtRaw      *big.Int
 	RemainingRaw   *big.Int
@@ -61,6 +62,11 @@ func NewToken(tokenDetails TokenDetails, client *polygonscan.Client, scanPause t
 
 	token.BoughtRaw = token.boughtRaw()
 	token.RemainingRaw = new(big.Int).Sub(token.TotalSupplyRaw, token.BoughtRaw)
+
+	token.Holders, err = token.getHolders()
+	if err != nil {
+		return Token{}, fmt.Errorf("get holders: %v", err)
+	}
 
 	token.DailyPoints, err = token.dailySeries()
 	if err != nil {

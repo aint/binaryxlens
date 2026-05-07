@@ -47,7 +47,7 @@ func main() {
 	}
 
 	printTokenInfo(token)
-	internal.PrintHolders(token, *topHolders)
+	token.PrintHolders(*topHolders)
 	printDailySeries(token.DailyPoints, token.Decimal)
 	printETAs(token.ETAs)
 
