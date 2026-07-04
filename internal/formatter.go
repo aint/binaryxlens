@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 )
@@ -29,12 +30,17 @@ func FormatBigInt(raw *big.Int, decimals uint8) string {
 }
 
 func PercentOf(part, whole *big.Int) string {
-	if whole.Sign() == 0 {
-		return "0"
+	return fmt.Sprintf("%.2f", PercentFloat(part, whole))
+}
+
+func PercentFloat(part, whole *big.Int) float64 {
+	if whole == nil || whole.Sign() == 0 || part == nil {
+		return 0
 	}
 	r := new(big.Rat).SetFrac(part, whole)
-	r = new(big.Rat).Mul(r, big.NewRat(100, 1))
-	return r.FloatString(2)
+	r.Mul(r, big.NewRat(100, 1))
+	f, _ := r.Float64()
+	return f
 }
 
 func FormatBigRat(rawAmount *big.Rat, decimals uint8, prec int) string {

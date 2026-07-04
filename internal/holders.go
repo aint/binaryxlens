@@ -66,14 +66,31 @@ func (t Token) PrintHolders(top int) error {
 	idx := min(len(t.Holders), top)
 
 	fmt.Printf("\nHolders: showing %d of %d\n", len(t.Holders[:idx]), len(t.Holders))
-	fmt.Printf("%4s %-44s %32s %14s\n", "#", "address", "balance", "% of supply")
+	fmt.Printf("%4s %-42s %12s %12s %-12s\n", "#", "address", "balance", "% supply", "tier")
 	for i, h := range t.Holders[:idx] {
 		if h.Balance.Sign() == 0 {
 			continue
 		}
-		fmt.Printf("%d. %s %32s %13s%%\n", i+1, h.Address, FormatBigInt(h.Balance, t.Decimal), PercentOf(h.Balance, t.TotalSupplyRaw))
+		pct := PercentFloat(h.Balance, t.TotalSupplyRaw)
+		fmt.Printf(
+			"%4d %-42s %12s %11.2f%% %-12s\n",
+			i+1,
+			h.Address,
+			FormatBigInt(h.Balance, t.Decimal),
+			pct,
+			holderTier(pct),
+		)
 	}
 
+	pcts := make([]float64, 0, len(t.Holders))
+	for _, h := range t.Holders {
+		if h.Balance.Sign() == 0 {
+			continue
+		}
+		pcts = append(pcts, PercentFloat(h.Balance, t.TotalSupplyRaw))
+	}
+
+	printHolderTierStats(pcts)
 	return nil
 }
 
@@ -112,18 +129,83 @@ func (p Project) PrintHolders(top int) error {
 	idx := min(len(p.Holders), top)
 
 	fmt.Printf("\nHolders: showing %d of %d\n", len(p.Holders[:idx]), len(p.Holders))
-	fmt.Printf("%4s %-42s %-96s %12s %12s\n", "#", "address", "token names", "balance", "% supply")
+	fmt.Printf("%4s %-42s %-96s %12s %12s %-12s\n", "#", "address", "token names", "balance", "% supply", "tier")
 	for i, h := range p.Holders[:idx] {
 		names := slices.Sorted(maps.Keys(h.TokenBalances))
+		pct := PercentFloat(h.TotalBalance, p.TotalSupplyRaw)
 		fmt.Printf(
-			"%4d %-42s %-96s %12s %11s%%\n",
+			"%4d %-42s %-96s %12s %11.2f%% %-12s\n",
 			i+1,
 			h.Address,
 			strings.Join(names, ", "),
 			FormatBigInt(h.TotalBalance, p.Decimal),
-			PercentOf(h.TotalBalance, p.TotalSupplyRaw),
+			pct,
+			holderTier(pct),
 		)
 	}
 
+	pcts := make([]float64, 0, len(p.Holders))
+	for _, h := range p.Holders {
+		if h.TotalBalance.Sign() == 0 {
+			continue
+		}
+		pcts = append(pcts, PercentFloat(h.TotalBalance, p.TotalSupplyRaw))
+	}
+
+	printHolderTierStats(pcts)
 	return nil
+}
+
+func printHolderTierStats(pcts []float64) {
+	total := len(pcts)
+	if total == 0 {
+		return
+	}
+
+	type tierStat struct {
+		count     int
+		supplyPct float64
+	}
+	stats := make(map[string]tierStat)
+	for _, pct := range pcts {
+		tier := holderTier(pct)
+		s := stats[tier]
+		s.count++
+		s.supplyPct += pct
+		stats[tier] = s
+	}
+
+	fmt.Printf("\nTier distribution (%d holders):\n", total)
+	fmt.Printf("%-12s %6s %8s %10s\n", "tier", "count", "% holders", "% supply")
+	for _, t := range holderTierThresholds {
+		s := stats[t.name]
+		fmt.Printf(
+			"%-12s %6d %7.1f%% %9.2f%%\n",
+			t.name,
+			s.count,
+			float64(s.count)/float64(total)*100,
+			s.supplyPct,
+		)
+	}
+}
+
+var holderTierThresholds = []struct {
+	max  float64
+	name string
+}{
+	{0.5, "🦐 Shrimp"},
+	{1, "🦀 Crab"},
+	{5, "🐟 Fish"},
+	{10, "🐬 Dolphin"},
+	{20, "🦈 Shark"},
+	{100, "🐋 Whale"},
+}
+
+func holderTier(percent float64) string {
+	for _, t := range holderTierThresholds {
+		if percent <= t.max {
+			return t.name
+		}
+	}
+	return holderTierThresholds[len(holderTierThresholds)-1].name
 }
