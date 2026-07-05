@@ -39,12 +39,57 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .slot .eta-wrap th, .slot .eta-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
 .slot .eta-wrap th { background: #eee; }
 .slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
+.holders-section { margin-top: 28px; }
+.holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
+.holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
+.section-meta { font-size: 0.85rem; color: #444; margin: 0 0 10px; }
+.holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.holders-section table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+.holders-section th, .holders-section td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+.holders-section th { background: #eee; white-space: nowrap; }
+.holders-section td.num { text-align: right; white-space: nowrap; }
+.holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+.holders-section td.tokens { min-width: 200px; max-width: 420px; }
+.holders-section td.tier { white-space: nowrap; }
 </style>
 </head>
 <body>
 <h1 id="project-title">Project report</h1>
 
 <div id="grid" class="grid" aria-label="Token charts"></div>
+
+<section id="holders-section" class="holders-section" aria-label="Project holders">
+	<h2>Holders</h2>
+	<h3>Tier distribution</h3>
+	<table id="tier-stats-table">
+		<thead>
+			<tr>
+				<th>Tier</th>
+				<th>Count</th>
+				<th>% holders</th>
+				<th>% supply</th>
+			</tr>
+		</thead>
+		<tbody id="tier-stats-body"></tbody>
+	</table>
+	<h3>Top holders</h3>
+	<p id="holders-meta" class="section-meta"></p>
+	<div class="holders-scroll">
+		<table id="holders-table">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Address</th>
+					<th>Token names</th>
+					<th>Balance</th>
+					<th>% supply</th>
+					<th>Tier</th>
+				</tr>
+			</thead>
+			<tbody id="holders-body"></tbody>
+		</table>
+	</div>
+</section>
 
 <script type="application/json" id="project-data">__PROJECT_DATA_JSON__</script>
 
@@ -65,6 +110,11 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	}
 
 	const allTokens = Array.isArray(projectData.tokens) ? projectData.tokens : [];
+	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
+	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
+	const holdersTop = typeof projectData.holdersTop === "number" && projectData.holdersTop > 0
+		? projectData.holdersTop
+		: allHolders.length;
 	const grid = document.getElementById("grid");
 	const chartInstances = [];
 
@@ -123,7 +173,41 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		};
 	}
 
-	function render() {
+	function renderHolders() {
+		const section = document.getElementById("holders-section");
+		if (allHolders.length === 0) {
+			section.hidden = true;
+			return;
+		}
+
+		const shown = Math.min(holdersTop, allHolders.length);
+		document.getElementById("holders-meta").textContent =
+			"Showing " + shown + " of " + allHolders.length + " holders (by total balance).";
+
+		const body = document.getElementById("holders-body");
+		body.innerHTML = allHolders.slice(0, holdersTop).map(function (h, i) {
+			return "<tr>" +
+				"<td class=\"num\">" + (i + 1) + "</td>" +
+				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+				"<td class=\"tokens\">" + escapeHtml((h.tokenNames || []).join(", ")) + "</td>" +
+				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+				"</tr>";
+		}).join("");
+
+		const tierBody = document.getElementById("tier-stats-body");
+		tierBody.innerHTML = tierStats.map(function (s) {
+			return "<tr>" +
+				"<td class=\"tier\">" + escapeHtml(s.name) + "</td>" +
+				"<td class=\"num\">" + s.count + "</td>" +
+				"<td class=\"num\">" + s.holdersPct.toFixed(1) + "%</td>" +
+				"<td class=\"num\">" + s.supplyPct.toFixed(2) + "%</td>" +
+				"</tr>";
+		}).join("");
+	}
+
+	function renderCharts() {
 		grid.innerHTML = "";
 
 		if (allTokens.length === 0) {
@@ -187,7 +271,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		});
 	}
 
-	render();
+	renderHolders();
+	renderCharts();
 })();
 </script>
 </body>

@@ -156,10 +156,30 @@ func (p Project) PrintHolders(top int) error {
 	return nil
 }
 
-func printHolderTierStats(pcts []float64) {
+func (p Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayload) {
+	holders := make([]projectHolderPayload, 0, len(p.Holders))
+	pcts := make([]float64, 0, len(p.Holders))
+	for _, h := range p.Holders {
+		if h.TotalBalance.Sign() == 0 {
+			continue
+		}
+		pct := PercentFloat(h.TotalBalance, p.TotalSupplyRaw)
+		holders = append(holders, projectHolderPayload{
+			Address:    h.Address,
+			TokenNames: slices.Sorted(maps.Keys(h.TokenBalances)),
+			Balance:    FormatBigInt(h.TotalBalance, p.Decimal),
+			SupplyPct:  pct,
+			Tier:       holderTier(pct),
+		})
+		pcts = append(pcts, pct)
+	}
+	return holders, buildTierStatsPayload(pcts)
+}
+
+func buildTierStatsPayload(pcts []float64) []tierStatPayload {
 	total := len(pcts)
 	if total == 0 {
-		return
+		return nil
 	}
 
 	type tierStat struct {
@@ -175,16 +195,35 @@ func printHolderTierStats(pcts []float64) {
 		stats[tier] = s
 	}
 
-	fmt.Printf("\nTier distribution (%d holders):\n", total)
-	fmt.Printf("%-12s %6s %8s %10s\n", "tier", "count", "% holders", "% supply")
+	out := make([]tierStatPayload, 0, len(holderTierThresholds))
 	for _, t := range holderTierThresholds {
 		s := stats[t.name]
+		out = append(out, tierStatPayload{
+			Name:       t.name,
+			Count:      s.count,
+			HoldersPct: float64(s.count) / float64(total) * 100,
+			SupplyPct:  s.supplyPct,
+		})
+	}
+	return out
+}
+
+func printHolderTierStats(pcts []float64) {
+	stats := buildTierStatsPayload(pcts)
+	if len(stats) == 0 {
+		return
+	}
+	total := len(pcts)
+
+	fmt.Printf("\nTier distribution (%d holders):\n", total)
+	fmt.Printf("%-12s %6s %8s %10s\n", "tier", "count", "% holders", "% supply")
+	for _, s := range stats {
 		fmt.Printf(
 			"%-12s %6d %7.1f%% %9.2f%%\n",
-			t.name,
-			s.count,
-			float64(s.count)/float64(total)*100,
-			s.supplyPct,
+			s.Name,
+			s.Count,
+			s.HoldersPct,
+			s.SupplyPct,
 		)
 	}
 }

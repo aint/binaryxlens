@@ -50,13 +50,20 @@ func NewProject(name string, tokens []Token) (Project, error) {
 	return p, nil
 }
 
-func (p Project) GenerateReport() error {
+func (p Project) GenerateReport(topHolders int) error {
 	var payloads []chartPayload
 	for _, token := range p.Tokens {
 		payloads = append(payloads, buildChartPayload(token))
 	}
 
-	env := projectEnvelope{Name: p.Name, Tokens: payloads}
+	holders, tierStats := p.buildHoldersPayload()
+	env := projectEnvelope{
+		Name:       p.Name,
+		Tokens:     payloads,
+		Holders:    holders,
+		TierStats:  tierStats,
+		HoldersTop: topHolders,
+	}
 	jsonBytes, err := json.Marshal(env)
 	if err != nil {
 		return fmt.Errorf("marshal: %w", err)
@@ -76,6 +83,24 @@ func (p Project) GenerateReport() error {
 }
 
 type projectEnvelope struct {
-	Name   string         `json:"name"`
-	Tokens []chartPayload `json:"tokens"`
+	Name       string                 `json:"name"`
+	Tokens     []chartPayload         `json:"tokens"`
+	Holders    []projectHolderPayload `json:"holders"`
+	TierStats  []tierStatPayload      `json:"tierStats"`
+	HoldersTop int                    `json:"holdersTop"`
+}
+
+type projectHolderPayload struct {
+	Address    string   `json:"address"`
+	TokenNames []string `json:"tokenNames"`
+	Balance    string   `json:"balance"`
+	SupplyPct  float64  `json:"supplyPct"`
+	Tier       string   `json:"tier"`
+}
+
+type tierStatPayload struct {
+	Name       string  `json:"name"`
+	Count      int     `json:"count"`
+	HoldersPct float64 `json:"holdersPct"`
+	SupplyPct  float64 `json:"supplyPct"`
 }
