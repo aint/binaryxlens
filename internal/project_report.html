@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Project report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { font-family: system-ui, sans-serif; padding: 16px; }
+h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
+.grid {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	width: 100%;
+	align-items: stretch;
+}
+.slot {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 10px 12px 14px;
+	background: #fafafa;
+	width: 100%;
+}
+.slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.chart-wrap {
+	position: relative;
+	width: 100%;
+	height: 340px;
+	max-width: 100%;
+}
+.chart-wrap canvas { display: block; max-width: 100%; }
+.chart-placeholder { color: #666; font-size: 0.9rem; padding: 20px 8px; text-align: center; }
+.slot .eta-wrap { margin-top: 10px; }
+.slot .eta-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.slot .eta-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .eta-wrap th, .slot .eta-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+.slot .eta-wrap th { background: #eee; }
+.slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<h1 id="project-title">Project report</h1>
+
+<div id="grid" class="grid" aria-label="Token charts"></div>
+
+<script type="application/json" id="project-data">__PROJECT_DATA_JSON__</script>
+
+<script>
+(function () {
+	const raw = document.getElementById("project-data").textContent;
+	let projectData;
+	try {
+		projectData = JSON.parse(raw);
+	} catch (e) {
+		document.body.innerHTML = "<p>Invalid JSON in #project-data.</p>";
+		return;
+	}
+
+	if (projectData.name) {
+		document.title = projectData.name;
+		document.getElementById("project-title").textContent = projectData.name;
+	}
+
+	const allTokens = Array.isArray(projectData.tokens) ? projectData.tokens : [];
+	const grid = document.getElementById("grid");
+	const chartInstances = [];
+
+	function escapeHtml(s) {
+		if (s == null || s === "") return "";
+		return String(s)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
+
+	function renderETAsInto(container, chartData) {
+		const rows = chartData.etas;
+		if (!rows || rows.length === 0) {
+			container.innerHTML = "<h4>ETA</h4><p class=\"muted\">No ETA rows.</p>";
+			return;
+		}
+		const times = rows.map(function (r) { return r.date; }).filter(Boolean).sort();
+		let band = "";
+		if (times.length >= 2) {
+			band = "<p class=\"muted\">Band: <strong>" + escapeHtml(times[0]) + "</strong> … <strong>" + escapeHtml(times[times.length - 1]) + "</strong></p>";
+		}
+		const body = rows.map(function (r) {
+			return "<tr><td>" + escapeHtml(r.window) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td><td>" + escapeHtml(r.date) + "</td></tr>";
+		}).join("");
+		container.innerHTML =
+			"<h4>ETA</h4>" +
+			band +
+			"<table><thead><tr><th>Window</th><th>Avg Δ</th><th>Days</th><th>Date</th></tr></thead><tbody>" +
+			body +
+			"</tbody></table>";
+	}
+
+	function chartOptions() {
+		return {
+			responsive: true,
+			maintainAspectRatio: false,
+			interaction: { mode: "index", intersect: false },
+			scales: {
+				x: { ticks: { maxTicksLimit: 24 } },
+				y: {
+					type: "linear",
+					position: "left",
+					beginAtZero: true,
+					title: { display: true, text: "Daily Δ", font: { size: 10 } }
+				},
+				y1: {
+					type: "linear",
+					position: "right",
+					beginAtZero: true,
+					grid: { drawOnChartArea: false },
+					title: { display: true, text: "Cumulative", font: { size: 10 } }
+				}
+			}
+		};
+	}
+
+	function render() {
+		grid.innerHTML = "";
+
+		if (allTokens.length === 0) {
+			grid.innerHTML = "<p class=\"chart-placeholder\">No tokens loaded</p>";
+			return;
+		}
+
+		allTokens.forEach(function (token) {
+			const slot = document.createElement("div");
+			slot.className = "slot";
+			const title = document.createElement("h3");
+			title.textContent = token && token.title ? token.title : "—";
+			slot.appendChild(title);
+
+			const wrap = document.createElement("div");
+			wrap.className = "chart-wrap";
+			const canvas = document.createElement("canvas");
+			wrap.appendChild(canvas);
+			slot.appendChild(wrap);
+
+			const etaWrap = document.createElement("div");
+			etaWrap.className = "eta-wrap";
+			slot.appendChild(etaWrap);
+			grid.appendChild(slot);
+
+			if (!token || !token.labels || token.labels.length === 0) {
+				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
+				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
+				return;
+			}
+
+			const ch = new Chart(canvas, {
+				type: "line",
+				data: {
+					labels: token.labels,
+					datasets: [
+						{
+							label: "Daily Δ",
+							data: token.daily,
+							borderColor: "rgb(75, 192, 192)",
+							backgroundColor: "rgba(75, 192, 192, 0.2)",
+							tension: 0,
+							stepped: "before",
+							fill: false,
+							yAxisID: "y"
+						},
+						{
+							label: "Cumulative",
+							data: token.cumulative,
+							borderColor: "rgb(255, 99, 132)",
+							tension: 0.05,
+							fill: false,
+							yAxisID: "y1"
+						}
+					]
+				},
+				options: chartOptions()
+			});
+			chartInstances.push(ch);
+			renderETAsInto(etaWrap, token);
+		});
+	}
+
+	render();
+})();
+</script>
+</body>
+</html>
