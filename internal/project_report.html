@@ -10,6 +10,8 @@
 html, body { margin: 0; width: 100%; }
 body { font-family: system-ui, sans-serif; padding: 16px; }
 h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
+.project-summary { font-size: 0.9rem; color: #333; margin: 0 0 20px; line-height: 1.5; }
+.project-summary p { margin: 0 0 4px; }
 .grid {
 	display: flex;
 	flex-direction: column;
@@ -55,6 +57,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 </head>
 <body>
 <h1 id="project-title">Project report</h1>
+<div id="project-summary" class="project-summary" aria-label="Project summary"></div>
 
 <div id="grid" class="grid" aria-label="Token charts"></div>
 
@@ -104,9 +107,26 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		return;
 	}
 
+	function escapeHtml(s) {
+		if (s == null || s === "") return "";
+		return String(s)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
+
 	if (projectData.name) {
 		document.title = projectData.name;
 		document.getElementById("project-title").textContent = projectData.name;
+	}
+
+	if (projectData.summary) {
+		const s = projectData.summary;
+		document.getElementById("project-summary").innerHTML =
+			"<p>Tokens: <strong>" + s.tokenCount + "</strong></p>" +
+			"<p>Total supply: <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
+			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " tokens)</p>";
 	}
 
 	const allTokens = Array.isArray(projectData.tokens) ? projectData.tokens : [];
@@ -117,15 +137,6 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		: allHolders.length;
 	const grid = document.getElementById("grid");
 	const chartInstances = [];
-
-	function escapeHtml(s) {
-		if (s == null || s === "") return "";
-		return String(s)
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;");
-	}
 
 	function renderETAsInto(container, chartData) {
 		const rows = chartData.etas;

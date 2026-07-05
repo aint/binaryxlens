@@ -23,6 +23,7 @@ type Project struct {
 	Tokens         []Token
 	Holders        []ProjectHolder
 	TotalSupplyRaw *big.Int
+	BoughtRaw      *big.Int
 	Decimal        uint8
 }
 
@@ -35,6 +36,7 @@ func NewProject(name string, tokens []Token) (Project, error) {
 		Name:           name,
 		Tokens:         tokens,
 		TotalSupplyRaw: big.NewInt(0),
+		BoughtRaw:      big.NewInt(0),
 		Decimal:        tokens[0].Decimal, // all tokens expected to have the same decimal
 	}
 
@@ -44,6 +46,7 @@ func NewProject(name string, tokens []Token) (Project, error) {
 		}
 
 		p.TotalSupplyRaw.Add(p.TotalSupplyRaw, token.TotalSupplyRaw)
+		p.BoughtRaw.Add(p.BoughtRaw, token.BoughtRaw)
 	}
 
 	p.Holders = p.getHolders()
@@ -59,6 +62,7 @@ func (p Project) GenerateReport(topHolders int) error {
 	holders, tierStats := p.buildHoldersPayload()
 	env := projectEnvelope{
 		Name:       p.Name,
+		Summary:    p.buildProjectSummary(),
 		Tokens:     payloads,
 		Holders:    holders,
 		TierStats:  tierStats,
@@ -82,12 +86,29 @@ func (p Project) GenerateReport(topHolders int) error {
 	return nil
 }
 
+func (p Project) buildProjectSummary() projectSummaryPayload {
+	return projectSummaryPayload{
+		TokenCount:  len(p.Tokens),
+		TotalSupply: FormatBigInt(p.TotalSupplyRaw, p.Decimal),
+		Bought:      FormatBigInt(p.BoughtRaw, p.Decimal),
+		BoughtPct:   PercentFloat(p.BoughtRaw, p.TotalSupplyRaw),
+	}
+}
+
 type projectEnvelope struct {
 	Name       string                 `json:"name"`
+	Summary    projectSummaryPayload  `json:"summary"`
 	Tokens     []chartPayload         `json:"tokens"`
 	Holders    []projectHolderPayload `json:"holders"`
 	TierStats  []tierStatPayload      `json:"tierStats"`
 	HoldersTop int                    `json:"holdersTop"`
+}
+
+type projectSummaryPayload struct {
+	TokenCount  int     `json:"tokenCount"`
+	TotalSupply string  `json:"totalSupply"`
+	Bought      string  `json:"bought"`
+	BoughtPct   float64 `json:"boughtPct"`
 }
 
 type projectHolderPayload struct {
