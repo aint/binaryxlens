@@ -1,14 +1,15 @@
 package internal
 
 import (
+	"bytes"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
-	"encoding/json"
-	"bytes"
 	"os"
 	"strings"
+	"time"
 )
 
 const projectReportPath = "%s_report.html"
@@ -54,19 +55,20 @@ func NewProject(name string, tokens []Token) (Project, error) {
 }
 
 func (p Project) GenerateReport(topHolders int) error {
-	var payloads []chartPayload
+	var payloads []tokenTimeseriesChartPayload
 	for _, token := range p.Tokens {
-		payloads = append(payloads, buildChartPayload(token))
+		payloads = append(payloads, buildTokenTimeSeriesChartPayload(token))
 	}
 
 	holders, tierStats := p.buildHoldersPayload()
 	env := projectEnvelope{
-		Name:       p.Name,
-		Summary:    p.buildProjectSummary(),
-		Tokens:     payloads,
-		Holders:    holders,
-		TierStats:  tierStats,
-		HoldersTop: topHolders,
+		Name:        p.Name,
+		GeneratedAt: time.Now().UTC().Format(timeDateOnly),
+		Summary:     p.buildSummary(),
+		Tokens:      payloads,
+		Holders:     holders,
+		TierStats:   tierStats,
+		HoldersTop:  topHolders,
 	}
 	jsonBytes, err := json.Marshal(env)
 	if err != nil {
@@ -82,11 +84,10 @@ func (p Project) GenerateReport(topHolders int) error {
 	}
 	fmt.Println("Project report is ready at", reportPath)
 
-
 	return nil
 }
 
-func (p Project) buildProjectSummary() projectSummaryPayload {
+func (p Project) buildSummary() projectSummaryPayload {
 	return projectSummaryPayload{
 		TokenCount:  len(p.Tokens),
 		TotalSupply: FormatBigInt(p.TotalSupplyRaw, p.Decimal),
@@ -95,13 +96,38 @@ func (p Project) buildProjectSummary() projectSummaryPayload {
 	}
 }
 
+func buildTokenTimeSeriesChartPayload(token Token) tokenTimeseriesChartPayload {
+	payload := tokenTimeseriesChartPayload{
+		Labels:     make([]string, 0, len(token.DailyPoints)),
+		Daily:      make([]float64, 0, len(token.DailyPoints)),
+		Cumulative: make([]float64, 0, len(token.DailyPoints)),
+		Title:      fmt.Sprintf("Daily buys — %s", token.Name),
+		ETAs:       make([]tokenETA, 0, len(token.ETAs)),
+	}
+	for _, p := range token.DailyPoints {
+		payload.Labels = append(payload.Labels, p.Day.UTC().Format(timeDateOnly))
+		payload.Daily = append(payload.Daily, bigIntToFloat(p.Value, token.Decimal))
+		payload.Cumulative = append(payload.Cumulative, bigIntToFloat(p.CumValue, token.Decimal))
+	}
+	for _, e := range token.ETAs {
+		payload.ETAs = append(payload.ETAs, tokenETA{
+			Window: e.Window,
+			Rate:   e.Rate,
+			Days:   e.Days,
+			Date:   e.Time.UTC().Format(time.DateOnly),
+		})
+	}
+	return payload
+}
+
 type projectEnvelope struct {
-	Name       string                 `json:"name"`
-	Summary    projectSummaryPayload  `json:"summary"`
-	Tokens     []chartPayload         `json:"tokens"`
-	Holders    []projectHolderPayload `json:"holders"`
-	TierStats  []tierStatPayload      `json:"tierStats"`
-	HoldersTop int                    `json:"holdersTop"`
+	Name        string                        `json:"name"`
+	GeneratedAt string                        `json:"generatedAt"`
+	Summary     projectSummaryPayload         `json:"summary"`
+	Tokens      []tokenTimeseriesChartPayload `json:"tokens"`
+	Holders     []projectHolderPayload        `json:"holders"`
+	TierStats   []tierStatPayload             `json:"tierStats"`
+	HoldersTop  int                           `json:"holdersTop"`
 }
 
 type projectSummaryPayload struct {
@@ -109,6 +135,21 @@ type projectSummaryPayload struct {
 	TotalSupply string  `json:"totalSupply"`
 	Bought      string  `json:"bought"`
 	BoughtPct   float64 `json:"boughtPct"`
+}
+
+type tokenTimeseriesChartPayload struct {
+	Title      string     `json:"title"`
+	Labels     []string   `json:"labels"`
+	Daily      []float64  `json:"daily"`
+	Cumulative []float64  `json:"cumulative"`
+	ETAs       []tokenETA `json:"etas"`
+}
+
+type tokenETA struct {
+	Window string `json:"window"`
+	Rate   string `json:"rate"`
+	Days   int64  `json:"days"`
+	Date   string `json:"date"`
 }
 
 type projectHolderPayload struct {

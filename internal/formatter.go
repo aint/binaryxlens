@@ -29,6 +29,16 @@ func FormatBigInt(raw *big.Int, decimals uint8) string {
 	return ip.String() + "." + frac
 }
 
+func bigIntToFloat(raw *big.Int, decimals uint8) float64 {
+	if raw == nil || raw.Sign() == 0 {
+		return 0
+	}
+	denom := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
+	r := new(big.Rat).SetFrac(new(big.Int).Set(raw), denom)
+	f, _ := r.Float64()
+	return f
+}
+
 func PercentOf(part, whole *big.Int) string {
 	return fmt.Sprintf("%.2f", PercentFloat(part, whole))
 }
