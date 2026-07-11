@@ -12,6 +12,7 @@ body { font-family: system-ui, sans-serif; padding: 16px; }
 h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .project-summary { font-size: 0.9rem; color: #333; margin: 0 0 20px; line-height: 1.5; }
 .project-summary p { margin: 0 0 4px; }
+.report-date { font-size: 0.85rem; color: #666; margin: -8px 0 12px; }
 .grid {
 	display: flex;
 	flex-direction: column;
@@ -57,6 +58,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 </head>
 <body>
 <h1 id="project-title">Project report</h1>
+<p id="report-date" class="report-date"></p>
 <div id="project-summary" class="project-summary" aria-label="Project summary"></div>
 
 <div id="grid" class="grid" aria-label="Token charts"></div>
@@ -119,6 +121,10 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	if (projectData.name) {
 		document.title = projectData.name;
 		document.getElementById("project-title").textContent = projectData.name;
+	}
+
+	if (projectData.generatedAt) {
+		document.getElementById("report-date").textContent = "Generated " + projectData.generatedAt;
 	}
 
 	if (projectData.summary) {
