@@ -35,12 +35,12 @@ func (t Token) dailySeries() ([]DailyPoint, error) {
 			return nil, fmt.Errorf("parse value %q: %w", tx.Value, err)
 		}
 
-		if tx.From == t.Address {
+		if isPrimaryIssuance(tx.From, t.Address) {
 			cur := timelineMap[day]
 			if cur == nil {
 				cur = big.NewInt(0)
 			}
-			timelineMap[day]= new(big.Int).Add(cur, value)
+			timelineMap[day] = new(big.Int).Add(cur, value)
 		}
 	}
 

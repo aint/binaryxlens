@@ -114,6 +114,13 @@ func (c *Client) tokenTxPage(contract string, page, offset int, sort string) ([]
 	if err := json.Unmarshal(envelope.Result, &rows); err != nil {
 		return nil, fmt.Errorf("decode tokentx rows: %w", err)
 	}
+
+	for i := range rows {
+		rows[i].From = strings.ToLower(rows[i].From)
+		rows[i].To = strings.ToLower(rows[i].To)
+		rows[i].ContractAddress = strings.ToLower(rows[i].ContractAddress)
+	}
+
 	return rows, nil
 }
 

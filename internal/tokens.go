@@ -95,8 +95,7 @@ func (t Token) boughtRaw() *big.Int {
 			continue
 		}
 
-		from := strings.ToLower(tx.From)
-		if from == t.Address {
+		if isPrimaryIssuance(tx.From, t.Address) {
 			boughtAmount.Add(boughtAmount, v)
 		}
 	}
@@ -114,6 +113,12 @@ func (t Token) decimal() (uint8, error) {
 		return 0, fmt.Errorf("parse decimal %q: %w", decimalStr, err)
 	}
 	return uint8(decimal), nil
+}
+
+// isPrimaryIssuance reports whether from is the token contract (escrow sale)
+// or the zero address (mint-on-purchase). Wallet-to-wallet transfers are excluded.
+func isPrimaryIssuance(from, tokenAddress string) bool {
+	return from == zeroAddr0x || from == strings.ToLower(tokenAddress)
 }
 
 var LaCasaEspanolaVilla4 = TokenDetails{
