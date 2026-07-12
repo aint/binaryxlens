@@ -52,7 +52,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .holders-section th { background: #eee; white-space: nowrap; }
 .holders-section td.num { text-align: right; white-space: nowrap; }
 .holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
-.holders-section td.tokens { min-width: 200px; max-width: 420px; }
+.holders-section td.properties { min-width: 200px; max-width: 420px; }
 .holders-section td.tier { white-space: nowrap; }
 </style>
 </head>
@@ -61,7 +61,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 <p id="report-date" class="report-date"></p>
 <div id="project-summary" class="project-summary" aria-label="Project summary"></div>
 
-<div id="grid" class="grid" aria-label="Token charts"></div>
+<div id="grid" class="grid" aria-label="Property charts"></div>
 
 <section id="holders-section" class="holders-section" aria-label="Project holders">
 	<h2>Holders</h2>
@@ -85,7 +85,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 				<tr>
 					<th>#</th>
 					<th>Address</th>
-					<th>Token names</th>
+					<th>Property names</th>
 					<th>Balance</th>
 					<th>% supply</th>
 					<th>Tier</th>
@@ -130,12 +130,12 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	if (projectData.summary) {
 		const s = projectData.summary;
 		document.getElementById("project-summary").innerHTML =
-			"<p>Tokens: <strong>" + s.tokenCount + "</strong></p>" +
+			"<p>Properties: <strong>" + s.propertyCount + "</strong></p>" +
 			"<p>Total supply: <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
-			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " tokens)</p>";
+			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " properties)</p>";
 	}
 
-	const allTokens = Array.isArray(projectData.tokens) ? projectData.tokens : [];
+	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
 	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
 	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
 	const holdersTop = typeof projectData.holdersTop === "number" && projectData.holdersTop > 0
@@ -206,7 +206,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			return "<tr>" +
 				"<td class=\"num\">" + (i + 1) + "</td>" +
 				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-				"<td class=\"tokens\">" + escapeHtml((h.tokenNames || []).join(", ")) + "</td>" +
+				"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
 				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
 				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
 				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
@@ -227,16 +227,16 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	function renderCharts() {
 		grid.innerHTML = "";
 
-		if (allTokens.length === 0) {
-			grid.innerHTML = "<p class=\"chart-placeholder\">No tokens loaded</p>";
+		if (allProperties.length === 0) {
+			grid.innerHTML = "<p class=\"chart-placeholder\">No properties loaded</p>";
 			return;
 		}
 
-		allTokens.forEach(function (token) {
+		allProperties.forEach(function (property) {
 			const slot = document.createElement("div");
 			slot.className = "slot";
 			const title = document.createElement("h3");
-			title.textContent = token && token.title ? token.title : "—";
+			title.textContent = property && property.title ? property.title : "—";
 			slot.appendChild(title);
 
 			const wrap = document.createElement("div");
@@ -250,7 +250,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			slot.appendChild(etaWrap);
 			grid.appendChild(slot);
 
-			if (!token || !token.labels || token.labels.length === 0) {
+			if (!property || !property.labels || property.labels.length === 0) {
 				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
 				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
 				return;
@@ -259,11 +259,11 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			const ch = new Chart(canvas, {
 				type: "line",
 				data: {
-					labels: token.labels,
+					labels: property.labels,
 					datasets: [
 						{
 							label: "Daily Δ",
-							data: token.daily,
+							data: property.daily,
 							borderColor: "rgb(75, 192, 192)",
 							backgroundColor: "rgba(75, 192, 192, 0.2)",
 							tension: 0,
@@ -273,7 +273,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 						},
 						{
 							label: "Cumulative",
-							data: token.cumulative,
+							data: property.cumulative,
 							borderColor: "rgb(255, 99, 132)",
 							tension: 0.05,
 							fill: false,
@@ -284,7 +284,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 				options: chartOptions()
 			});
 			chartInstances.push(ch);
-			renderETAsInto(etaWrap, token);
+			renderETAsInto(etaWrap, property);
 		});
 	}
 

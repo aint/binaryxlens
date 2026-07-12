@@ -32,9 +32,9 @@ func NewClinet(apiKey string) *Client {
 		panic("polygonscan api key is empty")
 	}
 	return &Client{
-		c:       http.DefaultClient,
-		apiKey:  apiKey,
-		mu:      sync.Mutex{},
+		c:             http.DefaultClient,
+		apiKey:        apiKey,
+		mu:            sync.Mutex{},
 		lastRequestAt: time.Time{},
 	}
 }
@@ -209,5 +209,3 @@ func truncate(s string, n int) string {
 	}
 	return s[:n] + "…"
 }
-
-

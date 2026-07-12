@@ -14,13 +14,13 @@ type DailyPoint struct {
 	CumPercent float64
 }
 
-func (t Token) dailySeries() ([]DailyPoint, error) {
+func (p *Property) buildDailySeries() error {
 	var start, end time.Time
 	timelineMap := make(map[time.Time]*big.Int)
-	for _, tx := range t.Txs {
+	for _, tx := range p.txs {
 		ts, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
+			return fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
 		}
 		day := time.Unix(ts, 0).UTC().Truncate(24 * time.Hour)
 		if start.IsZero() || day.Before(start) {
@@ -32,10 +32,10 @@ func (t Token) dailySeries() ([]DailyPoint, error) {
 
 		value, ok := new(big.Int).SetString(tx.Value, 10)
 		if !ok {
-			return nil, fmt.Errorf("parse value %q: %w", tx.Value, err)
+			return fmt.Errorf("parse value %q: %w", tx.Value, err)
 		}
 
-		if isPrimaryIssuance(tx.From, t.Address) {
+		if isPrimaryIssuance(tx.From, p.Address) {
 			cur := timelineMap[day]
 			if cur == nil {
 				cur = big.NewInt(0)
@@ -45,7 +45,7 @@ func (t Token) dailySeries() ([]DailyPoint, error) {
 	}
 
 	cumValue := big.NewInt(0)
-	dailySeries := make([]DailyPoint, 0, len(timelineMap))
+	dailyPoints := make([]DailyPoint, 0, len(timelineMap))
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 		value, ok := timelineMap[d]
 		if !ok {
@@ -53,14 +53,16 @@ func (t Token) dailySeries() ([]DailyPoint, error) {
 		}
 		cumValue = new(big.Int).Add(cumValue, value)
 		pct, _ := new(big.Rat).Mul(
-			new(big.Rat).SetFrac(cumValue, t.TotalSupplyRaw),
+			new(big.Rat).SetFrac(cumValue, p.TotalSupplyRaw),
 			big.NewRat(100, 1),
 		).Float64()
-		dailySeries = append(dailySeries, DailyPoint{Day: d, Value: value, CumValue: cumValue, CumPercent: pct})
-		if cumValue.Cmp(t.TotalSupplyRaw) == 0 {
+		dailyPoints = append(dailyPoints, DailyPoint{Day: d, Value: value, CumValue: cumValue, CumPercent: pct})
+		if cumValue.Cmp(p.TotalSupplyRaw) == 0 {
 			break
 		}
 	}
 
-	return dailySeries, nil
+	p.DailyPoints = dailyPoints
+
+	return nil
 }

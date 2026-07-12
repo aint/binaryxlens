@@ -18,54 +18,55 @@ const projectReportPath = "%s_report.html"
 var projectReport []byte
 var projectReportDataPlaceholder = []byte("__PROJECT_DATA_JSON__")
 
-// Project is a group of tokens that are related to each other.
+// Project is a group of properties that are related to each other.
 type Project struct {
 	Name           string
-	Tokens         []Token
+	Properties     []*Property
 	Holders        []ProjectHolder
 	TotalSupplyRaw *big.Int
 	BoughtRaw      *big.Int
 	Decimal        uint8
 }
 
-func NewProject(name string, tokens []Token) (Project, error) {
-	if len(tokens) == 0 {
-		return Project{}, errors.New("project needs at least one token")
+func NewProject(name string, properties []*Property) (*Project, error) {
+	if len(properties) == 0 {
+		return nil, errors.New("project needs at least one property")
 	}
 
-	p := Project{
+	pr := &Project{
 		Name:           name,
-		Tokens:         tokens,
+		Properties:     properties,
 		TotalSupplyRaw: big.NewInt(0),
 		BoughtRaw:      big.NewInt(0),
-		Decimal:        tokens[0].Decimal, // all tokens expected to have the same decimal
+		Decimal:        properties[0].Decimal, // all properties expected to have the same decimal
 	}
 
-	for _, token := range tokens {
-		if token.Decimal != p.Decimal {
-			return Project{}, fmt.Errorf("token %s has unexpected decimal %d", token.Name, token.Decimal)
+	for _, property := range properties {
+		if property.Decimal != pr.Decimal {
+			return nil, fmt.Errorf("property %s has unexpected decimal %d", property.Name, property.Decimal)
 		}
 
-		p.TotalSupplyRaw.Add(p.TotalSupplyRaw, token.TotalSupplyRaw)
-		p.BoughtRaw.Add(p.BoughtRaw, token.BoughtRaw)
+		pr.TotalSupplyRaw.Add(pr.TotalSupplyRaw, property.TotalSupplyRaw)
+		pr.BoughtRaw.Add(pr.BoughtRaw, property.BoughtRaw)
 	}
 
-	p.Holders = p.getHolders()
-	return p, nil
+	pr.buildHolders()
+
+	return pr, nil
 }
 
-func (p Project) GenerateReport(topHolders int) error {
-	var payloads []tokenTimeseriesChartPayload
-	for _, token := range p.Tokens {
-		payloads = append(payloads, buildTokenTimeSeriesChartPayload(token))
+func (pr *Project) GenerateReport(topHolders int) error {
+	var payloads []propertyTimeseriesChartPayload
+	for _, property := range pr.Properties {
+		payloads = append(payloads, buildPropertyTimeSeriesChartPayload(property))
 	}
 
-	holders, tierStats := p.buildHoldersPayload()
+	holders, tierStats := pr.buildHoldersPayload()
 	env := projectEnvelope{
-		Name:        p.Name,
+		Name:        pr.Name,
 		GeneratedAt: time.Now().UTC().Format(timeDateOnly),
-		Summary:     p.buildSummary(),
-		Tokens:      payloads,
+		Summary:     pr.buildSummary(),
+		Properties:  payloads,
 		Holders:     holders,
 		TierStats:   tierStats,
 		HoldersTop:  topHolders,
@@ -77,7 +78,7 @@ func (p Project) GenerateReport(topHolders int) error {
 	if !bytes.Contains(projectReport, projectReportDataPlaceholder) {
 		return fmt.Errorf("project template missing placeholder")
 	}
-	reportPath := fmt.Sprintf(projectReportPath, strings.ReplaceAll(strings.ToLower(p.Name), " ", "_"))
+	reportPath := fmt.Sprintf(projectReportPath, strings.ReplaceAll(strings.ToLower(pr.Name), " ", "_"))
 	out := bytes.ReplaceAll(projectReport, projectReportDataPlaceholder, jsonBytes)
 	if err := os.WriteFile(reportPath, out, 0o644); err != nil {
 		return err
@@ -87,30 +88,30 @@ func (p Project) GenerateReport(topHolders int) error {
 	return nil
 }
 
-func (p Project) buildSummary() projectSummaryPayload {
+func (pr *Project) buildSummary() projectSummaryPayload {
 	return projectSummaryPayload{
-		TokenCount:  len(p.Tokens),
-		TotalSupply: FormatBigInt(p.TotalSupplyRaw, p.Decimal),
-		Bought:      FormatBigInt(p.BoughtRaw, p.Decimal),
-		BoughtPct:   PercentFloat(p.BoughtRaw, p.TotalSupplyRaw),
+		PropertyCount: len(pr.Properties),
+		TotalSupply:   FormatBigInt(pr.TotalSupplyRaw, pr.Decimal),
+		Bought:        FormatBigInt(pr.BoughtRaw, pr.Decimal),
+		BoughtPct:     PercentFloat(pr.BoughtRaw, pr.TotalSupplyRaw),
 	}
 }
 
-func buildTokenTimeSeriesChartPayload(token Token) tokenTimeseriesChartPayload {
-	payload := tokenTimeseriesChartPayload{
-		Labels:     make([]string, 0, len(token.DailyPoints)),
-		Daily:      make([]float64, 0, len(token.DailyPoints)),
-		Cumulative: make([]float64, 0, len(token.DailyPoints)),
-		Title:      fmt.Sprintf("Daily buys — %s", token.Name),
-		ETAs:       make([]tokenETA, 0, len(token.ETAs)),
+func buildPropertyTimeSeriesChartPayload(property *Property) propertyTimeseriesChartPayload {
+	payload := propertyTimeseriesChartPayload{
+		Labels:     make([]string, 0, len(property.DailyPoints)),
+		Daily:      make([]float64, 0, len(property.DailyPoints)),
+		Cumulative: make([]float64, 0, len(property.DailyPoints)),
+		Title:      fmt.Sprintf("Daily buys — %s", property.Name),
+		ETAs:       make([]propertyETA, 0, len(property.ETAs)),
 	}
-	for _, p := range token.DailyPoints {
+	for _, p := range property.DailyPoints {
 		payload.Labels = append(payload.Labels, p.Day.UTC().Format(timeDateOnly))
-		payload.Daily = append(payload.Daily, bigIntToFloat(p.Value, token.Decimal))
-		payload.Cumulative = append(payload.Cumulative, bigIntToFloat(p.CumValue, token.Decimal))
+		payload.Daily = append(payload.Daily, bigIntToFloat(p.Value, property.Decimal))
+		payload.Cumulative = append(payload.Cumulative, bigIntToFloat(p.CumValue, property.Decimal))
 	}
-	for _, e := range token.ETAs {
-		payload.ETAs = append(payload.ETAs, tokenETA{
+	for _, e := range property.ETAs {
+		payload.ETAs = append(payload.ETAs, propertyETA{
 			Window: e.Window,
 			Rate:   e.Rate,
 			Days:   e.Days,
@@ -121,31 +122,31 @@ func buildTokenTimeSeriesChartPayload(token Token) tokenTimeseriesChartPayload {
 }
 
 type projectEnvelope struct {
-	Name        string                        `json:"name"`
-	GeneratedAt string                        `json:"generatedAt"`
-	Summary     projectSummaryPayload         `json:"summary"`
-	Tokens      []tokenTimeseriesChartPayload `json:"tokens"`
-	Holders     []projectHolderPayload        `json:"holders"`
-	TierStats   []tierStatPayload             `json:"tierStats"`
-	HoldersTop  int                           `json:"holdersTop"`
+	Name        string                           `json:"name"`
+	GeneratedAt string                           `json:"generatedAt"`
+	Summary     projectSummaryPayload            `json:"summary"`
+	Properties  []propertyTimeseriesChartPayload `json:"properties"`
+	Holders     []projectHolderPayload           `json:"holders"`
+	TierStats   []tierStatPayload                `json:"tierStats"`
+	HoldersTop  int                              `json:"holdersTop"`
 }
 
 type projectSummaryPayload struct {
-	TokenCount  int     `json:"tokenCount"`
-	TotalSupply string  `json:"totalSupply"`
-	Bought      string  `json:"bought"`
-	BoughtPct   float64 `json:"boughtPct"`
+	PropertyCount int     `json:"propertyCount"`
+	TotalSupply   string  `json:"totalSupply"`
+	Bought        string  `json:"bought"`
+	BoughtPct     float64 `json:"boughtPct"`
 }
 
-type tokenTimeseriesChartPayload struct {
-	Title      string     `json:"title"`
-	Labels     []string   `json:"labels"`
-	Daily      []float64  `json:"daily"`
-	Cumulative []float64  `json:"cumulative"`
-	ETAs       []tokenETA `json:"etas"`
+type propertyTimeseriesChartPayload struct {
+	Title      string        `json:"title"`
+	Labels     []string      `json:"labels"`
+	Daily      []float64     `json:"daily"`
+	Cumulative []float64     `json:"cumulative"`
+	ETAs       []propertyETA `json:"etas"`
 }
 
-type tokenETA struct {
+type propertyETA struct {
 	Window string `json:"window"`
 	Rate   string `json:"rate"`
 	Days   int64  `json:"days"`
@@ -153,11 +154,11 @@ type tokenETA struct {
 }
 
 type projectHolderPayload struct {
-	Address    string   `json:"address"`
-	TokenNames []string `json:"tokenNames"`
-	Balance    string   `json:"balance"`
-	SupplyPct  float64  `json:"supplyPct"`
-	Tier       string   `json:"tier"`
+	Address       string   `json:"address"`
+	PropertyNames []string `json:"propertyNames"`
+	Balance       string   `json:"balance"`
+	SupplyPct     float64  `json:"supplyPct"`
+	Tier          string   `json:"tier"`
 }
 
 type tierStatPayload struct {

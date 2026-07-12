@@ -5,7 +5,6 @@ import (
 	"maps"
 	"math/big"
 	"slices"
-	"strings"
 )
 
 const zeroAddr0x = "0x0000000000000000000000000000000000000000"
@@ -16,19 +15,17 @@ type Holder struct {
 }
 
 type ProjectHolder struct {
-	Address       string
-	TokenBalances map[string]*big.Int
-	TotalBalance  *big.Int
+	Address          string
+	PropertyBalances map[string]*big.Int
+	TotalBalance     *big.Int
 }
 
-type Holders []Holder
-
-func (t Token) getHolders() (Holders, error) {
+func (p *Property) buildHolders() error {
 	holderMap := make(map[string]*big.Int)
-	for _, tx := range t.Txs {
+	for _, tx := range p.txs {
 		v, ok := new(big.Int).SetString(tx.Value, 10)
 		if !ok {
-			return nil, fmt.Errorf("parse value %q", tx.Value)
+			return fmt.Errorf("parse value %q", tx.Value)
 		}
 		if tx.From != zeroAddr0x {
 			cur := holderMap[tx.From]
@@ -51,67 +48,38 @@ func (t Token) getHolders() (Holders, error) {
 		return holderMap[b].Cmp(holderMap[a]) // descending by balance
 	})
 
-	holders := make(Holders, 0, len(holderMap))
+	holders := make([]Holder, 0, len(holderMap))
 	for _, address := range keys {
-		if address == t.Address {
-			// ignore token's balance
+		if address == p.Address {
+			// ignore unclaimed balance
 			continue
 		}
 		holders = append(holders, Holder{Address: address, Balance: holderMap[address]})
 	}
-	return holders, nil
-}
 
-func (t Token) PrintHolders(top int) error {
-	idx := min(len(t.Holders), top)
+	p.Holders = holders
 
-	fmt.Printf("\nHolders: showing %d of %d\n", len(t.Holders[:idx]), len(t.Holders))
-	fmt.Printf("%4s %-42s %12s %12s %-12s\n", "#", "address", "balance", "% supply", "tier")
-	for i, h := range t.Holders[:idx] {
-		if h.Balance.Sign() == 0 {
-			continue
-		}
-		pct := PercentFloat(h.Balance, t.TotalSupplyRaw)
-		fmt.Printf(
-			"%4d %-42s %12s %11.2f%% %-12s\n",
-			i+1,
-			h.Address,
-			FormatBigInt(h.Balance, t.Decimal),
-			pct,
-			holderTier(pct),
-		)
-	}
-
-	pcts := make([]float64, 0, len(t.Holders))
-	for _, h := range t.Holders {
-		if h.Balance.Sign() == 0 {
-			continue
-		}
-		pcts = append(pcts, PercentFloat(h.Balance, t.TotalSupplyRaw))
-	}
-
-	printHolderTierStats(pcts)
 	return nil
 }
 
-func (p Project) getHolders() []ProjectHolder {
+func (pr *Project) buildHolders() {
 	projectHolderMap := make(map[string]*ProjectHolder)
 
-	for _, token := range p.Tokens {
-		for _, th := range token.Holders {
-			ph := projectHolderMap[th.Address]
+	for _, property := range pr.Properties {
+		for _, hol := range property.Holders {
+			ph := projectHolderMap[hol.Address]
 			if ph == nil {
 				ph = &ProjectHolder{
-					Address: th.Address,
-					TokenBalances: map[string]*big.Int{token.Name: new(big.Int).Set(th.Balance)},
-					TotalBalance: new(big.Int).Set(th.Balance),
+					Address:          hol.Address,
+					PropertyBalances: map[string]*big.Int{property.Name: new(big.Int).Set(hol.Balance)},
+					TotalBalance:     new(big.Int).Set(hol.Balance),
 				}
-				projectHolderMap[th.Address] = ph
+				projectHolderMap[hol.Address] = ph
 				continue
 			}
 
-			ph.TokenBalances[token.Name] = new(big.Int).Set(th.Balance)
-			ph.TotalBalance.Add(ph.TotalBalance, th.Balance)
+			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.Balance)
+			ph.TotalBalance.Add(ph.TotalBalance, hol.Balance)
 		}
 	}
 
@@ -122,54 +90,24 @@ func (p Project) getHolders() []ProjectHolder {
 	slices.SortFunc(projectHolders, func(a, b ProjectHolder) int {
 		return b.TotalBalance.Cmp(a.TotalBalance)
 	})
-	return projectHolders
+
+	pr.Holders = projectHolders
 }
 
-func (p Project) PrintHolders(top int) error {
-	idx := min(len(p.Holders), top)
-
-	fmt.Printf("\nHolders: showing %d of %d\n", len(p.Holders[:idx]), len(p.Holders))
-	fmt.Printf("%4s %-42s %-96s %12s %12s %-12s\n", "#", "address", "token names", "balance", "% supply", "tier")
-	for i, h := range p.Holders[:idx] {
-		names := slices.Sorted(maps.Keys(h.TokenBalances))
-		pct := PercentFloat(h.TotalBalance, p.TotalSupplyRaw)
-		fmt.Printf(
-			"%4d %-42s %-96s %12s %11.2f%% %-12s\n",
-			i+1,
-			h.Address,
-			strings.Join(names, ", "),
-			FormatBigInt(h.TotalBalance, p.Decimal),
-			pct,
-			holderTier(pct),
-		)
-	}
-
-	pcts := make([]float64, 0, len(p.Holders))
-	for _, h := range p.Holders {
+func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayload) {
+	holders := make([]projectHolderPayload, 0, len(pr.Holders))
+	pcts := make([]float64, 0, len(pr.Holders))
+	for _, h := range pr.Holders {
 		if h.TotalBalance.Sign() == 0 {
 			continue
 		}
-		pcts = append(pcts, PercentFloat(h.TotalBalance, p.TotalSupplyRaw))
-	}
-
-	printHolderTierStats(pcts)
-	return nil
-}
-
-func (p Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayload) {
-	holders := make([]projectHolderPayload, 0, len(p.Holders))
-	pcts := make([]float64, 0, len(p.Holders))
-	for _, h := range p.Holders {
-		if h.TotalBalance.Sign() == 0 {
-			continue
-		}
-		pct := PercentFloat(h.TotalBalance, p.TotalSupplyRaw)
+		pct := PercentFloat(h.TotalBalance, pr.TotalSupplyRaw)
 		holders = append(holders, projectHolderPayload{
-			Address:    h.Address,
-			TokenNames: slices.Sorted(maps.Keys(h.TokenBalances)),
-			Balance:    FormatBigInt(h.TotalBalance, p.Decimal),
-			SupplyPct:  pct,
-			Tier:       holderTier(pct),
+			Address:       h.Address,
+			PropertyNames: slices.Sorted(maps.Keys(h.PropertyBalances)),
+			Balance:       FormatBigInt(h.TotalBalance, pr.Decimal),
+			SupplyPct:     pct,
+			Tier:          holderTier(pct),
 		})
 		pcts = append(pcts, pct)
 	}
@@ -206,26 +144,6 @@ func buildTierStatsPayload(pcts []float64) []tierStatPayload {
 		})
 	}
 	return out
-}
-
-func printHolderTierStats(pcts []float64) {
-	stats := buildTierStatsPayload(pcts)
-	if len(stats) == 0 {
-		return
-	}
-	total := len(pcts)
-
-	fmt.Printf("\nTier distribution (%d holders):\n", total)
-	fmt.Printf("%-12s %6s %8s %10s\n", "tier", "count", "% holders", "% supply")
-	for _, s := range stats {
-		fmt.Printf(
-			"%-12s %6d %7.1f%% %9.2f%%\n",
-			s.Name,
-			s.Count,
-			s.HoldersPct,
-			s.SupplyPct,
-		)
-	}
 }
 
 var holderTierThresholds = []struct {
