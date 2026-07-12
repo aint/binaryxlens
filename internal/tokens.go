@@ -54,6 +54,10 @@ func NewToken(tokenDetails TokenDetails, client *polygonscan.Client, scanPause t
 		return Token{}, fmt.Errorf("no transactions found")
 	}
 
+	token.Decimal, err = token.decimal()
+	if err != nil {
+		return Token{}, fmt.Errorf("get decimal: %v", err)
+	}
 
 	token.TotalSupplyRaw, err = client.GetTotalSupply(token.Address)
 	if err != nil {
@@ -76,11 +80,6 @@ func NewToken(tokenDetails TokenDetails, client *polygonscan.Client, scanPause t
 	token.ETAs, err = token.movingAverageETA()
 	if err != nil {
 		return Token{}, fmt.Errorf("calculate ETAs: %v", err)
-	}
-
-	token.Decimal, err = token.decimal()
-	if err != nil {
-		return Token{}, fmt.Errorf("get decimal: %v", err)
 	}
 
 	return token, nil
