@@ -12,9 +12,18 @@ import (
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
+// IssuanceModel is how initial sales leave issuer control.
+type IssuanceModel int
+
+const (
+	IssuanceMintOnPurchase IssuanceModel = iota // 0x0 → buyer on each sale
+	IssuanceEscrow                              // contract → buyer; 0x0 → contract is inventory
+)
+
 type Property struct {
 	Contract
 	txs            []polygonscan.TokenTransfer
+	issuanceModel  IssuanceModel
 	DailyPoints    []DailyPoint
 	ETAs           []ETA
 	Holders        []Holder
@@ -54,6 +63,7 @@ func NewProperty(contract Contract, client *polygonscan.Client, scanPause time.D
 		// TODO: mark as new one instead of returning error
 		return nil, fmt.Errorf("no transactions found")
 	}
+	property.resolveIssuanceModel()
 
 	err = property.extractDecimal()
 	if err != nil {
@@ -90,6 +100,16 @@ func NewProperty(contract Contract, client *polygonscan.Client, scanPause time.D
 	return property, nil
 }
 
+func (p *Property) resolveIssuanceModel() {
+	p.issuanceModel = IssuanceMintOnPurchase
+	for _, tx := range p.txs {
+		if tx.From == p.Address {
+			p.issuanceModel = IssuanceEscrow
+			return
+		}
+	}
+}
+
 func (p *Property) calculateBoughtRaw() {
 	boughtAmount := big.NewInt(0)
 	for _, tx := range p.txs {
@@ -99,12 +119,25 @@ func (p *Property) calculateBoughtRaw() {
 			continue
 		}
 
-		if isPrimaryIssuance(tx.From, p.Address) {
+		if p.isInitialSale(tx.From) {
 			boughtAmount.Add(boughtAmount, v)
 		}
 	}
 
 	p.BoughtRaw = boughtAmount
+}
+
+// isInitialSale reports whether from is an initial sale (not wallet-to-wallet).
+// Escrow: only contract→buyer transfers count; the initial 0x0 mint is inventory, not a sale.
+// Mint-on-purchase: count 0x0 mints.
+func (p *Property) isInitialSale(from string) bool {
+	if from == p.Address {
+		return true
+	}
+	if from == zeroAddr0x && p.issuanceModel == IssuanceMintOnPurchase {
+		return true
+	}
+	return false
 }
 
 func (p *Property) extractDecimal() error {
@@ -120,12 +153,6 @@ func (p *Property) extractDecimal() error {
 	p.Decimal = uint8(decimal)
 
 	return nil
-}
-
-// isPrimaryIssuance reports whether from is the token contract (escrow sale)
-// or the zero address (mint-on-purchase). Wallet-to-wallet transfers are excluded.
-func isPrimaryIssuance(from, tokenAddress string) bool {
-	return from == zeroAddr0x || from == strings.ToLower(tokenAddress)
 }
 
 var LaCasaEspanolaVilla4 = Contract{

@@ -35,7 +35,7 @@ func (p *Property) buildDailySeries() error {
 			return fmt.Errorf("parse value %q: %w", tx.Value, err)
 		}
 
-		if isPrimaryIssuance(tx.From, p.Address) {
+		if p.isInitialSale(tx.From) {
 			cur := timelineMap[day]
 			if cur == nil {
 				cur = big.NewInt(0)
