@@ -150,7 +150,7 @@ type propertyETA struct {
 	Window string `json:"window"`
 	Rate   string `json:"rate"`
 	Days   int64  `json:"days"`
-	Date   string `json:"date"`
+	Date   string `json:"date,omitempty"`
 }
 
 type projectHolderPayload struct {

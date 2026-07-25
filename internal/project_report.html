@@ -144,24 +144,35 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	const grid = document.getElementById("grid");
 	const chartInstances = [];
 
+	function etaDate(row) {
+		const date = row && row.date;
+		return date && date !== "0001-01-01" ? date : "";
+	}
+
 	function renderETAsInto(container, chartData) {
 		const rows = chartData.etas;
 		if (!rows || rows.length === 0) {
 			container.innerHTML = "<h4>ETA</h4><p class=\"muted\">No ETA rows.</p>";
 			return;
 		}
-		const times = rows.map(function (r) { return r.date; }).filter(Boolean).sort();
+		const times = rows.map(etaDate).filter(Boolean).sort();
+		const showDate = times.length > 0;
 		let band = "";
 		if (times.length >= 2) {
 			band = "<p class=\"muted\">Band: <strong>" + escapeHtml(times[0]) + "</strong> … <strong>" + escapeHtml(times[times.length - 1]) + "</strong></p>";
 		}
 		const body = rows.map(function (r) {
-			return "<tr><td>" + escapeHtml(r.window) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td><td>" + escapeHtml(r.date) + "</td></tr>";
+			let row = "<tr><td>" + escapeHtml(r.window) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td>";
+			if (showDate) {
+				row += "<td>" + escapeHtml(etaDate(r)) + "</td>";
+			}
+			return row + "</tr>";
 		}).join("");
+		const heading = showDate ? "<h4>ETA</h4>" : "";
 		container.innerHTML =
-			"<h4>ETA</h4>" +
+			heading +
 			band +
-			"<table><thead><tr><th>Window</th><th>Avg Δ</th><th>Days</th><th>Date</th></tr></thead><tbody>" +
+			"<table><thead><tr><th>Window</th><th>Avg Δ</th><th>Days</th>" + (showDate ? "<th>Date</th>" : "") + "</tr></thead><tbody>" +
 			body +
 			"</tbody></table>";
 	}

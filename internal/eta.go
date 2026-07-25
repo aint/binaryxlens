@@ -20,10 +20,10 @@ var trailingWindows = map[string]int{
 }
 
 // MovingAverageETA calculates up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
+// When the property is fully sold, ETAs are replaced with the sale period and average buy rate.
 func (p *Property) calculateMovingAverageETA() error {
 	if p.RemainingRaw.Sign() <= 0 {
-		fmt.Println("No ETA: cumulative bought already ≥ total supply")
-		return nil
+		return p.calculateCompletedSaleDates()
 	}
 
 	if len(p.DailyPoints) < 7 {
@@ -79,6 +79,38 @@ func (p *Property) etaFromTrailingWindow(w int) (time.Time, int64, string, error
 	eta := lastDay.AddDate(0, 0, int(daysInt))
 	rate := FormatBigRat(avgRat, p.Decimal, 1)
 	return eta, daysInt, rate, nil
+}
+
+func (p *Property) calculateCompletedSaleDates() error {
+	pts := p.DailyPoints
+	if len(pts) == 0 {
+		return fmt.Errorf("no daily points for completed sale")
+	}
+
+	start := pts[0].Day
+	end := pts[len(pts)-1].Day
+	days := inclusiveUTCDays(start, end)
+	if days <= 0 {
+		return fmt.Errorf("invalid sale period: %s – %s", start.Format(timeDateOnly), end.Format(timeDateOnly))
+	}
+
+	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(p.TotalSupplyRaw), big.NewInt(days))
+	p.ETAs = []ETA{{
+		Days:   days,
+		Rate:   FormatBigRat(avgRat, p.Decimal, 1),
+		Window: fmt.Sprintf("%s – %s", start.Format(timeDateOnly), end.Format(timeDateOnly)),
+	}}
+
+	return nil
+}
+
+func inclusiveUTCDays(start, end time.Time) int64 {
+	start = start.UTC().Truncate(24 * time.Hour)
+	end = end.UTC().Truncate(24 * time.Hour)
+	if end.Before(start) {
+		return 0
+	}
+	return int64(end.Sub(start).Hours()/24) + 1
 }
 
 // ceilRatToInt64 returns ⌈x⌉ for x ≥ 0; for huge values beyond int64, returns -1.

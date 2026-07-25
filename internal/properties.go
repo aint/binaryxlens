@@ -93,8 +93,6 @@ func NewProperty(contract Contract, client *polygonscan.Client, scanPause time.D
 		return nil, fmt.Errorf("calculate ETAs: %v", err)
 	}
 
-	// if 100% bought, replace ETA with start - end period and token bought rate
-
 	fmt.Printf("Property '%s' initialized\n", property.Name)
 
 	return property, nil
