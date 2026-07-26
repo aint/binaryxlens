@@ -87,22 +87,24 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		</thead>
 		<tbody id="tier-stats-body"></tbody>
 	</table>
-	<h3>Top holders</h3>
-	<p id="holders-meta" class="section-meta"></p>
-	<div class="holders-scroll">
-		<table id="holders-table">
-			<thead>
-				<tr>
-					<th>#</th>
-					<th>Address</th>
-					<th>Property names</th>
-					<th>Balance</th>
-					<th>% supply</th>
-					<th>Tier</th>
-				</tr>
-			</thead>
-			<tbody id="holders-body"></tbody>
-		</table>
+	<div id="global-holders-block">
+		<h3>Top holders</h3>
+		<p id="holders-meta" class="section-meta"></p>
+		<div class="holders-scroll">
+			<table id="holders-table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Address</th>
+						<th>Property names</th>
+						<th>Balance</th>
+						<th>% supply</th>
+						<th>Tier</th>
+					</tr>
+				</thead>
+				<tbody id="holders-body"></tbody>
+			</table>
+		</div>
 	</div>
 </section>
 
@@ -244,21 +246,27 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			return;
 		}
 
-		const shown = Math.min(globalHoldersTop, allHolders.length);
-		document.getElementById("holders-meta").textContent =
-			"Showing " + shown + " of " + allHolders.length + " holders (by total balance).";
+		const showGlobal = allProperties.length > 1;
+		const globalBlock = document.getElementById("global-holders-block");
+		globalBlock.hidden = !showGlobal;
 
-		const body = document.getElementById("holders-body");
-		body.innerHTML = allHolders.slice(0, globalHoldersTop).map(function (h, i) {
-			return "<tr>" +
-				"<td class=\"num\">" + (i + 1) + "</td>" +
-				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-				"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
-				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
-				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
-				"</tr>";
-		}).join("");
+		if (showGlobal) {
+			const shown = Math.min(globalHoldersTop, allHolders.length);
+			document.getElementById("holders-meta").textContent =
+				"Showing " + shown + " of " + allHolders.length + " holders (by total balance).";
+
+			const body = document.getElementById("holders-body");
+			body.innerHTML = allHolders.slice(0, globalHoldersTop).map(function (h, i) {
+				return "<tr>" +
+					"<td class=\"num\">" + (i + 1) + "</td>" +
+					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
+					"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+					"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+					"</tr>";
+			}).join("");
+		}
 
 		const tierBody = document.getElementById("tier-stats-body");
 		tierBody.innerHTML = tierStats.map(function (s) {
