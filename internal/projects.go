@@ -12,7 +12,10 @@ import (
 	"time"
 )
 
-const projectReportPath = "%s_report.html"
+const (
+	projectReportPath  = "%s_report.html"
+	propertyTopHolders = 10
+)
 
 //go:embed project_report.html
 var projectReport []byte
@@ -56,20 +59,21 @@ func NewProject(name string, properties []*Property) (*Project, error) {
 }
 
 func (pr *Project) GenerateReport(topHolders int) error {
-	var payloads []propertyTimeseriesChartPayload
+	var payloads []propertyReportPayload
 	for _, property := range pr.Properties {
-		payloads = append(payloads, buildPropertyTimeSeriesChartPayload(property))
+		payloads = append(payloads, buildPropertyReportPayload(property))
 	}
 
 	holders, tierStats := pr.buildHoldersPayload()
 	env := projectEnvelope{
-		Name:        pr.Name,
-		GeneratedAt: time.Now().UTC().Format(timeDateOnly),
-		Summary:     pr.buildSummary(),
-		Properties:  payloads,
-		Holders:     holders,
-		TierStats:   tierStats,
-		HoldersTop:  topHolders,
+		Name:               pr.Name,
+		GeneratedAt:        time.Now().UTC().Format(timeDateOnly),
+		Summary:            pr.buildSummary(),
+		Properties:         payloads,
+		Holders:            holders,
+		TierStats:          tierStats,
+		GlobalHoldersTop:   topHolders,
+		PropertyHoldersTop: propertyTopHolders,
 	}
 	jsonBytes, err := json.Marshal(env)
 	if err != nil {
@@ -97,13 +101,15 @@ func (pr *Project) buildSummary() projectSummaryPayload {
 	}
 }
 
-func buildPropertyTimeSeriesChartPayload(property *Property) propertyTimeseriesChartPayload {
-	payload := propertyTimeseriesChartPayload{
+func buildPropertyReportPayload(property *Property) propertyReportPayload {
+	payload := propertyReportPayload{
+		Name:       property.Name,
+		Title:      fmt.Sprintf("Daily buys — %s", property.Name),
 		Labels:     make([]string, 0, len(property.DailyPoints)),
 		Daily:      make([]float64, 0, len(property.DailyPoints)),
 		Cumulative: make([]float64, 0, len(property.DailyPoints)),
-		Title:      fmt.Sprintf("Daily buys — %s", property.Name),
 		ETAs:       make([]propertyETA, 0, len(property.ETAs)),
+		Holders:    buildPropertyHoldersPayload(property),
 	}
 	for _, p := range property.DailyPoints {
 		payload.Labels = append(payload.Labels, p.Day.UTC().Format(timeDateOnly))
@@ -121,14 +127,35 @@ func buildPropertyTimeSeriesChartPayload(property *Property) propertyTimeseriesC
 	return payload
 }
 
+func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
+	holders := make([]propertyHolderRow, 0, propertyTopHolders)
+	for _, h := range property.Holders {
+		if h.Balance.Sign() <= 0 {
+			continue
+		}
+		pct := PercentFloat(h.Balance, property.TotalSupplyRaw)
+		holders = append(holders, propertyHolderRow{
+			Address:   h.Address,
+			Balance:   FormatBigInt(h.Balance, property.Decimal),
+			SupplyPct: pct,
+			Tier:      holderTier(pct),
+		})
+		if len(holders) >= propertyTopHolders {
+			break
+		}
+	}
+	return holders
+}
+
 type projectEnvelope struct {
-	Name        string                           `json:"name"`
-	GeneratedAt string                           `json:"generatedAt"`
-	Summary     projectSummaryPayload            `json:"summary"`
-	Properties  []propertyTimeseriesChartPayload `json:"properties"`
-	Holders     []projectHolderPayload           `json:"holders"`
-	TierStats   []tierStatPayload                `json:"tierStats"`
-	HoldersTop  int                              `json:"holdersTop"`
+	Name               string                  `json:"name"`
+	GeneratedAt        string                  `json:"generatedAt"`
+	Summary            projectSummaryPayload   `json:"summary"`
+	Properties         []propertyReportPayload `json:"properties"`
+	Holders            []projectHolderPayload  `json:"holders"`
+	TierStats          []tierStatPayload       `json:"tierStats"`
+	GlobalHoldersTop   int                     `json:"globalHoldersTop"`
+	PropertyHoldersTop int                     `json:"propertyHoldersTop"`
 }
 
 type projectSummaryPayload struct {
@@ -138,12 +165,14 @@ type projectSummaryPayload struct {
 	BoughtPct     float64 `json:"boughtPct"`
 }
 
-type propertyTimeseriesChartPayload struct {
-	Title      string        `json:"title"`
-	Labels     []string      `json:"labels"`
-	Daily      []float64     `json:"daily"`
-	Cumulative []float64     `json:"cumulative"`
-	ETAs       []propertyETA `json:"etas"`
+type propertyReportPayload struct {
+	Name       string              `json:"name"`
+	Title      string              `json:"title"`
+	Labels     []string            `json:"labels"`
+	Daily      []float64           `json:"daily"`
+	Cumulative []float64           `json:"cumulative"`
+	ETAs       []propertyETA       `json:"etas"`
+	Holders    []propertyHolderRow `json:"holders"`
 }
 
 type propertyETA struct {
@@ -159,6 +188,13 @@ type projectHolderPayload struct {
 	Balance       string   `json:"balance"`
 	SupplyPct     float64  `json:"supplyPct"`
 	Tier          string   `json:"tier"`
+}
+
+type propertyHolderRow struct {
+	Address   string  `json:"address"`
+	Balance   string  `json:"balance"`
+	SupplyPct float64 `json:"supplyPct"`
+	Tier      string  `json:"tier"`
 }
 
 type tierStatPayload struct {

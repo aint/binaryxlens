@@ -42,6 +42,16 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .slot .eta-wrap th, .slot .eta-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
 .slot .eta-wrap th { background: #eee; }
 .slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap { margin-top: 12px; }
+.slot .holders-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.slot .holders-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.slot .holders-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .holders-wrap th, .slot .holders-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+.slot .holders-wrap th { background: #eee; white-space: nowrap; }
+.slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
+.slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
+.slot .holders-wrap td.tier { white-space: nowrap; }
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
@@ -138,9 +148,12 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
 	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
 	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
-	const holdersTop = typeof projectData.holdersTop === "number" && projectData.holdersTop > 0
-		? projectData.holdersTop
+	const globalHoldersTop = typeof projectData.globalHoldersTop === "number" && projectData.globalHoldersTop > 0
+		? projectData.globalHoldersTop
 		: allHolders.length;
+	const propertyHoldersTop = typeof projectData.propertyHoldersTop === "number" && projectData.propertyHoldersTop > 0
+		? projectData.propertyHoldersTop
+		: 10;
 	const grid = document.getElementById("grid");
 	const chartInstances = [];
 
@@ -177,6 +190,29 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			"</tbody></table>";
 	}
 
+	function renderPropertyHoldersInto(container, property) {
+		const holders = property && Array.isArray(property.holders) ? property.holders : [];
+		const heading = "<h4>Top " + propertyHoldersTop + " holders</h4>";
+		if (holders.length === 0) {
+			container.innerHTML = heading + "<p class=\"muted\">No holders.</p>";
+			return;
+		}
+		const rows = holders.map(function (h, i) {
+			return "<tr>" +
+				"<td class=\"num\">" + (i + 1) + "</td>" +
+				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+				"</tr>";
+		}).join("");
+		container.innerHTML =
+			heading +
+			"<div class=\"holders-scroll\"><table><thead><tr>" +
+			"<th>#</th><th>Address</th><th>Balance</th><th>% supply</th><th>Tier</th>" +
+			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+	}
+
 	function chartOptions() {
 		return {
 			responsive: true,
@@ -208,12 +244,12 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			return;
 		}
 
-		const shown = Math.min(holdersTop, allHolders.length);
+		const shown = Math.min(globalHoldersTop, allHolders.length);
 		document.getElementById("holders-meta").textContent =
 			"Showing " + shown + " of " + allHolders.length + " holders (by total balance).";
 
 		const body = document.getElementById("holders-body");
-		body.innerHTML = allHolders.slice(0, holdersTop).map(function (h, i) {
+		body.innerHTML = allHolders.slice(0, globalHoldersTop).map(function (h, i) {
 			return "<tr>" +
 				"<td class=\"num\">" + (i + 1) + "</td>" +
 				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
@@ -259,11 +295,16 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			const etaWrap = document.createElement("div");
 			etaWrap.className = "eta-wrap";
 			slot.appendChild(etaWrap);
+
+			const holdersWrap = document.createElement("div");
+			holdersWrap.className = "holders-wrap";
+			slot.appendChild(holdersWrap);
 			grid.appendChild(slot);
 
 			if (!property || !property.labels || property.labels.length === 0) {
 				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
 				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
+				renderPropertyHoldersInto(holdersWrap, property);
 				return;
 			}
 
@@ -296,6 +337,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			});
 			chartInstances.push(ch);
 			renderETAsInto(etaWrap, property);
+			renderPropertyHoldersInto(holdersWrap, property);
 		});
 	}
 
