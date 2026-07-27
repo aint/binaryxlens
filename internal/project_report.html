@@ -43,7 +43,16 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .slot .eta-wrap th { background: #eee; }
 .slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
 .slot .holders-wrap { margin-top: 12px; }
-.slot .holders-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.slot .holders-wrap > summary {
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 6px;
+}
+.slot .holders-wrap > summary::-webkit-details-marker { display: none; }
+.slot .holders-wrap > summary::before { content: "▸ "; }
+.slot .holders-wrap[open] > summary::before { content: "▾ "; }
 .slot .holders-wrap .muted { color: #666; font-size: 0.8rem; }
 .slot .holders-wrap .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
 .slot .holders-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
@@ -55,6 +64,17 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
+.holders-section details.holders-collapse { margin-top: 20px; }
+.holders-section details.holders-collapse > summary {
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 8px;
+}
+.holders-section details.holders-collapse > summary::-webkit-details-marker { display: none; }
+.holders-section details.holders-collapse > summary::before { content: "▸ "; }
+.holders-section details.holders-collapse[open] > summary::before { content: "▾ "; }
 .section-meta { font-size: 0.85rem; color: #444; margin: 0 0 10px; }
 .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
 .holders-section table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
@@ -87,8 +107,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		</thead>
 		<tbody id="tier-stats-body"></tbody>
 	</table>
-	<div id="global-holders-block">
-		<h3>Top holders</h3>
+	<details id="global-holders-block" class="holders-collapse">
+		<summary>Top global holders</summary>
 		<p id="holders-meta" class="section-meta"></p>
 		<div class="holders-scroll">
 			<table id="holders-table">
@@ -105,7 +125,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 				<tbody id="holders-body"></tbody>
 			</table>
 		</div>
-	</div>
+	</details>
 </section>
 
 <script type="application/json" id="project-data">__PROJECT_DATA_JSON__</script>
@@ -194,9 +214,9 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 
 	function renderPropertyHoldersInto(container, property) {
 		const holders = property && Array.isArray(property.holders) ? property.holders : [];
-		const heading = "<h4>Top " + propertyHoldersTop + " holders</h4>";
+		const summary = "<summary>Top " + propertyHoldersTop + " holders</summary>";
 		if (holders.length === 0) {
-			container.innerHTML = heading + "<p class=\"muted\">No holders.</p>";
+			container.innerHTML = summary + "<p class=\"muted\">No holders.</p>";
 			return;
 		}
 		const rows = holders.map(function (h, i) {
@@ -209,7 +229,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 				"</tr>";
 		}).join("");
 		container.innerHTML =
-			heading +
+			summary +
 			"<div class=\"holders-scroll\"><table><thead><tr>" +
 			"<th>#</th><th>Address</th><th>Balance</th><th>% supply</th><th>Tier</th>" +
 			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
