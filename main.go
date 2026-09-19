@@ -43,26 +43,26 @@ func main() {
 
 }
 
-func getTokens(client *polygonscan.Client, scanPause time.Duration) []internal.Token {
-	token4, err := internal.NewToken(internal.LaCasaEspanolaVilla4, client, scanPause)
+func getTokens(client *polygonscan.Client, scanPause time.Duration) []*internal.Property {
+	token4, err := internal.NewProperty(internal.LaCasaEspanolaVilla4, client, scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
 		os.Exit(1)
 	}
-	token6, err := internal.NewToken(internal.LaCasaEspanolaVilla6, client, scanPause)
+	token6, err := internal.NewProperty(internal.LaCasaEspanolaVilla6, client, scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
 		os.Exit(1)
 	}
-	token8, err := internal.NewToken(internal.LaCasaEspanolaVilla8, client, scanPause)
+	token8, err := internal.NewProperty(internal.LaCasaEspanolaVilla8, client, scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
 		os.Exit(1)
 	}
-	token9, err := internal.NewToken(internal.LaCasaEspanolaVilla9, client, scanPause)
+	token9, err := internal.NewProperty(internal.LaCasaEspanolaVilla9, client, scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
 		os.Exit(1)
 	}
-	return []internal.Token{token4, token6, token8, token9}
+	return []*internal.Property{token4, token6, token8, token9}
 }
