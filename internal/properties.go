@@ -22,15 +22,16 @@ const (
 
 type Property struct {
 	Contract
-	txs            []polygonscan.TokenTransfer
-	issuanceModel  IssuanceModel
-	DailyPoints    []DailyPoint
-	ETAs           []ETA
-	Holders        []Holder
-	TotalSupplyRaw *big.Int
-	BoughtRaw      *big.Int
-	RemainingRaw   *big.Int
-	Decimal        uint8
+	txs                    []polygonscan.TokenTransfer
+	issuanceModel          IssuanceModel
+	InitialSaleDailyPoints []DailyPoint
+	P2PSaleWeeklyPoints    []WeeklyPoint
+	ETAs                   []ETA
+	Holders                []Holder
+	TotalSupplyRaw         *big.Int
+	BoughtRaw              *big.Int
+	RemainingRaw           *big.Int
+	Decimal                uint8
 }
 
 type Contract struct {
@@ -83,9 +84,14 @@ func NewProperty(contract Contract, client *polygonscan.Client, scanPause time.D
 		return nil, fmt.Errorf("build holders: %v", err)
 	}
 
-	err = property.buildDailySeries()
+	err = property.buildInitialSaleDailySeries()
 	if err != nil {
-		return nil, fmt.Errorf("build daily series: %v", err)
+		return nil, fmt.Errorf("build initial sale daily series: %v", err)
+	}
+
+	err = property.buildP2PSaleWeeklySeries()
+	if err != nil {
+		return nil, fmt.Errorf("build p2p sale weekly series: %v", err)
 	}
 
 	err = property.calculateMovingAverageETA()
@@ -136,6 +142,14 @@ func (p *Property) isInitialSale(from string) bool {
 		return true
 	}
 	return false
+}
+
+// isP2PTransfer reports wallet-to-wallet moves after initial sale.
+func (p *Property) isP2PTransfer(from, to string) bool {
+	if from == zeroAddr0x || to == zeroAddr0x || from == p.Address || to == p.Address {
+		return false
+	}
+	return true
 }
 
 func (p *Property) extractDecimal() error {

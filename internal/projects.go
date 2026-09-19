@@ -102,16 +102,17 @@ func (pr *Project) buildSummary() projectSummaryPayload {
 }
 
 func buildPropertyReportPayload(property *Property) propertyReportPayload {
+	initialSaleDailyPoints := property.InitialSaleDailyPoints
 	payload := propertyReportPayload{
 		Name:       property.Name,
 		Title:      fmt.Sprintf("Daily buys — %s", property.Name),
-		Labels:     make([]string, 0, len(property.DailyPoints)),
-		Daily:      make([]float64, 0, len(property.DailyPoints)),
-		Cumulative: make([]float64, 0, len(property.DailyPoints)),
+		Labels:     make([]string, 0, len(initialSaleDailyPoints)),
+		Daily:      make([]float64, 0, len(initialSaleDailyPoints)),
+		Cumulative: make([]float64, 0, len(initialSaleDailyPoints)),
 		ETAs:       make([]propertyETA, 0, len(property.ETAs)),
 		Holders:    buildPropertyHoldersPayload(property),
 	}
-	for _, p := range property.DailyPoints {
+	for _, p := range initialSaleDailyPoints {
 		payload.Labels = append(payload.Labels, p.Day.UTC().Format(timeDateOnly))
 		payload.Daily = append(payload.Daily, bigIntToFloat(p.Value, property.Decimal))
 		payload.Cumulative = append(payload.Cumulative, bigIntToFloat(p.CumValue, property.Decimal))

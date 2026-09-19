@@ -26,15 +26,15 @@ func (p *Property) calculateMovingAverageETA() error {
 		return p.calculateCompletedSaleDates()
 	}
 
-	if len(p.DailyPoints) < 7 {
+	if len(p.InitialSaleDailyPoints) < 7 {
 		return fmt.Errorf("not enough data to calculate ETA")
 	}
 
 	// todo: map is random order
 	trailingWindows = map[string]int{
-		"last 7 UTC days":                  min(7, len(p.DailyPoints)),
-		"last 30 UTC days":                 min(30, len(p.DailyPoints)),
-		"full history (all calendar days)": len(p.DailyPoints),
+		"last 7 UTC days":                  min(7, len(p.InitialSaleDailyPoints)),
+		"last 30 UTC days":                 min(30, len(p.InitialSaleDailyPoints)),
+		"full history (all calendar days)": len(p.InitialSaleDailyPoints),
 	}
 
 	etas := make([]ETA, 0, len(trailingWindows))
@@ -53,9 +53,9 @@ func (p *Property) calculateMovingAverageETA() error {
 
 func (p *Property) etaFromTrailingWindow(w int) (time.Time, int64, string, error) {
 	sum := big.NewInt(0)
-	from := len(p.DailyPoints) - w
-	for j := from; j < len(p.DailyPoints); j++ {
-		sum.Add(sum, p.DailyPoints[j].Value)
+	from := len(p.InitialSaleDailyPoints) - w
+	for j := from; j < len(p.InitialSaleDailyPoints); j++ {
+		sum.Add(sum, p.InitialSaleDailyPoints[j].Value)
 	}
 	// sum / w = avg daily Δ in the window
 	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(sum), big.NewInt(int64(w)))
@@ -75,14 +75,14 @@ func (p *Property) etaFromTrailingWindow(w int) (time.Time, int64, string, error
 		return time.Time{}, 0, "", fmt.Errorf("day count out of int64 range")
 	}
 
-	lastDay := p.DailyPoints[len(p.DailyPoints)-1].Day
+	lastDay := p.InitialSaleDailyPoints[len(p.InitialSaleDailyPoints)-1].Day
 	eta := lastDay.AddDate(0, 0, int(daysInt))
 	rate := FormatBigRat(avgRat, p.Decimal, 1)
 	return eta, daysInt, rate, nil
 }
 
 func (p *Property) calculateCompletedSaleDates() error {
-	pts := p.DailyPoints
+	pts := p.InitialSaleDailyPoints
 	if len(pts) == 0 {
 		return fmt.Errorf("no daily points for completed sale")
 	}
