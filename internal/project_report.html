@@ -61,6 +61,9 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
 .slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
 .slot .holders-wrap td.tier { white-space: nowrap; }
+.slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 12px 0 6px; }
+.slot .secondary-wrap { margin-top: 4px; }
+.slot .secondary-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
@@ -235,7 +238,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
 	}
 
-	function chartOptions() {
+	function chartOptions(dailyLabel, cumLabel) {
 		return {
 			responsive: true,
 			maintainAspectRatio: false,
@@ -246,17 +249,75 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 					type: "linear",
 					position: "left",
 					beginAtZero: true,
-					title: { display: true, text: "Daily Δ", font: { size: 10 } }
+					title: { display: true, text: dailyLabel || "Daily Δ", font: { size: 10 } }
 				},
 				y1: {
 					type: "linear",
 					position: "right",
 					beginAtZero: true,
 					grid: { drawOnChartArea: false },
-					title: { display: true, text: "Cumulative", font: { size: 10 } }
+					title: { display: true, text: cumLabel || "Cumulative", font: { size: 10 } }
 				}
 			}
 		};
+	}
+
+	function renderSecondaryInto(slot, property) {
+		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
+		const txCount = secondary && typeof secondary.txCount === "number" ? secondary.txCount : 0;
+		const hasVolume = secondary && secondary.labels && secondary.labels.length > 0;
+
+		const meta = document.createElement("p");
+		meta.className = "secondary-meta";
+		if (!hasVolume) {
+			meta.innerHTML = "Secondary market: <strong>no wallet-to-wallet transfers yet</strong>";
+			slot.appendChild(meta);
+			return;
+		}
+		meta.innerHTML = "Secondary txs: <strong>" + txCount + "</strong>";
+		slot.appendChild(meta);
+
+		const wrap = document.createElement("div");
+		wrap.className = "secondary-wrap";
+		const heading = document.createElement("h4");
+		heading.textContent = secondary.title || "Weekly secondary volume";
+		wrap.appendChild(heading);
+
+		const chartWrap = document.createElement("div");
+		chartWrap.className = "chart-wrap";
+		const canvas = document.createElement("canvas");
+		chartWrap.appendChild(canvas);
+		wrap.appendChild(chartWrap);
+		slot.appendChild(wrap);
+
+		const ch = new Chart(canvas, {
+			type: "bar",
+			data: {
+				labels: secondary.labels,
+				datasets: [
+					{
+						type: "bar",
+						label: "Weekly volume",
+						data: secondary.weekly,
+						backgroundColor: "rgba(54, 162, 235, 0.45)",
+						borderColor: "rgb(54, 162, 235)",
+						borderWidth: 1,
+						yAxisID: "y"
+					},
+					{
+						type: "line",
+						label: "Cumulative",
+						data: secondary.cumulative,
+						borderColor: "rgb(255, 159, 64)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions("Weekly volume", "Cumulative")
+		});
+		chartInstances.push(ch);
 	}
 
 	function renderHolders() {
@@ -308,10 +369,11 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		}
 
 		allProperties.forEach(function (property) {
+			const initial = property && property.initial_sales ? property.initial_sales : null;
 			const slot = document.createElement("div");
 			slot.className = "slot";
 			const title = document.createElement("h3");
-			title.textContent = property && property.title ? property.title : "—";
+			title.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
 			slot.appendChild(title);
 
 			const wrap = document.createElement("div");
@@ -324,26 +386,28 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			etaWrap.className = "eta-wrap";
 			slot.appendChild(etaWrap);
 
-			const holdersWrap = document.createElement("div");
-			holdersWrap.className = "holders-wrap";
-			slot.appendChild(holdersWrap);
 			grid.appendChild(slot);
 
-			if (!property || !property.labels || property.labels.length === 0) {
+			const holdersWrap = document.createElement("details");
+			holdersWrap.className = "holders-wrap";
+
+			if (!initial || !initial.labels || initial.labels.length === 0) {
 				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
 				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
+				renderSecondaryInto(slot, property);
 				renderPropertyHoldersInto(holdersWrap, property);
+				slot.appendChild(holdersWrap);
 				return;
 			}
 
 			const ch = new Chart(canvas, {
 				type: "line",
 				data: {
-					labels: property.labels,
+					labels: initial.labels,
 					datasets: [
 						{
 							label: "Daily Δ",
-							data: property.daily,
+							data: initial.daily,
 							borderColor: "rgb(75, 192, 192)",
 							backgroundColor: "rgba(75, 192, 192, 0.2)",
 							tension: 0,
@@ -353,7 +417,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 						},
 						{
 							label: "Cumulative",
-							data: property.cumulative,
+							data: initial.cumulative,
 							borderColor: "rgb(255, 99, 132)",
 							tension: 0.05,
 							fill: false,
@@ -361,11 +425,13 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 						}
 					]
 				},
-				options: chartOptions()
+				options: chartOptions("Daily Δ", "Cumulative")
 			});
 			chartInstances.push(ch);
-			renderETAsInto(etaWrap, property);
+			renderETAsInto(etaWrap, initial);
+			renderSecondaryInto(slot, property);
 			renderPropertyHoldersInto(holdersWrap, property);
+			slot.appendChild(holdersWrap);
 		});
 	}
 

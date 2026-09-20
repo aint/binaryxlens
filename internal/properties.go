@@ -152,6 +152,16 @@ func (p *Property) isP2PTransfer(from, to string) bool {
 	return true
 }
 
+func (p *Property) p2pTxCount() int {
+	count := 0
+	for _, tx := range p.txs {
+		if p.isP2PTransfer(tx.From, tx.To) {
+			count++
+		}
+	}
+	return count
+}
+
 func (p *Property) extractDecimal() error {
 	decimalStr := strings.TrimSpace(p.txs[0].TokenDecimal)
 	if decimalStr == "" {
