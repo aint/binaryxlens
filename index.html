@@ -7,25 +7,54 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; }
-    body { font-family: system-ui, sans-serif; padding: 16px; max-width: 40rem; }
-    h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
-    ul { padding-left: 1.2rem; line-height: 1.8; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      padding: 32px 16px 48px;
+      line-height: 1.5;
+    }
+    main { max-width: 40rem; margin: 0 auto; }
+    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 8px; }
+    .lede { color: #444; margin: 0 0 24px; font-size: 0.95rem; }
+    .lede a { color: #0b57d0; }
+    nav {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    nav a {
+      display: block;
+      padding: 12px 14px;
+      color: #1a1a1a;
+      text-decoration: none;
+      border-bottom: 1px solid #eee;
+    }
+    nav a:last-child { border-bottom: none; }
+    nav a:hover { background: #f7f8fa; }
   </style>
 </head>
 <body>
-  <h1>Binaryx Lens</h1>
-  <ul>
-    <li><a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas</a></li>
-    <li><a href="reports/bali_balance_ocean_villas_report.html">Bali Balance Ocean Villas</a></li>
-    <li><a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villas</a></li>
-    <li><a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a></li>
-    <li><a href="reports/cascade_villas_report.html">CASCADE Villas</a></li>
-    <li><a href="reports/cemagi_units_report.html">CEMAGI Units</a></li>
-    <li><a href="reports/ecoverse_suites_report.html">Ecoverse Suites</a></li>
-    <li><a href="reports/la_casa_española_villas_report.html">La Casa Española Villas</a></li>
-    <li><a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection</a></li>
-    <li><a href="reports/roots_villas_report.html">Roots Villas</a></li>
-    <li><a href="reports/taryan_dragon_jungle_views_report.html">Taryan Dragon Jungle Views</a></li>
-  </ul>
+  <main>
+    <h1>Binaryx Lens</h1>
+    <p class="lede">
+      Blockchain data analysis for tokenized properties on
+      <a href="https://binaryx.com">binaryx.com</a>.
+    </p>
+    <nav>
+      <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas</a>
+      <a href="reports/bali_balance_ocean_villas_report.html">Bali Balance Ocean Villas</a>
+      <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villas</a>
+      <a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a>
+      <a href="reports/cascade_villas_report.html">CASCADE Villas</a>
+      <a href="reports/cemagi_units_report.html">CEMAGI Units</a>
+      <a href="reports/ecoverse_suites_report.html">Ecoverse Suites</a>
+      <a href="reports/la_casa_española_villas_report.html">La Casa Española Villas</a>
+      <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection</a>
+      <a href="reports/roots_villas_report.html">Roots Villas</a>
+      <a href="reports/taryan_dragon_jungle_views_report.html">Taryan Dragon Jungle Views</a>
+    </nav>
+  </main>
 </body>
 </html>
