@@ -30,39 +30,34 @@ func main() {
 	_ = fs.Parse(os.Args[1:])
 
 	client := polygonscan.NewClinet(*apiKey)
-	project, err := internal.NewProject("La Casa Española Villas", getTokens(client, *scanPause))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create project: %v\n", err)
-		os.Exit(1)
+	projects := initAllProjects(client, *scanPause)
+	for _, project := range projects {
+		err := project.GenerateReport(*topHolders)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to generate %q report: %v\n", project.Name, err)
+			os.Exit(1)
+		}
 	}
-	err = project.GenerateReport(*topHolders)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to generate project report: %v\n", err)
-		os.Exit(1)
-	}
-
 }
 
-func getTokens(client *polygonscan.Client, scanPause time.Duration) []*internal.Property {
-	token4, err := internal.NewProperty(internal.LaCasaEspanolaVilla4, client, scanPause)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
-		os.Exit(1)
+func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*internal.Project {
+	var projects []*internal.Project
+	for name, contracts := range internal.AllPropertyContracts {
+		var properties []*internal.Property
+		for _, contract := range contracts {
+			property, err := internal.NewProperty(contract, client, scanPause)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to create %q property: %v\n", name, err)
+				continue
+			}
+			properties = append(properties, property)
+		}
+		project, err := internal.NewProject(name, properties)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create %q project: %v\n", name, err)
+			continue
+		}
+		projects = append(projects, project)
 	}
-	token6, err := internal.NewProperty(internal.LaCasaEspanolaVilla6, client, scanPause)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
-		os.Exit(1)
-	}
-	token8, err := internal.NewProperty(internal.LaCasaEspanolaVilla8, client, scanPause)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
-		os.Exit(1)
-	}
-	token9, err := internal.NewProperty(internal.LaCasaEspanolaVilla9, client, scanPause)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create token: %v\n", err)
-		os.Exit(1)
-	}
-	return []*internal.Property{token4, token6, token8, token9}
+	return projects
 }

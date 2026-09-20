@@ -99,7 +99,7 @@ func NewProperty(contract Contract, client *polygonscan.Client, scanPause time.D
 		return nil, fmt.Errorf("calculate ETAs: %v", err)
 	}
 
-	fmt.Printf("Property '%s' initialized\n", property.Name)
+	fmt.Printf("Property %q initialized\n", property.Name)
 
 	return property, nil
 }
@@ -365,16 +365,16 @@ var EcoverseSuites = []Contract{
 	EcoverseSuite,
 }
 
-var AllTokenDetails = [][]Contract{
-	LaCasaEspanolaVillas,
-	RootsVillas,
-	Dukley,
-	CemagiUnits,
-	CadecasVillas,
-	BaliBalanceOceanVillas,
-	BinginMagicStoryVillas,
-	OasisRoyalCollection,
-	TaryanDragonJungleViews,
-	AWWAHotelByRibas,
-	EcoverseSuites,
+var AllPropertyContracts = map[string][]Contract{
+	"La Casa Española Villas": LaCasaEspanolaVillas,
+	"Roots Villas": RootsVillas,
+	"Dukley": Dukley,
+	"CEMAGI Units": CemagiUnits,
+	"CASCADE Villas": CadecasVillas,
+	"Bali Balance Ocean Villas": BaliBalanceOceanVillas,
+	"Bingin Magic Story Villas": BinginMagicStoryVillas,
+	"Oasis Royal Collection": OasisRoyalCollection,
+	"Taryan Dragon Jungle Views": TaryanDragonJungleViews,
+	"AWWA Hotel by Ribas": AWWAHotelByRibas,
+	"Ecoverse Suites": EcoverseSuites,
 }

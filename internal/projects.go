@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
 const (
+	reportsDir         = "reports"
 	projectReportPath  = "%s_report.html"
 	propertyTopHolders = 10
 )
@@ -86,7 +88,10 @@ func (pr *Project) GenerateReport(topHolders int) error {
 	if !bytes.Contains(projectReport, projectReportDataPlaceholder) {
 		return fmt.Errorf("project template missing placeholder")
 	}
-	reportPath := fmt.Sprintf(projectReportPath, strings.ReplaceAll(strings.ToLower(pr.Name), " ", "_"))
+	if err := os.MkdirAll(reportsDir, 0o755); err != nil {
+		return fmt.Errorf("create reports dir: %w", err)
+	}
+	reportPath := filepath.Join(reportsDir, fmt.Sprintf(projectReportPath, strings.ReplaceAll(strings.ToLower(pr.Name), " ", "_")))
 	out := bytes.ReplaceAll(projectReport, projectReportDataPlaceholder, jsonBytes)
 	if err := os.WriteFile(reportPath, out, 0o644); err != nil {
 		return err
