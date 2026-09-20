@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Project report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { font-family: system-ui, sans-serif; padding: 16px; }
+h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
+.project-summary { font-size: 0.9rem; color: #333; margin: 0 0 20px; line-height: 1.5; }
+.project-summary p { margin: 0 0 4px; }
+.report-date { font-size: 0.85rem; color: #666; margin: -8px 0 12px; }
+.grid {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	width: 100%;
+	align-items: stretch;
+}
+.slot {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 10px 12px 14px;
+	background: #fafafa;
+	width: 100%;
+}
+.slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.chart-wrap {
+	position: relative;
+	width: 100%;
+	height: 340px;
+	max-width: 100%;
+}
+.chart-wrap canvas { display: block; max-width: 100%; }
+.chart-placeholder { color: #666; font-size: 0.9rem; padding: 20px 8px; text-align: center; }
+.slot .eta-wrap { margin-top: 10px; }
+.slot .eta-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.slot .eta-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .eta-wrap th, .slot .eta-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+.slot .eta-wrap th { background: #eee; }
+.slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap { margin-top: 12px; }
+.slot .holders-wrap > summary {
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 6px;
+}
+.slot .holders-wrap > summary::-webkit-details-marker { display: none; }
+.slot .holders-wrap > summary::before { content: "▸ "; }
+.slot .holders-wrap[open] > summary::before { content: "▾ "; }
+.slot .holders-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.slot .holders-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .holders-wrap th, .slot .holders-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+.slot .holders-wrap th { background: #eee; white-space: nowrap; }
+.slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
+.slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
+.slot .holders-wrap td.tier { white-space: nowrap; }
+.slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 12px 0 6px; }
+.slot .secondary-wrap { margin-top: 4px; }
+.slot .secondary-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 8px; }
+.holders-section { margin-top: 28px; }
+.holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
+.holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
+.holders-section details.holders-collapse { margin-top: 20px; }
+.holders-section details.holders-collapse > summary {
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 8px;
+}
+.holders-section details.holders-collapse > summary::-webkit-details-marker { display: none; }
+.holders-section details.holders-collapse > summary::before { content: "▸ "; }
+.holders-section details.holders-collapse[open] > summary::before { content: "▾ "; }
+.section-meta { font-size: 0.85rem; color: #444; margin: 0 0 10px; }
+.holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.holders-section table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+.holders-section th, .holders-section td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+.holders-section th { background: #eee; white-space: nowrap; }
+.holders-section td.num { text-align: right; white-space: nowrap; }
+.holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+.holders-section td.properties { min-width: 200px; max-width: 420px; }
+.holders-section td.tier { white-space: nowrap; }
+</style>
+</head>
+<body>
+<h1 id="project-title">Project report</h1>
+<p id="report-date" class="report-date"></p>
+<div id="project-summary" class="project-summary" aria-label="Project summary"></div>
+
+<div id="grid" class="grid" aria-label="Property charts"></div>
+
+<section id="holders-section" class="holders-section" aria-label="Project holders">
+	<h2>Holders</h2>
+	<h3>Tier distribution</h3>
+	<table id="tier-stats-table">
+		<thead>
+			<tr>
+				<th>Tier</th>
+				<th>Count</th>
+				<th>% holders</th>
+				<th>% supply</th>
+			</tr>
+		</thead>
+		<tbody id="tier-stats-body"></tbody>
+	</table>
+	<details id="global-holders-block" class="holders-collapse">
+		<summary>Top global holders</summary>
+		<p id="holders-meta" class="section-meta"></p>
+		<div class="holders-scroll">
+			<table id="holders-table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Address</th>
+						<th>Property names</th>
+						<th>Balance</th>
+						<th>% supply</th>
+						<th>Tier</th>
+					</tr>
+				</thead>
+				<tbody id="holders-body"></tbody>
+			</table>
+		</div>
+	</details>
+</section>
+
+<script type="application/json" id="project-data">{"name":"Bingin Magic Story Villas","generatedAt":"2026-09-20","summary":{"propertyCount":1,"totalSupply":"10000","bought":"10000","boughtPct":100},"properties":[{"name":"Bingin Magic Story Villa 3","holders":[{"address":"0xa94462d128c453b2afb13c3a1f493028f2a0364b","balance":"1275","supplyPct":12.75,"tier":"🦈 Shark"},{"address":"0xf0aa06a1091fc0eb24d4a43593e2ad8dd937a09f","balance":"1173","supplyPct":11.73,"tier":"🦈 Shark"},{"address":"0x1b8c839aac6b89965e4a4f87d57aacac3be90099","balance":"473","supplyPct":4.73,"tier":"🐟 Fish"},{"address":"0x7c302fead7716598b40867de282ef87e658255a1","balance":"389","supplyPct":3.89,"tier":"🐟 Fish"},{"address":"0x9c31733bd8b753a5894f01ec5a7c351105742502","balance":"373","supplyPct":3.73,"tier":"🐟 Fish"},{"address":"0xa1c67b0e9e70ed73dc8e7f7c7400beb4013737c4","balance":"210","supplyPct":2.1,"tier":"🐟 Fish"},{"address":"0x48d5c2d29e3f668f81dcfdc51edbeb17c568f2dc","balance":"208","supplyPct":2.08,"tier":"🐟 Fish"},{"address":"0x558aae0b87727ed2e3b0e9a687fac033f62f2909","balance":"197","supplyPct":1.97,"tier":"🐟 Fish"},{"address":"0x340341f42d325dc61d22a7a3dc6af295257b44a2","balance":"194","supplyPct":1.94,"tier":"🐟 Fish"},{"address":"0xdd04d56ad149c75a7b0ffd60e43db8ef8b0ba4f5","balance":"193","supplyPct":1.93,"tier":"🐟 Fish"},{"address":"0x8603b40108bbc3d3d2b4d55c2649344a205c4335","balance":"192","supplyPct":1.92,"tier":"🐟 Fish"},{"address":"0xe03ec39dbc6417703e455649f102b430ecbb960f","balance":"190","supplyPct":1.9,"tier":"🐟 Fish"},{"address":"0x6eb32bb53584195f3938618b158732c97d86345d","balance":"189","supplyPct":1.89,"tier":"🐟 Fish"},{"address":"0x01433af06a063c46d11d3da4fdc5946f6e2d7c39","balance":"181","supplyPct":1.81,"tier":"🐟 Fish"},{"address":"0x6d8f4c922a1d1d5032a8dab67e3fc622737acc04","balance":"179","supplyPct":1.79,"tier":"🐟 Fish"},{"address":"0x9ceea89e5b66bd12e50938e3041e76ee0ecf4fd9","balance":"172","supplyPct":1.72,"tier":"🐟 Fish"},{"address":"0x1114bdd17a2cfcc021fde489b4169915b050cdec","balance":"170","supplyPct":1.7,"tier":"🐟 Fish"},{"address":"0xa01fd7df2d82d2ae03ea603d947030bc324aa0d9","balance":"166","supplyPct":1.66,"tier":"🐟 Fish"},{"address":"0x77708991f4586d44fa020107ef2fe302e4d90647","balance":"144","supplyPct":1.44,"tier":"🐟 Fish"},{"address":"0xb8331d1106710700a95d1895ba3dd265bd1a2d55","balance":"116","supplyPct":1.16,"tier":"🐟 Fish"},{"address":"0xb8199947511f46b2b106ab9401667699be87f9e6","balance":"114","supplyPct":1.14,"tier":"🐟 Fish"},{"address":"0xcede43ee419e6614096ab38cf576958d3d45aebc","balance":"107","supplyPct":1.07,"tier":"🐟 Fish"},{"address":"0x6e255eba88c6a151890b05d0054054900bffd506","balance":"101.6528","supplyPct":1.016528,"tier":"🐟 Fish"},{"address":"0x07e579b16e416ac8ddfb3720853034293d1c6a05","balance":"95","supplyPct":0.95,"tier":"🦀 Crab"},{"address":"0xe858fdda18fe9a9bac39de5c3e10bcf0043316a9","balance":"86","supplyPct":0.86,"tier":"🦀 Crab"}],"initial_sales":{"title":"Daily buys — Bingin Magic Story Villa 3","labels":["2025-02-14","2025-02-15","2025-02-16","2025-02-17","2025-02-18","2025-02-19","2025-02-20","2025-02-21","2025-02-22","2025-02-23","2025-02-24","2025-02-25","2025-02-26","2025-02-27","2025-02-28","2025-03-01","2025-03-02","2025-03-03","2025-03-04","2025-03-05","2025-03-06","2025-03-07","2025-03-08","2025-03-09","2025-03-10","2025-03-11","2025-03-12","2025-03-13","2025-03-14","2025-03-15","2025-03-16","2025-03-17","2025-03-18","2025-03-19","2025-03-20","2025-03-21","2025-03-22","2025-03-23","2025-03-24","2025-03-25","2025-03-26","2025-03-27","2025-03-28","2025-03-29","2025-03-30","2025-03-31","2025-04-01","2025-04-02","2025-04-03","2025-04-04","2025-04-05","2025-04-06","2025-04-07","2025-04-08","2025-04-09","2025-04-10","2025-04-11","2025-04-12","2025-04-13","2025-04-14","2025-04-15","2025-04-16","2025-04-17","2025-04-18","2025-04-19","2025-04-20","2025-04-21","2025-04-22","2025-04-23","2025-04-24","2025-04-25","2025-04-26","2025-04-27","2025-04-28","2025-04-29","2025-04-30","2025-05-01","2025-05-02","2025-05-03","2025-05-04","2025-05-05","2025-05-06","2025-05-07","2025-05-08","2025-05-09","2025-05-10","2025-05-11","2025-05-12","2025-05-13","2025-05-14","2025-05-15","2025-05-16","2025-05-17","2025-05-18","2025-05-19","2025-05-20","2025-05-21","2025-05-22","2025-05-23","2025-05-24","2025-05-25","2025-05-26","2025-05-27","2025-05-28","2025-05-29","2025-05-30","2025-05-31","2025-06-01","2025-06-02","2025-06-03","2025-06-04","2025-06-05","2025-06-06","2025-06-07","2025-06-08","2025-06-09","2025-06-10","2025-06-11","2025-06-12","2025-06-13","2025-06-14","2025-06-15","2025-06-16","2025-06-17","2025-06-18","2025-06-19","2025-06-20","2025-06-21","2025-06-22","2025-06-23","2025-06-24","2025-06-25","2025-06-26","2025-06-27","2025-06-28","2025-06-29","2025-06-30","2025-07-01","2025-07-02","2025-07-03","2025-07-04","2025-07-05","2025-07-06","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-12","2025-07-13","2025-07-14","2025-07-15","2025-07-16","2025-07-17","2025-07-18","2025-07-19","2025-07-20","2025-07-21","2025-07-22","2025-07-23","2025-07-24","2025-07-25","2025-07-26","2025-07-27","2025-07-28","2025-07-29","2025-07-30","2025-07-31","2025-08-01","2025-08-02","2025-08-03","2025-08-04","2025-08-05","2025-08-06","2025-08-07","2025-08-08","2025-08-09","2025-08-10","2025-08-11","2025-08-12","2025-08-13","2025-08-14","2025-08-15","2025-08-16","2025-08-17","2025-08-18","2025-08-19","2025-08-20","2025-08-21","2025-08-22","2025-08-23","2025-08-24","2025-08-25","2025-08-26","2025-08-27","2025-08-28","2025-08-29","2025-08-30","2025-08-31","2025-09-01","2025-09-02","2025-09-03","2025-09-04","2025-09-05","2025-09-06","2025-09-07","2025-09-08","2025-09-09","2025-09-10","2025-09-11","2025-09-12","2025-09-13","2025-09-14","2025-09-15","2025-09-16","2025-09-17","2025-09-18","2025-09-19","2025-09-20","2025-09-21","2025-09-22","2025-09-23","2025-09-24","2025-09-25","2025-09-26","2025-09-27","2025-09-28","2025-09-29","2025-09-30","2025-10-01","2025-10-02","2025-10-03","2025-10-04","2025-10-05","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-10-10","2025-10-11","2025-10-12","2025-10-13","2025-10-14","2025-10-15","2025-10-16","2025-10-17","2025-10-18","2025-10-19","2025-10-20","2025-10-21","2025-10-22","2025-10-23"],"daily":[0,0,0,0,0,0,1991,34,79,461,135,433,61,59,20,10,0,5,18,6,6,70,51,0,27,22,81,250,13,0,0,8,0,0,30,13,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,2,0,0,0,0,8,0,0,2,0,0,20,0,19,0,0,0,0,0,2,0,0,4,2,0,0,0,1,0,2,0,4,2,4,0,2,0,0,2,0,3,27,0,2,3,12,0,0,0,0,10,0,2,0,0,12,13,0,2,44,27,4,0,0,490,0,81,4,0,39,62,30,49,0,0,5,0,0,0,32,1211,83,15,0,0,3,0,0,10,2,0,0,43,1,25,35,2,0,90,194,6,34,2,2,46,35,77,270,532,30,3,1,271,9,0,86,0,38,24,105,8,17,7,0,23,42,0,114,0,1,0,0,2,24,0,0,0,0,0,6,0,4,16,0,0,39,0,0,0,2,0,3,0,0,7,0,0,6,14,0,0,0,0,0,0,8,1,0,3,0,0,0,0,0,0,0,2,0,2,0,28,0,4,0,18,0,0,0,22,67,77,43,26,0,0,78,790,63,224],"cumulative":[0,0,0,0,0,0,1991,2025,2104,2565,2700,3133,3194,3253,3273,3283,3283,3288,3306,3312,3318,3388,3439,3439,3466,3488,3569,3819,3832,3832,3832,3840,3840,3840,3870,3883,3883,3888,3888,3888,3888,3888,3888,3888,3888,3888,3888,3888,3888,3888,3888,3895,3895,3897,3897,3897,3897,3897,3905,3905,3905,3907,3907,3907,3927,3927,3946,3946,3946,3946,3946,3946,3948,3948,3948,3952,3954,3954,3954,3954,3955,3955,3957,3957,3961,3963,3967,3967,3969,3969,3969,3971,3971,3974,4001,4001,4003,4006,4018,4018,4018,4018,4018,4028,4028,4030,4030,4030,4042,4055,4055,4057,4101,4128,4132,4132,4132,4622,4622,4703,4707,4707,4746,4808,4838,4887,4887,4887,4892,4892,4892,4892,4924,6135,6218,6233,6233,6233,6236,6236,6236,6246,6248,6248,6248,6291,6292,6317,6352,6354,6354,6444,6638,6644,6678,6680,6682,6728,6763,6840,7110,7642,7672,7675,7676,7947,7956,7956,8042,8042,8080,8104,8209,8217,8234,8241,8241,8264,8306,8306,8420,8420,8421,8421,8421,8423,8447,8447,8447,8447,8447,8447,8453,8453,8457,8473,8473,8473,8512,8512,8512,8512,8514,8514,8517,8517,8517,8524,8524,8524,8530,8544,8544,8544,8544,8544,8544,8544,8552,8553,8553,8556,8556,8556,8556,8556,8556,8556,8556,8558,8558,8560,8560,8588,8588,8592,8592,8610,8610,8610,8610,8632,8699,8776,8819,8845,8845,8845,8923,9713,9776,10000],"etas":[{"window":"2025-02-14 – 2025-10-23","rate":"39.7","days":252,"date":"0001-01-01"}]},"p2p_sales":{"txCount":112,"title":"Weekly secondary volume — Bingin Magic Story Villa 3","labels":["2026-09-07","2026-09-14"],"weekly":[15,109],"cumulative":[15,124]}}],"holders":[{"address":"0xa94462d128c453b2afb13c3a1f493028f2a0364b","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1275","supplyPct":12.75,"tier":"🦈 Shark"},{"address":"0xf0aa06a1091fc0eb24d4a43593e2ad8dd937a09f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1173","supplyPct":11.73,"tier":"🦈 Shark"},{"address":"0x1b8c839aac6b89965e4a4f87d57aacac3be90099","propertyNames":["Bingin Magic Story Villa 3"],"balance":"473","supplyPct":4.73,"tier":"🐟 Fish"},{"address":"0x7c302fead7716598b40867de282ef87e658255a1","propertyNames":["Bingin Magic Story Villa 3"],"balance":"389","supplyPct":3.89,"tier":"🐟 Fish"},{"address":"0x9c31733bd8b753a5894f01ec5a7c351105742502","propertyNames":["Bingin Magic Story Villa 3"],"balance":"373","supplyPct":3.73,"tier":"🐟 Fish"},{"address":"0xa1c67b0e9e70ed73dc8e7f7c7400beb4013737c4","propertyNames":["Bingin Magic Story Villa 3"],"balance":"210","supplyPct":2.1,"tier":"🐟 Fish"},{"address":"0x48d5c2d29e3f668f81dcfdc51edbeb17c568f2dc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"208","supplyPct":2.08,"tier":"🐟 Fish"},{"address":"0x558aae0b87727ed2e3b0e9a687fac033f62f2909","propertyNames":["Bingin Magic Story Villa 3"],"balance":"197","supplyPct":1.97,"tier":"🐟 Fish"},{"address":"0x340341f42d325dc61d22a7a3dc6af295257b44a2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"194","supplyPct":1.94,"tier":"🐟 Fish"},{"address":"0xdd04d56ad149c75a7b0ffd60e43db8ef8b0ba4f5","propertyNames":["Bingin Magic Story Villa 3"],"balance":"193","supplyPct":1.93,"tier":"🐟 Fish"},{"address":"0x8603b40108bbc3d3d2b4d55c2649344a205c4335","propertyNames":["Bingin Magic Story Villa 3"],"balance":"192","supplyPct":1.92,"tier":"🐟 Fish"},{"address":"0xe03ec39dbc6417703e455649f102b430ecbb960f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"190","supplyPct":1.9,"tier":"🐟 Fish"},{"address":"0x6eb32bb53584195f3938618b158732c97d86345d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"189","supplyPct":1.89,"tier":"🐟 Fish"},{"address":"0x01433af06a063c46d11d3da4fdc5946f6e2d7c39","propertyNames":["Bingin Magic Story Villa 3"],"balance":"181","supplyPct":1.81,"tier":"🐟 Fish"},{"address":"0x6d8f4c922a1d1d5032a8dab67e3fc622737acc04","propertyNames":["Bingin Magic Story Villa 3"],"balance":"179","supplyPct":1.79,"tier":"🐟 Fish"},{"address":"0x9ceea89e5b66bd12e50938e3041e76ee0ecf4fd9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"172","supplyPct":1.72,"tier":"🐟 Fish"},{"address":"0x1114bdd17a2cfcc021fde489b4169915b050cdec","propertyNames":["Bingin Magic Story Villa 3"],"balance":"170","supplyPct":1.7,"tier":"🐟 Fish"},{"address":"0xa01fd7df2d82d2ae03ea603d947030bc324aa0d9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"166","supplyPct":1.66,"tier":"🐟 Fish"},{"address":"0x77708991f4586d44fa020107ef2fe302e4d90647","propertyNames":["Bingin Magic Story Villa 3"],"balance":"144","supplyPct":1.44,"tier":"🐟 Fish"},{"address":"0xb8331d1106710700a95d1895ba3dd265bd1a2d55","propertyNames":["Bingin Magic Story Villa 3"],"balance":"116","supplyPct":1.16,"tier":"🐟 Fish"},{"address":"0xb8199947511f46b2b106ab9401667699be87f9e6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"114","supplyPct":1.14,"tier":"🐟 Fish"},{"address":"0xcede43ee419e6614096ab38cf576958d3d45aebc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"107","supplyPct":1.07,"tier":"🐟 Fish"},{"address":"0x6e255eba88c6a151890b05d0054054900bffd506","propertyNames":["Bingin Magic Story Villa 3"],"balance":"101.6528","supplyPct":1.016528,"tier":"🐟 Fish"},{"address":"0x07e579b16e416ac8ddfb3720853034293d1c6a05","propertyNames":["Bingin Magic Story Villa 3"],"balance":"95","supplyPct":0.95,"tier":"🦀 Crab"},{"address":"0x1640189dfe0378ec66d0e7b05946d5a4266ed523","propertyNames":["Bingin Magic Story Villa 3"],"balance":"86","supplyPct":0.86,"tier":"🦀 Crab"},{"address":"0xe858fdda18fe9a9bac39de5c3e10bcf0043316a9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"86","supplyPct":0.86,"tier":"🦀 Crab"},{"address":"0x70b886fb2722c363c8eebf01f588a498f8d3b4cc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"77","supplyPct":0.77,"tier":"🦀 Crab"},{"address":"0x51c1476651c22dbeff992fd0a9ac813f646b0990","propertyNames":["Bingin Magic Story Villa 3"],"balance":"77","supplyPct":0.77,"tier":"🦀 Crab"},{"address":"0x3b04d2445309296dc55ea592f3d033c6d4d508e5","propertyNames":["Bingin Magic Story Villa 3"],"balance":"70","supplyPct":0.7,"tier":"🦀 Crab"},{"address":"0x6f1d620ab330107168e3a0848c2e673782b409f6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"64","supplyPct":0.64,"tier":"🦀 Crab"},{"address":"0x516b70cacd006b6562d86d4fabc82f07347d4f9d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"63","supplyPct":0.63,"tier":"🦀 Crab"},{"address":"0x6197cfe4f437cbbdd22de20d2e47ae2513dfea2c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"62","supplyPct":0.62,"tier":"🦀 Crab"},{"address":"0xe857e4b361de850c9020dba1d42e626f4d20847e","propertyNames":["Bingin Magic Story Villa 3"],"balance":"51","supplyPct":0.51,"tier":"🦀 Crab"},{"address":"0xf7813cb51adf88bb1c8e58675c01b704135cc226","propertyNames":["Bingin Magic Story Villa 3"],"balance":"48.9892","supplyPct":0.489892,"tier":"🦐 Shrimp"},{"address":"0xda32a35dd3341d5be1238f247281774416ae048a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"45","supplyPct":0.45,"tier":"🦐 Shrimp"},{"address":"0x087db6cf017c1c83ed2e0a9a709bc0ba7d8a32ec","propertyNames":["Bingin Magic Story Villa 3"],"balance":"44","supplyPct":0.44,"tier":"🦐 Shrimp"},{"address":"0x04ec49de087947227b4ba5ee61447fce4105c4c8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"43","supplyPct":0.43,"tier":"🦐 Shrimp"},{"address":"0xb6ad6165ab6768b09b861c94bc16e374d44fd9d8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"43","supplyPct":0.43,"tier":"🦐 Shrimp"},{"address":"0x7880d8994433b58a8fe3f6acc7fa15149bf94ca8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"42","supplyPct":0.42,"tier":"🦐 Shrimp"},{"address":"0xc10444389a15d2c66301819e3f3638846b9cddbc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"42","supplyPct":0.42,"tier":"🦐 Shrimp"},{"address":"0xb6cef1701934387c7ec5291a427c1eb70f32239b","propertyNames":["Bingin Magic Story Villa 3"],"balance":"42","supplyPct":0.42,"tier":"🦐 Shrimp"},{"address":"0x7bcccb96499168375091c2c4257a79c64426d1a0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"42","supplyPct":0.42,"tier":"🦐 Shrimp"},{"address":"0x85525712a91762145d049af9205181e6705ca8fc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"41","supplyPct":0.41,"tier":"🦐 Shrimp"},{"address":"0xd2112c1c205da592825af52c3b971230f1de1995","propertyNames":["Bingin Magic Story Villa 3"],"balance":"41","supplyPct":0.41,"tier":"🦐 Shrimp"},{"address":"0xbfcfc0a8bd27721f4d71492fdbf3624c74e4822d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"40","supplyPct":0.4,"tier":"🦐 Shrimp"},{"address":"0xda1ef49d65730c541f154332ca9f86d3035061da","propertyNames":["Bingin Magic Story Villa 3"],"balance":"40","supplyPct":0.4,"tier":"🦐 Shrimp"},{"address":"0x02d0581867788a6417081de96db30b04dc41be47","propertyNames":["Bingin Magic Story Villa 3"],"balance":"40","supplyPct":0.4,"tier":"🦐 Shrimp"},{"address":"0x360b77fc6635d2b88a70a164963709b2763c1195","propertyNames":["Bingin Magic Story Villa 3"],"balance":"39","supplyPct":0.39,"tier":"🦐 Shrimp"},{"address":"0x93fab796df09b83627c6a46c8b603d226b199dca","propertyNames":["Bingin Magic Story Villa 3"],"balance":"39","supplyPct":0.39,"tier":"🦐 Shrimp"},{"address":"0x25f85d9cbb91d417d8d30340eda69c6864019f11","propertyNames":["Bingin Magic Story Villa 3"],"balance":"39","supplyPct":0.39,"tier":"🦐 Shrimp"},{"address":"0x416d02f76d37f3cb52a00be36ce6ff3b4f2a5139","propertyNames":["Bingin Magic Story Villa 3"],"balance":"38","supplyPct":0.38,"tier":"🦐 Shrimp"},{"address":"0x9e2adef061f07a1ce86ae431d32cc9dedef280e3","propertyNames":["Bingin Magic Story Villa 3"],"balance":"38","supplyPct":0.38,"tier":"🦐 Shrimp"},{"address":"0xd6442e3243810f5f972ba36062d17ba487164dcb","propertyNames":["Bingin Magic Story Villa 3"],"balance":"38","supplyPct":0.38,"tier":"🦐 Shrimp"},{"address":"0xc8ed00ebf3e04e087edd19bcf234b10d8206606f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"38","supplyPct":0.38,"tier":"🦐 Shrimp"},{"address":"0xd8f0c1d3812376cbfe08412a6f770f6ba5ed4fe5","propertyNames":["Bingin Magic Story Villa 3"],"balance":"37","supplyPct":0.37,"tier":"🦐 Shrimp"},{"address":"0x3b3707b57d8d4cb5d4f27bb354e04a9c85053af1","propertyNames":["Bingin Magic Story Villa 3"],"balance":"36","supplyPct":0.36,"tier":"🦐 Shrimp"},{"address":"0xb8d7ff1e004600f2875633d2f7fa30d959e07764","propertyNames":["Bingin Magic Story Villa 3"],"balance":"35","supplyPct":0.35,"tier":"🦐 Shrimp"},{"address":"0x08c5bc93f3c673f4a309c0dc52065066114cc0e8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"32","supplyPct":0.32,"tier":"🦐 Shrimp"},{"address":"0xc7f88df2d0be2c77adab0c1b083381a1df28e592","propertyNames":["Bingin Magic Story Villa 3"],"balance":"32","supplyPct":0.32,"tier":"🦐 Shrimp"},{"address":"0x53a30fa6ed85b1ca3a6c81739f17b476eba32136","propertyNames":["Bingin Magic Story Villa 3"],"balance":"32","supplyPct":0.32,"tier":"🦐 Shrimp"},{"address":"0xee99be6388db0b63b8f4971b010d28a6729d6727","propertyNames":["Bingin Magic Story Villa 3"],"balance":"30","supplyPct":0.3,"tier":"🦐 Shrimp"},{"address":"0x3b531375ea32844c2493c8f3d33ea2ca429411df","propertyNames":["Bingin Magic Story Villa 3"],"balance":"30","supplyPct":0.3,"tier":"🦐 Shrimp"},{"address":"0x810dc0099ad9848d41772671191920e5100a443d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"30","supplyPct":0.3,"tier":"🦐 Shrimp"},{"address":"0x0a6980662299dea03a2d08386568f2d69d3ea279","propertyNames":["Bingin Magic Story Villa 3"],"balance":"28","supplyPct":0.28,"tier":"🦐 Shrimp"},{"address":"0x6ad147a960c4d1c0f3aa1a647ada70de8be9717c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"28","supplyPct":0.28,"tier":"🦐 Shrimp"},{"address":"0x1ecc9905c7b65e982a712f9a6cb33733ab2c0ab5","propertyNames":["Bingin Magic Story Villa 3"],"balance":"25","supplyPct":0.25,"tier":"🦐 Shrimp"},{"address":"0x2f670dac83b4e6c91f41e942601f7aefa0d326d0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"23","supplyPct":0.23,"tier":"🦐 Shrimp"},{"address":"0xffb280bd88964375c08fe74b010aff389990c648","propertyNames":["Bingin Magic Story Villa 3"],"balance":"22","supplyPct":0.22,"tier":"🦐 Shrimp"},{"address":"0xbf004db8453bf890c63c3bcf377990e3bb6d6f1e","propertyNames":["Bingin Magic Story Villa 3"],"balance":"22","supplyPct":0.22,"tier":"🦐 Shrimp"},{"address":"0xc271ada2205966937a9f61f37fc748179a084eb2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"22","supplyPct":0.22,"tier":"🦐 Shrimp"},{"address":"0x9d829f41b6caa623330c6d43ecbc593cdadab18b","propertyNames":["Bingin Magic Story Villa 3"],"balance":"21","supplyPct":0.21,"tier":"🦐 Shrimp"},{"address":"0x4121179416c2239d4b4ed4e11825eb26cf21d19d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"21","supplyPct":0.21,"tier":"🦐 Shrimp"},{"address":"0xf53e7f13c1735c03891867668878f6d9dcc695c4","propertyNames":["Bingin Magic Story Villa 3"],"balance":"21","supplyPct":0.21,"tier":"🦐 Shrimp"},{"address":"0x53d40354c42170e7f9ce79aca365059bb82ddda8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"21","supplyPct":0.21,"tier":"🦐 Shrimp"},{"address":"0x45749a6e737775728f829301bc6fe55437eeb49f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"21","supplyPct":0.21,"tier":"🦐 Shrimp"},{"address":"0x049b371d59dc140261e2dbfd842b14603b29d594","propertyNames":["Bingin Magic Story Villa 3"],"balance":"21","supplyPct":0.21,"tier":"🦐 Shrimp"},{"address":"0x2728fa5bf28851f16f145a5b20170a64491eea2d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"20","supplyPct":0.2,"tier":"🦐 Shrimp"},{"address":"0x48c5f1e465b197e202a93c9bb55d8812debe6381","propertyNames":["Bingin Magic Story Villa 3"],"balance":"20","supplyPct":0.2,"tier":"🦐 Shrimp"},{"address":"0x8ba895a857946973414ee8f9645b893717ff3e80","propertyNames":["Bingin Magic Story Villa 3"],"balance":"20","supplyPct":0.2,"tier":"🦐 Shrimp"},{"address":"0x47abc30b940587b8ab1e7177e884aa7c79bde4c1","propertyNames":["Bingin Magic Story Villa 3"],"balance":"20","supplyPct":0.2,"tier":"🦐 Shrimp"},{"address":"0x977ea9520d29e944075f361cffd75daf45db6b0d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"20","supplyPct":0.2,"tier":"🦐 Shrimp"},{"address":"0x0a52564bfe533568f2888157dd0f4b8f99ac30cc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"20","supplyPct":0.2,"tier":"🦐 Shrimp"},{"address":"0xaeef99d9db67da674602ccf0fe8d524aa168f538","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0xdca12f577fce7e3f0c8d76ab19c5300b6e190d14","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x96fbdaf1ed51630e480a44a6af9e4be9f7b1e25c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x769cd9da13ff7b981ebf07cee007780ecc8ba704","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x38d30443eb14287abbae78e6aa909f3b15584d32","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0xa8a7dcd0b3d225e894aed85afee7ed242c362590","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x8a1571343f4cc2344e2a085b56b47ec059edadd6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0xe9bb3abae9f069237479584f6249de9facf555d1","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x9efe76a4041d5ff7d006de3db0a85878aedaddd8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0xb98504f104268cd86ff12529c7692b8597e0565c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x1ce930c1ad225c255d2eb74557843cdfbe7095d4","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x3d7813a7c18213799b209f789536e9b588f48d03","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0x4a68a8a4f98bdb4109c7ce5d7c933b536233a470","propertyNames":["Bingin Magic Story Villa 3"],"balance":"19","supplyPct":0.19,"tier":"🦐 Shrimp"},{"address":"0xf3b835f3e306a66dfa67723a8dfd0e7e13de5aac","propertyNames":["Bingin Magic Story Villa 3"],"balance":"18","supplyPct":0.18,"tier":"🦐 Shrimp"},{"address":"0xdd3f44f487c01ad79999721bd5c2dc3488f1a6bf","propertyNames":["Bingin Magic Story Villa 3"],"balance":"18","supplyPct":0.18,"tier":"🦐 Shrimp"},{"address":"0x9d3a05151630975006ab32dae8e28d7cb81bd860","propertyNames":["Bingin Magic Story Villa 3"],"balance":"18","supplyPct":0.18,"tier":"🦐 Shrimp"},{"address":"0x1b838107e614691bd4f1f5fd81483ad89a485a6f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"16","supplyPct":0.16,"tier":"🦐 Shrimp"},{"address":"0x8a8299d65a4a15c24474a3ae2138eba17d366dee","propertyNames":["Bingin Magic Story Villa 3"],"balance":"16","supplyPct":0.16,"tier":"🦐 Shrimp"},{"address":"0x87baf28e35dcc903cb358163522ff167c9b6e14f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"15","supplyPct":0.15,"tier":"🦐 Shrimp"},{"address":"0x1a1d312ea665c7116cc7945d563b0557fbfcb3e6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"15","supplyPct":0.15,"tier":"🦐 Shrimp"},{"address":"0x16e54a657742db3d67fff102a6328fbddff2fa34","propertyNames":["Bingin Magic Story Villa 3"],"balance":"14","supplyPct":0.14,"tier":"🦐 Shrimp"},{"address":"0x19226147c750cd71575ac5b70d8d5cd6b35f3c5a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"14","supplyPct":0.14,"tier":"🦐 Shrimp"},{"address":"0xb37e5309b6ca3bcc93fda01884aa72668fb19de0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"13","supplyPct":0.13,"tier":"🦐 Shrimp"},{"address":"0x401aff5eeb9f2dec76db1eefbaa0bb5b8bfc35ba","propertyNames":["Bingin Magic Story Villa 3"],"balance":"13","supplyPct":0.13,"tier":"🦐 Shrimp"},{"address":"0x4907aebe2f71060b3acb803e48c80223a566b5a2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12.0097","supplyPct":0.120097,"tier":"🦐 Shrimp"},{"address":"0x27bb02006f0a4c69853b833e07e4e493897d1179","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x535012455f5673bebdff8ffd87cd469187358613","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x481d6913a58de12ab938e53da056fd9d05818b9f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0xa21810948f8dd4dab4847cadeddcced7f68077d6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0xb345cbaec505f402eea174ebd1378c841c19c88e","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x457b75cd18bb47171105d5aaf13a2858a6d15c52","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x287567dbdf30421c7e9e1583ac9adc76310a2a0a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x1cdcf6610098cd0f30d84de1f51be1cd37fae6dc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x90f9190b95fac05520a9de9128e6cddc514b32cf","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x498519b3f522cf23871a371e015d3961769801e3","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0x5a0db11e2fe4d4e9c251391feed1efc560e2e8d2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"12","supplyPct":0.12,"tier":"🦐 Shrimp"},{"address":"0xd8b10ffab18c7816c047df8345d5cf7f1b727e47","propertyNames":["Bingin Magic Story Villa 3"],"balance":"11","supplyPct":0.11,"tier":"🦐 Shrimp"},{"address":"0xb51ffc49fc59536b4fc57acc768516ca87d8bdda","propertyNames":["Bingin Magic Story Villa 3"],"balance":"11","supplyPct":0.11,"tier":"🦐 Shrimp"},{"address":"0xb53c41ffb30fee72515c0fcdb435ae2bdfa1821f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"11","supplyPct":0.11,"tier":"🦐 Shrimp"},{"address":"0x665ad6858847b85605f14dae08af05d870a76658","propertyNames":["Bingin Magic Story Villa 3"],"balance":"11","supplyPct":0.11,"tier":"🦐 Shrimp"},{"address":"0x7923c9aa90bff3d268c2df5c74a7d0cb9ce9790c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"11","supplyPct":0.11,"tier":"🦐 Shrimp"},{"address":"0xdf6b88f0486f727b57787934337eaf7891559338","propertyNames":["Bingin Magic Story Villa 3"],"balance":"11","supplyPct":0.11,"tier":"🦐 Shrimp"},{"address":"0x8237a0f22d60799464463ac3e7e16c0bd51feef6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"10","supplyPct":0.1,"tier":"🦐 Shrimp"},{"address":"0x85b317237f770ea39f5e3b94f0812b12cb65dd2d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"10","supplyPct":0.1,"tier":"🦐 Shrimp"},{"address":"0x6f2fdc7407295097b916db482b4f6c9dc63fd02a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"10","supplyPct":0.1,"tier":"🦐 Shrimp"},{"address":"0x670f515181bc442125a186d1c9c4074d818f7c34","propertyNames":["Bingin Magic Story Villa 3"],"balance":"9","supplyPct":0.09,"tier":"🦐 Shrimp"},{"address":"0x4f0f75d7501162f8d194f63e34011eea2a7adc70","propertyNames":["Bingin Magic Story Villa 3"],"balance":"9","supplyPct":0.09,"tier":"🦐 Shrimp"},{"address":"0xbf25a9bda4ee53bd87b861acd18de4b0a705bad2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"8","supplyPct":0.08,"tier":"🦐 Shrimp"},{"address":"0xbab4ccd248f3cded1c24debb62bf4926b06c8fb2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"8","supplyPct":0.08,"tier":"🦐 Shrimp"},{"address":"0x79ba00d43f92dab8b043c31da0a364c8f6bb0b45","propertyNames":["Bingin Magic Story Villa 3"],"balance":"8","supplyPct":0.08,"tier":"🦐 Shrimp"},{"address":"0xe691f1fb23f98f98d24689cf3ba4206d2a46a181","propertyNames":["Bingin Magic Story Villa 3"],"balance":"8","supplyPct":0.08,"tier":"🦐 Shrimp"},{"address":"0x536f5a7e9bb11d44c412911fa19c30e8d0339315","propertyNames":["Bingin Magic Story Villa 3"],"balance":"8","supplyPct":0.08,"tier":"🦐 Shrimp"},{"address":"0x5e63903d9ace9a8bbc2c439323bcd960d8f6622d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"7","supplyPct":0.07,"tier":"🦐 Shrimp"},{"address":"0x010cdf4f46469391edf914aa54e04b8ee8bada5f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"7","supplyPct":0.07,"tier":"🦐 Shrimp"},{"address":"0x9aae9ee5d3c37b605b2e0dd5c919be271a4e21ef","propertyNames":["Bingin Magic Story Villa 3"],"balance":"7","supplyPct":0.07,"tier":"🦐 Shrimp"},{"address":"0x407a83c99da09c64d7781379a86b2827b09ad961","propertyNames":["Bingin Magic Story Villa 3"],"balance":"7","supplyPct":0.07,"tier":"🦐 Shrimp"},{"address":"0x33c78529e8d1360c4004d5093dc6da5225802af7","propertyNames":["Bingin Magic Story Villa 3"],"balance":"7","supplyPct":0.07,"tier":"🦐 Shrimp"},{"address":"0x88bf507b3b9169fd8ce51a2176d45b2602744694","propertyNames":["Bingin Magic Story Villa 3"],"balance":"7","supplyPct":0.07,"tier":"🦐 Shrimp"},{"address":"0x54bc848c6a5aa6014b48dba087ee17c45f3ac8b7","propertyNames":["Bingin Magic Story Villa 3"],"balance":"6","supplyPct":0.06,"tier":"🦐 Shrimp"},{"address":"0xdc5353e67cf38e52bf1b2b30371c47ee4a2b6b94","propertyNames":["Bingin Magic Story Villa 3"],"balance":"6","supplyPct":0.06,"tier":"🦐 Shrimp"},{"address":"0x8a1ba86e508564ac8ce0a1e3f7eeecd45156043c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"6","supplyPct":0.06,"tier":"🦐 Shrimp"},{"address":"0x0f8efea43bce813e1a9a39423ebf08c1ebf28868","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5.0193","supplyPct":0.050193,"tier":"🦐 Shrimp"},{"address":"0xe411699f5db9b021b1d0683e1dbbcb2d8588f53c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0xab0262359d2a1fedc4416b286b222dc37bb1b6b0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0x3b83cd9bf954658db4bd6c8bd67b6b41f4adb78e","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0x61c061e21ada18ef959deb4d46d7fa568e3e3a84","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0x51477d1a89c4ee19a3c343d1f691e2a59b3b6b2a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0xed48edc34dbec5ab9c4a6cc763cc38470efb20b9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0x22f43f9dfc24df6c043a56d79ca7a71a1cbbb497","propertyNames":["Bingin Magic Story Villa 3"],"balance":"5","supplyPct":0.05,"tier":"🦐 Shrimp"},{"address":"0x36dc3ca5deee9cd214eef8d0a36a03c2b7b5bb6c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0xd18b0b1c88a168f2f18a60eb58ff41e7d05b1f39","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0xa9bac1a75f88192dd250c31d210a8cf81a155665","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0xec5e709e1b65ae1553775c91acbfd39f1aa284f5","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0xc9505ddf03abd70569672604da3e479f2d9f31f7","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0xfd6fe3b7b2c68bd7f86432311a79a23fd229c382","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0x7c5625064ff8ea3d6dab4b9bc87db5d575212901","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0x1544b23988cb5a9375e0ce791c2c1a91fe33b870","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0xe1e69afb7ddbd7422f859d88c467c539942998ca","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0x7762ce5ddb0941155e4ab70efaa55229533f34bd","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0x5b5f072b8393d1ea1cfa991c3ef8fa9663307e95","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0x12982ba70e622fc427e652f6faab99b5147f749e","propertyNames":["Bingin Magic Story Villa 3"],"balance":"4","supplyPct":0.04,"tier":"🦐 Shrimp"},{"address":"0x8f0cc676d61224f1c73d34701b0c4cd90f441943","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3.96","supplyPct":0.0396,"tier":"🦐 Shrimp"},{"address":"0xf9088186f908bf15f42c1cf0e3b61f26021b8ca3","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0xf628245a7cacbaf1fcb14f42c56c91d82f12e640","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0xfe21f5a53634b5669bab7a858d2b66a6e0cbc342","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x95fb9a61d76bd9264e37205cb390227d79ab4fa0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x0bdf0d755ed2f427de8f9da7eaf561368a1f041e","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x5ddd3b8a522ce92d1f8a16ed7a69752b8f6b40aa","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x1546105827cc8a3f11bed78cca0df5eb75780a6f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x64f6feaacd4df17400ddc2cfb580334205ace12a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0xcdb77fc9d954bc7cee5f893ccfad310e608c09a0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x7e86459c60616d0ac84f32cbe3503d8e8903d943","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x0c0fb69c71b6cdfa6ec4cc9502b5779786ad5953","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x775f8222a6c4a326c7b866c65848061027e145f9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0xc68f66bb6bf036891aa3e96fb64d061045cab702","propertyNames":["Bingin Magic Story Villa 3"],"balance":"3","supplyPct":0.03,"tier":"🦐 Shrimp"},{"address":"0x00c3c9e615ff19dbc65f859f62d5b64bb7f283a6","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xb56a19c87a2abd831064a759e848fcf422df1715","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x529aefb97564ccbe556f609cab282fb7c38dd5dc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xe8a8cf2d90f7c32b33ccefafc3fd3dde6dccab19","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x3742da73672722fbca387f40546ab31c8fecf542","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x669cb2ad3459fb5f6450dae812f92f9118bb0cf9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x304fb60abc30d5dc90e989d3e7039e7f8b436e53","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x8d0a030146b693e4bbe498e2362ee16658a2e269","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xe5a7fc07a73f6a4007f743080826f459195f2176","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x463fd3750321466559ef512eed3567147ee7a8f9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x963b3991028e3d6ca53d68711b90bab61edd439d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x49c4c1d33c812ab8c8de104245deb36f68045a9f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xd2f8b825d6277a18f0243335ff2a27e87744c954","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x3e74fcf45fdb9c6d962d6510ef33dfbf82b90050","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x4ffc6dc2fb20fbd75a8ac34be1d924a43f343e25","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xe033121444eca7ef3cd7611b69c435ba04e52a91","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x282ef65dba7af170c17860ab104aaaebc0299033","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x951619e32dc766d96331c3f1441b18a655879ae7","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xb79ab6569d51b49650d8cbdeb99ff3c1b4774504","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x038fab0fe774ee770c3158285f7a736d893f268f","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x640b233e3bb76a0075232d7cb2895e1535cbeac2","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xd40fb29d86b4c7f873813d9cbf7ee06aeceb64b5","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xaa4726d70053cc1d0fcd0b2658aecec993b7228d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xf12be1d59a19ae6ad65d9beb8199d070ba26d4da","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x817381c663fb96fd3c96310df98e543128a1a292","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x6cb81e8cd4679654dfdd13a3c5340fcd52af0c28","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xbba3e5e9193778700ff9914060ba58e30a929eb1","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x9c134267a2d34050b0b4300aa322f7d49cafdad8","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xad180a7dfae7ffb91e5dabfcf224f8457cba0b50","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x7cbfa3e2c399fa18adb3f91389c387b31016b5e3","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0xec5d3fcf8b3eb2975abae85cb4f08ad10ca356bd","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x686869434552b141623beae02c73e39e479e39ee","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x5f1cdd301a7a0411e9a8ff2aeeb72385e0b8d3f4","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x560064a71ae3c092111cc0ae404ddecf2c57b551","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x4d95c0e537980aa17fddfdaa456103291e4dcd7d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x6d0ff40c4645bdb94cfc861448acaefc3ad7b614","propertyNames":["Bingin Magic Story Villa 3"],"balance":"2","supplyPct":0.02,"tier":"🦐 Shrimp"},{"address":"0x0065512faa13d16f84ee4c56dbc3d2bc6ea40fe0","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1.28","supplyPct":0.0128,"tier":"🦐 Shrimp"},{"address":"0x8fd6c040148d3b8d4e5ebfbd6270878b265920cc","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1.089","supplyPct":0.01089,"tier":"🦐 Shrimp"},{"address":"0x50496a15be1ea96a0f64996c0f76fa47b4a3ab8a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0x9c805262363f924e2b3a40d9014adf75c52b1951","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0x64ca937080b43df761d4b53429e3263422e9a2d7","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0x23e99b8ceee66c754ebbb783a0823394efc8314c","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0xedf98ff9941c149e6cab289a7e1367f617f7683d","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0x668d604857c7de86a74c4b1b9d9373f38f2dbe23","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0x0300ab1c756f9b25fda34b56dbfaaca7423f3c8a","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0xf5607485ee1b2e10b710a306780cf8ed6f31b1a1","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"},{"address":"0x13bafd6ff1033ad3cae85c0d294e0a1d8fd6dbe9","propertyNames":["Bingin Magic Story Villa 3"],"balance":"1","supplyPct":0.01,"tier":"🦐 Shrimp"}],"tierStats":[{"name":"🦐 Shrimp","count":191,"holdersPct":85.26785714285714,"supplyPct":25.62347200000002},{"name":"🦀 Crab","count":10,"holdersPct":4.464285714285714,"supplyPct":7.31},{"name":"🐟 Fish","count":21,"holdersPct":9.375,"supplyPct":42.586527999999994},{"name":"🐬 Dolphin","count":0,"holdersPct":0,"supplyPct":0},{"name":"🦈 Shark","count":2,"holdersPct":0.8928571428571428,"supplyPct":24.48},{"name":"🐋 Whale","count":0,"holdersPct":0,"supplyPct":0}],"globalHoldersTop":25,"propertyHoldersTop":25}</script>
+
+<script>
+(function () {
+	const raw = document.getElementById("project-data").textContent;
+	let projectData;
+	try {
+		projectData = JSON.parse(raw);
+	} catch (e) {
+		document.body.innerHTML = "<p>Invalid JSON in #project-data.</p>";
+		return;
+	}
+
+	function escapeHtml(s) {
+		if (s == null || s === "") return "";
+		return String(s)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
+
+	if (projectData.name) {
+		document.title = projectData.name;
+		document.getElementById("project-title").textContent = projectData.name;
+	}
+
+	if (projectData.generatedAt) {
+		document.getElementById("report-date").textContent = "Generated " + projectData.generatedAt;
+	}
+
+	if (projectData.summary) {
+		const s = projectData.summary;
+		document.getElementById("project-summary").innerHTML =
+			"<p>Properties: <strong>" + s.propertyCount + "</strong></p>" +
+			"<p>Total supply: <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
+			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " properties)</p>";
+	}
+
+	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
+	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
+	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
+	const globalHoldersTop = typeof projectData.globalHoldersTop === "number" && projectData.globalHoldersTop > 0
+		? projectData.globalHoldersTop
+		: allHolders.length;
+	const propertyHoldersTop = typeof projectData.propertyHoldersTop === "number" && projectData.propertyHoldersTop > 0
+		? projectData.propertyHoldersTop
+		: 10;
+	const grid = document.getElementById("grid");
+	const chartInstances = [];
+
+	function etaDate(row) {
+		const date = row && row.date;
+		return date && date !== "0001-01-01" ? date : "";
+	}
+
+	function renderETAsInto(container, chartData) {
+		const rows = chartData.etas;
+		if (!rows || rows.length === 0) {
+			container.innerHTML = "<h4>ETA</h4><p class=\"muted\">No ETA rows.</p>";
+			return;
+		}
+		const times = rows.map(etaDate).filter(Boolean).sort();
+		const showDate = times.length > 0;
+		let band = "";
+		if (times.length >= 2) {
+			band = "<p class=\"muted\">Band: <strong>" + escapeHtml(times[0]) + "</strong> … <strong>" + escapeHtml(times[times.length - 1]) + "</strong></p>";
+		}
+		const body = rows.map(function (r) {
+			let row = "<tr><td>" + escapeHtml(r.window) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td>";
+			if (showDate) {
+				row += "<td>" + escapeHtml(etaDate(r)) + "</td>";
+			}
+			return row + "</tr>";
+		}).join("");
+		const heading = showDate ? "<h4>ETA</h4>" : "";
+		container.innerHTML =
+			heading +
+			band +
+			"<table><thead><tr><th>Window</th><th>Avg Δ</th><th>Days</th>" + (showDate ? "<th>Date</th>" : "") + "</tr></thead><tbody>" +
+			body +
+			"</tbody></table>";
+	}
+
+	function renderPropertyHoldersInto(container, property) {
+		const holders = property && Array.isArray(property.holders) ? property.holders : [];
+		const summary = "<summary>Top " + propertyHoldersTop + " holders</summary>";
+		if (holders.length === 0) {
+			container.innerHTML = summary + "<p class=\"muted\">No holders.</p>";
+			return;
+		}
+		const rows = holders.map(function (h, i) {
+			return "<tr>" +
+				"<td class=\"num\">" + (i + 1) + "</td>" +
+				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+				"</tr>";
+		}).join("");
+		container.innerHTML =
+			summary +
+			"<div class=\"holders-scroll\"><table><thead><tr>" +
+			"<th>#</th><th>Address</th><th>Balance</th><th>% supply</th><th>Tier</th>" +
+			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+	}
+
+	function chartOptions(dailyLabel, cumLabel) {
+		return {
+			responsive: true,
+			maintainAspectRatio: false,
+			interaction: { mode: "index", intersect: false },
+			scales: {
+				x: { ticks: { maxTicksLimit: 24 } },
+				y: {
+					type: "linear",
+					position: "left",
+					beginAtZero: true,
+					title: { display: true, text: dailyLabel || "Daily Δ", font: { size: 10 } }
+				},
+				y1: {
+					type: "linear",
+					position: "right",
+					beginAtZero: true,
+					grid: { drawOnChartArea: false },
+					title: { display: true, text: cumLabel || "Cumulative", font: { size: 10 } }
+				}
+			}
+		};
+	}
+
+	function renderSecondaryInto(slot, property) {
+		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
+		const txCount = secondary && typeof secondary.txCount === "number" ? secondary.txCount : 0;
+		const hasVolume = secondary && secondary.labels && secondary.labels.length > 0;
+
+		const meta = document.createElement("p");
+		meta.className = "secondary-meta";
+		if (!hasVolume) {
+			meta.innerHTML = "Secondary market: <strong>no wallet-to-wallet transfers yet</strong>";
+			slot.appendChild(meta);
+			return;
+		}
+		meta.innerHTML = "Secondary txs: <strong>" + txCount + "</strong>";
+		slot.appendChild(meta);
+
+		const wrap = document.createElement("div");
+		wrap.className = "secondary-wrap";
+		const heading = document.createElement("h4");
+		heading.textContent = secondary.title || "Weekly secondary volume";
+		wrap.appendChild(heading);
+
+		const chartWrap = document.createElement("div");
+		chartWrap.className = "chart-wrap";
+		const canvas = document.createElement("canvas");
+		chartWrap.appendChild(canvas);
+		wrap.appendChild(chartWrap);
+		slot.appendChild(wrap);
+
+		const ch = new Chart(canvas, {
+			type: "bar",
+			data: {
+				labels: secondary.labels,
+				datasets: [
+					{
+						type: "bar",
+						label: "Weekly volume",
+						data: secondary.weekly,
+						backgroundColor: "rgba(54, 162, 235, 0.45)",
+						borderColor: "rgb(54, 162, 235)",
+						borderWidth: 1,
+						yAxisID: "y"
+					},
+					{
+						type: "line",
+						label: "Cumulative",
+						data: secondary.cumulative,
+						borderColor: "rgb(255, 159, 64)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions("Weekly volume", "Cumulative")
+		});
+		chartInstances.push(ch);
+	}
+
+	function renderHolders() {
+		const section = document.getElementById("holders-section");
+		if (allHolders.length === 0) {
+			section.hidden = true;
+			return;
+		}
+
+		const showGlobal = allProperties.length > 1;
+		const globalBlock = document.getElementById("global-holders-block");
+		globalBlock.hidden = !showGlobal;
+
+		if (showGlobal) {
+			const shown = Math.min(globalHoldersTop, allHolders.length);
+			document.getElementById("holders-meta").textContent =
+				"Showing " + shown + " of " + allHolders.length + " holders (by total balance).";
+
+			const body = document.getElementById("holders-body");
+			body.innerHTML = allHolders.slice(0, globalHoldersTop).map(function (h, i) {
+				return "<tr>" +
+					"<td class=\"num\">" + (i + 1) + "</td>" +
+					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
+					"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+					"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+					"</tr>";
+			}).join("");
+		}
+
+		const tierBody = document.getElementById("tier-stats-body");
+		tierBody.innerHTML = tierStats.map(function (s) {
+			return "<tr>" +
+				"<td class=\"tier\">" + escapeHtml(s.name) + "</td>" +
+				"<td class=\"num\">" + s.count + "</td>" +
+				"<td class=\"num\">" + s.holdersPct.toFixed(1) + "%</td>" +
+				"<td class=\"num\">" + s.supplyPct.toFixed(2) + "%</td>" +
+				"</tr>";
+		}).join("");
+	}
+
+	function renderCharts() {
+		grid.innerHTML = "";
+
+		if (allProperties.length === 0) {
+			grid.innerHTML = "<p class=\"chart-placeholder\">No properties loaded</p>";
+			return;
+		}
+
+		allProperties.forEach(function (property) {
+			const initial = property && property.initial_sales ? property.initial_sales : null;
+			const slot = document.createElement("div");
+			slot.className = "slot";
+			const title = document.createElement("h3");
+			title.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
+			slot.appendChild(title);
+
+			const wrap = document.createElement("div");
+			wrap.className = "chart-wrap";
+			const canvas = document.createElement("canvas");
+			wrap.appendChild(canvas);
+			slot.appendChild(wrap);
+
+			const etaWrap = document.createElement("div");
+			etaWrap.className = "eta-wrap";
+			slot.appendChild(etaWrap);
+
+			grid.appendChild(slot);
+
+			const holdersWrap = document.createElement("details");
+			holdersWrap.className = "holders-wrap";
+
+			if (!initial || !initial.labels || initial.labels.length === 0) {
+				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
+				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
+				renderSecondaryInto(slot, property);
+				renderPropertyHoldersInto(holdersWrap, property);
+				slot.appendChild(holdersWrap);
+				return;
+			}
+
+			const ch = new Chart(canvas, {
+				type: "line",
+				data: {
+					labels: initial.labels,
+					datasets: [
+						{
+							label: "Daily Δ",
+							data: initial.daily,
+							borderColor: "rgb(75, 192, 192)",
+							backgroundColor: "rgba(75, 192, 192, 0.2)",
+							tension: 0,
+							stepped: "before",
+							fill: false,
+							yAxisID: "y"
+						},
+						{
+							label: "Cumulative",
+							data: initial.cumulative,
+							borderColor: "rgb(255, 99, 132)",
+							tension: 0.05,
+							fill: false,
+							yAxisID: "y1"
+						}
+					]
+				},
+				options: chartOptions("Daily Δ", "Cumulative")
+			});
+			chartInstances.push(ch);
+			renderETAsInto(etaWrap, initial);
+			renderSecondaryInto(slot, property);
+			renderPropertyHoldersInto(holdersWrap, property);
+			slot.appendChild(holdersWrap);
+		});
+	}
+
+	renderHolders();
+	renderCharts();
+})();
+</script>
+</body>
+</html>
