@@ -38,6 +38,7 @@ type Contract struct {
 	Name     string
 	Address  string
 	ExitDate YearQuarter
+	Redeemed bool
 }
 
 type YearQuarter struct {
@@ -74,6 +75,15 @@ func NewProperty(contract Contract, client *polygonscan.Client, scanPause time.D
 	property.TotalSupplyRaw, err = client.GetTotalSupply(property.Address)
 	if err != nil {
 		return nil, fmt.Errorf("get total supply: %v", err)
+	}
+	if property.Redeemed {
+		property.TotalSupplyRaw, err = calculateIssuedSupply(property.txs)
+		if err != nil {
+			return nil, fmt.Errorf("issued supply: %v", err)
+		}
+	}
+	if property.TotalSupplyRaw.Sign() == 0 {
+		return nil, errors.New("total supply is zero")
 	}
 
 	property.calculateBoughtRaw()
@@ -129,6 +139,26 @@ func (p *Property) calculateBoughtRaw() {
 	}
 
 	p.BoughtRaw = boughtAmount
+}
+
+func calculateIssuedSupply(txs []polygonscan.TokenTransfer) (*big.Int, error) {
+	supply, maxSupply := big.NewInt(0), big.NewInt(0)
+	for _, tx := range txs {
+		v, ok := new(big.Int).SetString(tx.Value, 10)
+		if !ok {
+			return nil, fmt.Errorf("parse value %q", tx.Value)
+		}
+		if tx.From == zeroAddr0x {
+			supply.Add(supply, v)
+		}
+		if tx.To == zeroAddr0x {
+			supply.Sub(supply, v)
+		}
+		if supply.Cmp(maxSupply) > 0 {
+			maxSupply.Set(supply)
+		}
+	}
+	return maxSupply, nil
 }
 
 // isInitialSale reports whether from is an initial sale (not wallet-to-wallet).
