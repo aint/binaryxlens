@@ -207,204 +207,155 @@ func (p *Property) extractDecimal() error {
 	return nil
 }
 
-var LaCasaEspanolaVilla4 = Contract{
-	Name:     "La Casa Española Villa 4",
-	Address:  "0x7b592d8bb722324f75af834c23e6ad2058b168e1",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 4},
-}
-var LaCasaEspanolaVilla6 = Contract{
-	Name:     "La Casa Española Villa 6",
-	Address:  "0xdd36b686a5ff910b5074e3f5483135f19e49f02c",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 4},
-}
-var LaCasaEspanolaVilla8 = Contract{
-	Name:     "La Casa Española Villa 8",
-	Address:  "0x223270bbbe4f6dac0dc3e57d985116bdc50616ee",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 4},
-}
-var LaCasaEspanolaVilla9 = Contract{
-	Name:     "La Casa Española Villa 9",
-	Address:  "0x89ebdfaf79308871a24c6992232984b3c84af9a8",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 4},
-}
-
-var LaCasaEspanolaVillas = []Contract{
-	LaCasaEspanolaVilla4,
-	LaCasaEspanolaVilla6,
-	LaCasaEspanolaVilla8,
-	LaCasaEspanolaVilla9,
-}
-
-var RootsVilla1 = Contract{
-	Name:     "Roots Villa 1",
-	Address:  "0xbde380b4cc582d440255ebd89ff1839dcfad5d7b",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 3},
-}
-var RootsVilla3 = Contract{
-	Name:     "Roots Villa 3",
-	Address:  "0xc0a4b2e29bd44d3b798a02edc039711f03572739",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 3},
-}
-var RootsVilla4 = Contract{
-	Name:     "Roots Villa 4",
-	Address:  "0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 3},
-}
-var RootsVilla5 = Contract{
-	Name:     "Roots Villa 5",
-	Address:  "0x0ef68e86c3c9bc6187c69770053919e6b35991f6",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 3},
-}
-
-var RootsVillas = []Contract{
-	RootsVilla1,
-	RootsVilla3,
-	RootsVilla4,
-	RootsVilla5,
-}
-
-var DukleyGlamping1 = Contract{
-	Name:     "Dukley Glamping 1",
-	Address:  "0xad4f81d0f2f626a6ea29864f488604e6b5360e2a",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 4},
-}
-var MountainRetreatByDukley = Contract{
-	Name:     "Mountain Retreat by Dukley",
-	Address:  "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
-	ExitDate: YearQuarter{Year: 2024, Quarter: 4},
-}
-
-var Dukley = []Contract{
-	DukleyGlamping1,
-	MountainRetreatByDukley,
-}
-
-var CemagiUnit344 = Contract{
-	Name:     "CEMAGI Unit 3.44",
-	Address:  "0x852b6995628b760c84bdd02bc143b48288d4dd3a",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-var CemagiUnit346 = Contract{
-	Name:     "CEMAGI Unit 3.46",
-	Address:  "0x2b7dca2c2bafdb1dac0e01068091590fbe09e478",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-
-var CemagiUnits = []Contract{
-	CemagiUnit344,
-	CemagiUnit346,
-}
-
-var CadecasVilla2 = Contract{
-	Name:     "CASCADE Villa 2",
-	Address:  "0x5e55b3e941f42732f1b941f2f673dc8811355e5e",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-var CadecasVilla3 = Contract{
-	Name:     "CASCADE Villa 3",
-	Address:  "0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-
-var CadecasVillas = []Contract{
-	CadecasVilla2,
-	CadecasVilla3,
-}
-
-var BaliBalanceOceanVilla3 = Contract{
-	Name:     "Bali Balance Ocean Villa 3",
-	Address:  "0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-var BaliBalanceOceanVilla4 = Contract{
-	Name:     "Bali Balance Ocean Villa 4",
-	Address:  "0x17236ed296fbd00d3dfa016879833776dd207fd6",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-
-var BaliBalanceOceanVillas = []Contract{
-	BaliBalanceOceanVilla3,
-	BaliBalanceOceanVilla4,
-}
-
-var BinginMagicStoryVilla3 = Contract{
-	Name:     "Bingin Magic Story Villa 3",
-	Address:  "0xe5f846592a58bcfce912bc6fc594649397b6f519",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-
-var BinginMagicStoryVillas = []Contract{
-	BinginMagicStoryVilla3,
-}
-
-var OasisRoyalCollection11a = Contract{
-	Name:     "Oasis Royal Collection 11a",
-	Address:  "0xa26f11748ed29b3fd62e1d8e231d277a0980fb12",
-	ExitDate: YearQuarter{Year: 2025, Quarter: 4},
-}
-var OasisRoyalCollection18b = Contract{
-	Name:     "Oasis Royal Collection 18b",
-	Address:  "0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed",
-	ExitDate: YearQuarter{Year: 2025, Quarter: 4},
-}
-
-var OasisRoyalCollection = []Contract{
-	OasisRoyalCollection11a,
-	OasisRoyalCollection18b,
-}
-
-var TaryanDragonJungleView = Contract{
-	Name:     "Taryan Dragon Jungle View",
-	Address:  "0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5",
-	ExitDate: YearQuarter{Year: 2027, Quarter: 4},
-}
-
-var TaryanDragonJungleViews = []Contract{
-	TaryanDragonJungleView,
-}
-
-var AWWAHotelByRibasB14 = Contract{
-	Name:     "AWWA Hotel by Ribas B14",
-	Address:  "0x216301b87404a5839bf7b8b94c646c4eb96fec79",
-	ExitDate: YearQuarter{Year: 2025, Quarter: 2},
-}
-var AWWAHotelByRibasB22 = Contract{
-	Name:     "AWWA Hotel by Ribas B22",
-	Address:  "0xe725a80f426a7d7f5734ba69ccec507251109d09",
-	ExitDate: YearQuarter{Year: 2025, Quarter: 2},
-}
-var AWWAHotelByRibasA16 = Contract{
-	Name:     "AWWA Hotel by Ribas A16",
-	Address:  "0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd",
-	ExitDate: YearQuarter{Year: 2025, Quarter: 2},
-}
-
-var AWWAHotelByRibas = []Contract{
-	AWWAHotelByRibasB14,
-	AWWAHotelByRibasB22,
-	AWWAHotelByRibasA16,
-}
-
-var EcoverseSuite = Contract{
-	Name:     "Ecoverse Suite",
-	Address:  "0x30ed65e470be4f351abf5311769505e3f977deca",
-	ExitDate: YearQuarter{Year: 2026, Quarter: 2},
-}
-
-var EcoverseSuites = []Contract{
-	EcoverseSuite,
-}
-
 var AllPropertyContracts = map[string][]Contract{
-	"La Casa Española Villas": LaCasaEspanolaVillas,
-	"Roots Villas": RootsVillas,
-	"Dukley": Dukley,
-	"CEMAGI Units": CemagiUnits,
-	"CASCADE Villas": CadecasVillas,
-	"Bali Balance Ocean Villas": BaliBalanceOceanVillas,
-	"Bingin Magic Story Villas": BinginMagicStoryVillas,
-	"Oasis Royal Collection": OasisRoyalCollection,
-	"Taryan Dragon Jungle Views": TaryanDragonJungleViews,
-	"AWWA Hotel by Ribas": AWWAHotelByRibas,
-	"Ecoverse Suites": EcoverseSuites,
+	"Dukley": {
+		{
+			Name:     "Mountain Retreat by Dukley",
+			Address:  "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
+			ExitDate: YearQuarter{Year: 2024, Quarter: 4},
+			Redeemed: true,
+		},
+		{
+			Name:     "Dukley Glamping 1",
+			Address:  "0xad4f81d0f2f626a6ea29864f488604e6b5360e2a",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 4},
+		},
+	},
+	"Bubbles Boutique Complex": {
+		{
+			Name:     "Bubbles Boutique Complex",
+			Address:  "0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1",
+			ExitDate: YearQuarter{Year: 2050, Quarter: 4},
+		},
+	},
+	"Ecoverse Suites": {
+		{
+			Name:     "Ecoverse Suite",
+			Address:  "0x30ed65e470be4f351abf5311769505e3f977deca",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+	},
+	"Taryan Dragon Jungle Views": {
+		{
+			Name:     "Taryan Dragon Jungle View",
+			Address:  "0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5",
+			ExitDate: YearQuarter{Year: 2027, Quarter: 4},
+		},
+	},
+	"Bingin Magic Story Villas": {
+		{
+			Name:     "Bingin Magic Story Villa 3",
+			Address:  "0xe5f846592a58bcfce912bc6fc594649397b6f519",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+	},
+	"CEMAGI Units": {
+		{
+			Name:     "CEMAGI Unit 3.44",
+			Address:  "0x852b6995628b760c84bdd02bc143b48288d4dd3a",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+		{
+			Name:     "CEMAGI Unit 3.46",
+			Address:  "0x2b7dca2c2bafdb1dac0e01068091590fbe09e478",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+	},
+	"CASCADE Villas": {
+		{
+			Name:     "CASCADE Villa 2",
+			Address:  "0x5e55b3e941f42732f1b941f2f673dc8811355e5e",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+		{
+			Name:     "CASCADE Villa 3",
+			Address:  "0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+	},
+	"Bali Balance Ocean Villas": {
+		{
+			Name:     "Bali Balance Ocean Villa 3",
+			Address:  "0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+		{
+			Name:     "Bali Balance Ocean Villa 4",
+			Address:  "0x17236ed296fbd00d3dfa016879833776dd207fd6",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 2},
+		},
+	},
+	"Oasis Royal Collection": {
+		{
+			Name:     "Oasis Royal Collection 11a",
+			Address:  "0xa26f11748ed29b3fd62e1d8e231d277a0980fb12",
+			ExitDate: YearQuarter{Year: 2025, Quarter: 4},
+		},
+		{
+			Name:     "Oasis Royal Collection 18b",
+			Address:  "0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed",
+			ExitDate: YearQuarter{Year: 2025, Quarter: 4},
+		},
+	},
+	"AWWA Hotel by Ribas": {
+		{
+			Name:     "AWWA Hotel by Ribas B14",
+			Address:  "0x216301b87404a5839bf7b8b94c646c4eb96fec79",
+			ExitDate: YearQuarter{Year: 2025, Quarter: 2},
+		},
+		{
+			Name:     "AWWA Hotel by Ribas B22",
+			Address:  "0xe725a80f426a7d7f5734ba69ccec507251109d09",
+			ExitDate: YearQuarter{Year: 2025, Quarter: 2},
+		},
+		{
+			Name:     "AWWA Hotel by Ribas A16",
+			Address:  "0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd",
+			ExitDate: YearQuarter{Year: 2025, Quarter: 2},
+		},
+	},
+	"Roots Villas": {
+		{
+			Name:     "Roots Villa 1",
+			Address:  "0xbde380b4cc582d440255ebd89ff1839dcfad5d7b",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 3},
+		},
+		{
+			Name:     "Roots Villa 3",
+			Address:  "0xc0a4b2e29bd44d3b798a02edc039711f03572739",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 3},
+		},
+		{
+			Name:     "Roots Villa 4",
+			Address:  "0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 3},
+		},
+		{
+			Name:     "Roots Villa 5",
+			Address:  "0x0ef68e86c3c9bc6187c69770053919e6b35991f6",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 3},
+		},
+	},
+	"La Casa Española Villas": {
+		{
+			Name:     "La Casa Española Villa 4",
+			Address:  "0x7b592d8bb722324f75af834c23e6ad2058b168e1",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 4},
+		},
+		{
+			Name:     "La Casa Española Villa 6",
+			Address:  "0xdd36b686a5ff910b5074e3f5483135f19e49f02c",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 4},
+		},
+		{
+			Name:     "La Casa Española Villa 8",
+			Address:  "0x223270bbbe4f6dac0dc3e57d985116bdc50616ee",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 4},
+		},
+		{
+			Name:     "La Casa Española Villa 9",
+			Address:  "0x89ebdfaf79308871a24c6992232984b3c84af9a8",
+			ExitDate: YearQuarter{Year: 2026, Quarter: 4},
+		},
+	},
 }
