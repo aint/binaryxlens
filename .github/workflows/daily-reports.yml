@@ -26,8 +26,14 @@ jobs:
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
         run: go run .
 
+      - name: Stamp index with job time
+        run: |
+          ts=$(date -u '+%Y-%m-%d %H:%M UTC')
+          sed -i -E 's|(<p id="reports-updated" class="updated">)[^<]*(</p>)|\1Reports updated '"${ts}"'\2|' index.html
+          grep -q "Reports updated ${ts}" index.html
+
       - name: Commit reports
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Refresh daily holder reports"
-          file_pattern: "reports/*.html"
+          file_pattern: "reports/*.html index.html"
