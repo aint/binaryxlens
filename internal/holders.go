@@ -5,47 +5,56 @@ import (
 	"maps"
 	"math/big"
 	"slices"
+	"strconv"
+	"time"
 )
 
 const zeroAddr0x = "0x0000000000000000000000000000000000000000"
 
 type Holder struct {
-	Address string
-	Balance *big.Int
+	Address    string
+	Balance    *big.Int
+	WeekDelta  *big.Int
+	MonthDelta *big.Int
 }
 
 type ProjectHolder struct {
 	Address          string
 	PropertyBalances map[string]*big.Int
 	TotalBalance     *big.Int
+	WeekDelta        *big.Int
+	MonthDelta       *big.Int
 }
 
 func (p *Property) buildHolders() error {
-	holderMap := make(map[string]*big.Int)
+	now := time.Now().UTC()
+	weekAgo := now.AddDate(0, 0, -7).Unix()
+	monthAgo := now.AddDate(0, 0, -30).Unix()
+
+	holderMap := make(map[string]*Holder)
 	for _, tx := range p.txs {
 		v, ok := new(big.Int).SetString(tx.Value, 10)
 		if !ok {
 			return fmt.Errorf("parse value %q", tx.Value)
 		}
+		ts, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
+		}
+		inWeek := ts >= weekAgo
+		inMonth := ts >= monthAgo
+
 		if tx.From != zeroAddr0x {
-			cur := holderMap[tx.From]
-			if cur == nil {
-				cur = big.NewInt(0)
-			}
-			holderMap[tx.From] = new(big.Int).Sub(cur, v)
+			updateHolder(holderMap, tx.From, new(big.Int).Neg(v), inWeek, inMonth)
 		}
 		if tx.To != zeroAddr0x {
-			cur := holderMap[tx.To]
-			if cur == nil {
-				cur = big.NewInt(0)
-			}
-			holderMap[tx.To] = new(big.Int).Add(cur, v)
+			updateHolder(holderMap, tx.To, v, inWeek, inMonth)
 		}
 	}
 
 	keys := slices.Collect(maps.Keys(holderMap))
 	slices.SortFunc(keys, func(a, b string) int {
-		return holderMap[b].Cmp(holderMap[a]) // descending by balance
+		return holderMap[b].Balance.Cmp(holderMap[a].Balance) // descending by balance
 	})
 
 	holders := make([]Holder, 0, len(holderMap))
@@ -54,12 +63,32 @@ func (p *Property) buildHolders() error {
 			// ignore unclaimed balance
 			continue
 		}
-		holders = append(holders, Holder{Address: address, Balance: holderMap[address]})
+		holders = append(holders, *holderMap[address])
 	}
 
 	p.Holders = holders
 
 	return nil
+}
+
+func updateHolder(m map[string]*Holder, addr string, v *big.Int, inWeek, inMonth bool) {
+	h := m[addr]
+	if h == nil {
+		h = &Holder{
+			Address:    addr,
+			Balance:    big.NewInt(0),
+			WeekDelta:  big.NewInt(0),
+			MonthDelta: big.NewInt(0),
+		}
+		m[addr] = h
+	}
+	h.Balance.Add(h.Balance, v)
+	if inWeek {
+		h.WeekDelta.Add(h.WeekDelta, v)
+	}
+	if inMonth {
+		h.MonthDelta.Add(h.MonthDelta, v)
+	}
 }
 
 func (pr *Project) buildHolders() {
@@ -73,6 +102,8 @@ func (pr *Project) buildHolders() {
 					Address:          hol.Address,
 					PropertyBalances: map[string]*big.Int{property.Name: new(big.Int).Set(hol.Balance)},
 					TotalBalance:     new(big.Int).Set(hol.Balance),
+					WeekDelta:        new(big.Int).Set(hol.WeekDelta),
+					MonthDelta:       new(big.Int).Set(hol.MonthDelta),
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -80,6 +111,8 @@ func (pr *Project) buildHolders() {
 
 			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.Balance)
 			ph.TotalBalance.Add(ph.TotalBalance, hol.Balance)
+			ph.WeekDelta.Add(ph.WeekDelta, hol.WeekDelta)
+			ph.MonthDelta.Add(ph.MonthDelta, hol.MonthDelta)
 		}
 	}
 
@@ -106,6 +139,8 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			Address:       h.Address,
 			PropertyNames: slices.Sorted(maps.Keys(h.PropertyBalances)),
 			Balance:       FormatBigInt(h.TotalBalance, pr.Decimal),
+			WeekDelta:     formatDelta(h.WeekDelta, pr.Decimal),
+			MonthDelta:    formatDelta(h.MonthDelta, pr.Decimal),
 			SupplyPct:     pct,
 			Tier:          holderTier(pct),
 		})

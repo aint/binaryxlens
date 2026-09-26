@@ -29,6 +29,17 @@ func FormatBigInt(raw *big.Int, decimals uint8) string {
 	return ip.String() + "." + frac
 }
 
+func formatDelta(raw *big.Int, decimals uint8) string {
+	if raw == nil || raw.Sign() == 0 {
+		return "0"
+	}
+	s := FormatBigInt(new(big.Int).Abs(raw), decimals)
+	if raw.Sign() < 0 {
+		return "-" + s
+	}
+	return "+" + s
+}
+
 func bigIntToFloat(raw *big.Int, decimals uint8) float64 {
 	if raw == nil || raw.Sign() == 0 {
 		return 0

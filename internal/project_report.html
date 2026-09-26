@@ -86,6 +86,9 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
 .holders-section td.properties { min-width: 200px; max-width: 420px; }
 .holders-section td.tier { white-space: nowrap; }
+td.trend.up { color: #1a7f37; }
+td.trend.down { color: #cf222e; }
+td.trend.flat { color: #888; }
 </style>
 </head>
 <body>
@@ -119,6 +122,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 						<th>Address</th>
 						<th>Property names</th>
 						<th>Balance</th>
+						<th>Week</th>
+						<th>Month</th>
 						<th>% supply</th>
 						<th>Tier</th>
 					</tr>
@@ -209,6 +214,15 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 			"</tbody></table>";
 	}
 
+	function trendCell(delta) {
+		if (!delta || delta === "0") {
+			return "<td class=\"num trend flat\">—</td>";
+		}
+		const down = delta.charAt(0) === "-";
+		return "<td class=\"num trend " + (down ? "down" : "up") + "\">" +
+			(down ? "↓ " : "↑ ") + escapeHtml(delta) + "</td>";
+	}
+
 	function renderPropertyHoldersInto(container, property) {
 		const holders = property && Array.isArray(property.holders) ? property.holders : [];
 		const summary = "<summary>Top " + propertyHoldersTop + " holders</summary>";
@@ -221,6 +235,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 				"<td class=\"num\">" + (i + 1) + "</td>" +
 				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+				trendCell(h.weekDelta) +
+				trendCell(h.monthDelta) +
 				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
 				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
 				"</tr>";
@@ -228,7 +244,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 		container.innerHTML =
 			summary +
 			"<div class=\"holders-scroll\"><table><thead><tr>" +
-			"<th>#</th><th>Address</th><th>Balance</th><th>% supply</th><th>Tier</th>" +
+			"<th>#</th><th>Address</th><th>Balance</th><th>Week</th><th>Month</th><th>% supply</th><th>Tier</th>" +
 			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
 	}
 
@@ -337,6 +353,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
 					"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+					trendCell(h.weekDelta) +
+					trendCell(h.monthDelta) +
 					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
 					"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
 					"</tr>";
