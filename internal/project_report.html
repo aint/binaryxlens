@@ -27,6 +27,16 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	width: 100%;
 }
 .slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.slot .buys-wrap > summary {
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 8px;
+}
+.slot .buys-wrap > summary::-webkit-details-marker { display: none; }
+.slot .buys-wrap > summary::before { content: "▸ "; }
+.slot .buys-wrap[open] > summary::before { content: "▾ "; }
 .chart-wrap {
 	position: relative;
 	width: 100%;
@@ -272,10 +282,47 @@ td.trend.flat { color: #888; }
 		};
 	}
 
+	function hasSecondaryVolume(property) {
+		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
+		return !!(secondary && secondary.labels && secondary.labels.length > 0);
+	}
+
+	function mountDailyChart(canvas, initial) {
+		const ch = new Chart(canvas, {
+			type: "line",
+			data: {
+				labels: initial.labels,
+				datasets: [
+					{
+						label: "Daily Δ",
+						data: initial.daily,
+						borderColor: "rgb(75, 192, 192)",
+						backgroundColor: "rgba(75, 192, 192, 0.2)",
+						tension: 0,
+						stepped: "before",
+						fill: false,
+						yAxisID: "y"
+					},
+					{
+						label: "Cumulative",
+						data: initial.cumulative,
+						borderColor: "rgb(255, 99, 132)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions("Daily Δ", "Cumulative")
+		});
+		chartInstances.push(ch);
+		return ch;
+	}
+
 	function renderSecondaryInto(slot, property) {
 		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
 		const txCount = secondary && typeof secondary.txCount === "number" ? secondary.txCount : 0;
-		const hasVolume = secondary && secondary.labels && secondary.labels.length > 0;
+		const hasVolume = hasSecondaryVolume(property);
 
 		const meta = document.createElement("p");
 		meta.className = "secondary-meta";
@@ -382,17 +429,24 @@ td.trend.flat { color: #888; }
 
 		allProperties.forEach(function (property) {
 			const initial = property && property.initial_sales ? property.initial_sales : null;
+			const collapseBuys = hasSecondaryVolume(property);
 			const slot = document.createElement("div");
 			slot.className = "slot";
-			const title = document.createElement("h3");
+			const title = document.createElement(collapseBuys ? "summary" : "h3");
 			title.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
-			slot.appendChild(title);
+
+			const chartParent = document.createElement(collapseBuys ? "details" : "div");
+			if (collapseBuys) {
+				chartParent.className = "buys-wrap";
+			}
+			chartParent.appendChild(title);
 
 			const wrap = document.createElement("div");
 			wrap.className = "chart-wrap";
 			const canvas = document.createElement("canvas");
 			wrap.appendChild(canvas);
-			slot.appendChild(wrap);
+			chartParent.appendChild(wrap);
+			slot.appendChild(chartParent);
 
 			const etaWrap = document.createElement("div");
 			etaWrap.className = "eta-wrap";
@@ -403,44 +457,28 @@ td.trend.flat { color: #888; }
 			const holdersWrap = document.createElement("details");
 			holdersWrap.className = "holders-wrap";
 
-			if (!initial || !initial.labels || initial.labels.length === 0) {
+			const hasSeries = initial && initial.labels && initial.labels.length > 0;
+			if (!hasSeries) {
 				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
 				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
-				renderSecondaryInto(slot, property);
-				renderPropertyHoldersInto(holdersWrap, property);
-				slot.appendChild(holdersWrap);
-				return;
+			} else if (collapseBuys) {
+				let chart = null;
+				chartParent.addEventListener("toggle", function () {
+					if (!chartParent.open) return;
+					requestAnimationFrame(function () {
+						if (!chart) {
+							chart = mountDailyChart(canvas, initial);
+							return;
+						}
+						chart.resize();
+					});
+				});
+				renderETAsInto(etaWrap, initial);
+			} else {
+				mountDailyChart(canvas, initial);
+				renderETAsInto(etaWrap, initial);
 			}
 
-			const ch = new Chart(canvas, {
-				type: "line",
-				data: {
-					labels: initial.labels,
-					datasets: [
-						{
-							label: "Daily Δ",
-							data: initial.daily,
-							borderColor: "rgb(75, 192, 192)",
-							backgroundColor: "rgba(75, 192, 192, 0.2)",
-							tension: 0,
-							stepped: "before",
-							fill: false,
-							yAxisID: "y"
-						},
-						{
-							label: "Cumulative",
-							data: initial.cumulative,
-							borderColor: "rgb(255, 99, 132)",
-							tension: 0.05,
-							fill: false,
-							yAxisID: "y1"
-						}
-					]
-				},
-				options: chartOptions("Daily Δ", "Cumulative")
-			});
-			chartInstances.push(ch);
-			renderETAsInto(etaWrap, initial);
 			renderSecondaryInto(slot, property);
 			renderPropertyHoldersInto(holdersWrap, property);
 			slot.appendChild(holdersWrap);
