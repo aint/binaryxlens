@@ -76,6 +76,20 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
+.tier-layout {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px 24px;
+	align-items: center;
+}
+.tier-chart-wrap {
+	position: relative;
+	width: min(100%, 420px);
+	height: 300px;
+	flex: 1 1 280px;
+	max-width: 480px;
+}
+.tier-chart-wrap canvas { display: block; max-width: 100%; }
 .holders-section details.holders-collapse { margin-top: 20px; }
 .holders-section details.holders-collapse > summary {
 	font-size: 0.9rem;
@@ -110,17 +124,14 @@ td.trend.flat { color: #888; }
 <section id="holders-section" class="holders-section" aria-label="Project holders">
 	<h2>Holders</h2>
 	<h3>Tier distribution</h3>
-	<table id="tier-stats-table">
-		<thead>
-			<tr>
-				<th>Tier</th>
-				<th>Count</th>
-				<th>% holders</th>
-				<th>% supply</th>
-			</tr>
-		</thead>
-		<tbody id="tier-stats-body"></tbody>
-	</table>
+	<div class="tier-layout">
+		<div class="tier-chart-wrap">
+			<canvas id="tier-holders-chart" aria-label="Holders by tier"></canvas>
+		</div>
+		<div class="tier-chart-wrap">
+			<canvas id="tier-supply-chart" aria-label="Supply by tier"></canvas>
+		</div>
+	</div>
 	<details id="global-holders-block" class="holders-collapse">
 		<summary>Top global holders</summary>
 		<p id="holders-meta" class="section-meta"></p>
@@ -408,15 +419,108 @@ td.trend.flat { color: #888; }
 			}).join("");
 		}
 
-		const tierBody = document.getElementById("tier-stats-body");
-		tierBody.innerHTML = tierStats.map(function (s) {
-			return "<tr>" +
-				"<td class=\"tier\">" + escapeHtml(s.name) + "</td>" +
-				"<td class=\"num\">" + s.count + "</td>" +
-				"<td class=\"num\">" + s.holdersPct.toFixed(1) + "%</td>" +
-				"<td class=\"num\">" + s.supplyPct.toFixed(2) + "%</td>" +
-				"</tr>";
-		}).join("");
+		renderTierCharts();
+	}
+
+	const tierPalette = ["#94a3b8", "#fb923c", "#38bdf8", "#6366f1", "#10b981", "#1e40af"];
+
+	function formatTokens(n) {
+		if (!isFinite(n)) return "0";
+		const rounded = Math.round(n * 100) / 100;
+		if (Math.abs(rounded - Math.round(rounded)) < 1e-6) return String(Math.round(rounded));
+		return rounded.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+	}
+
+	function tierTokenTotals() {
+		const totals = {};
+		allHolders.forEach(function (h) {
+			const n = Number(h.balance);
+			if (!isFinite(n)) return;
+			totals[h.tier] = (totals[h.tier] || 0) + n;
+		});
+		return totals;
+	}
+
+	function tierSlices(include) {
+		const tokens = tierTokenTotals();
+		const slices = [];
+		tierStats.forEach(function (s, i) {
+			if (!include(s)) return;
+			slices.push({
+				stat: s,
+				tokens: tokens[s.name] || 0,
+				color: tierPalette[i % tierPalette.length]
+			});
+		});
+		return slices;
+	}
+
+	function tierTooltip(slices) {
+		return {
+			callbacks: {
+				label: function (ctx) {
+					const slice = slices[ctx.dataIndex];
+					const s = slice.stat;
+					return [
+						" Tokens: " + formatTokens(slice.tokens),
+						" % supply: " + s.supplyPct.toFixed(2) + "%",
+						" % holders: " + s.holdersPct.toFixed(1) + "%"
+					];
+				}
+			}
+		};
+	}
+
+	function mountTierPie(canvasId, title, values, slices) {
+		const canvas = document.getElementById(canvasId);
+		if (slices.length === 0) {
+			canvas.parentElement.innerHTML = "<div class=\"chart-placeholder\">No tier data</div>";
+			return;
+		}
+		const ch = new Chart(canvas, {
+			type: "pie",
+			data: {
+				labels: slices.map(function (s) { return s.stat.name; }),
+				datasets: [{
+					data: slices.map(function (s) { return values(s); }),
+					backgroundColor: slices.map(function (s) { return s.color; }),
+					borderColor: "#fff",
+					borderWidth: 2
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					title: {
+						display: true,
+						text: title,
+						font: { size: 13, weight: "600" }
+					},
+					legend: {
+						position: "bottom",
+						labels: { boxWidth: 12, font: { size: 12 } }
+					},
+					tooltip: tierTooltip(slices)
+				}
+			}
+		});
+		chartInstances.push(ch);
+	}
+
+	function renderTierCharts() {
+		mountTierPie(
+			"tier-holders-chart",
+			"Holders by tier",
+			function (s) { return s.stat.count; },
+			tierSlices(function (s) { return s.count > 0; })
+		);
+		mountTierPie(
+			"tier-supply-chart",
+			"Supply by tier",
+			function (s) { return s.stat.supplyPct; },
+			tierSlices(function (s) { return s.supplyPct > 0; })
+		);
 	}
 
 	function renderCharts() {
