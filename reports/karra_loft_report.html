@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Project report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { font-family: system-ui, sans-serif; padding: 16px; }
+h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
+.project-summary { font-size: 0.9rem; color: #333; margin: 0 0 20px; line-height: 1.5; }
+.project-summary p { margin: 0 0 4px; }
+.grid {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	width: 100%;
+	align-items: stretch;
+}
+.slot {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 10px 12px 14px;
+	background: #fafafa;
+	width: 100%;
+}
+.slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.slot .buys-wrap > summary {
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 8px;
+}
+.slot .buys-wrap > summary::-webkit-details-marker { display: none; }
+.slot .buys-wrap > summary::before { content: "▸ "; }
+.slot .buys-wrap[open] > summary::before { content: "▾ "; }
+.chart-wrap {
+	position: relative;
+	width: 100%;
+	height: 340px;
+	max-width: 100%;
+}
+.chart-wrap canvas { display: block; max-width: 100%; }
+.chart-placeholder { color: #666; font-size: 0.9rem; padding: 20px 8px; text-align: center; }
+.slot .eta-wrap { margin-top: 10px; }
+.slot .eta-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.slot .eta-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .eta-wrap th, .slot .eta-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+.slot .eta-wrap th { background: #eee; }
+.slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap { margin-top: 12px; }
+.slot .holders-wrap > summary {
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 6px;
+}
+.slot .holders-wrap > summary::-webkit-details-marker { display: none; }
+.slot .holders-wrap > summary::before { content: "▸ "; }
+.slot .holders-wrap[open] > summary::before { content: "▾ "; }
+.slot .holders-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.slot .holders-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .holders-wrap th, .slot .holders-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+.slot .holders-wrap th { background: #eee; white-space: nowrap; }
+.slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
+.slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
+.slot .holders-wrap td.tier { white-space: nowrap; }
+.slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 12px 0 6px; }
+.slot .secondary-wrap { margin-top: 4px; }
+.slot .secondary-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 8px; }
+.holders-section { margin-top: 28px; }
+.holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
+.holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
+.tier-layout {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px 24px;
+	align-items: center;
+}
+.tier-chart-wrap {
+	position: relative;
+	width: min(100%, 420px);
+	height: 300px;
+	flex: 1 1 280px;
+	max-width: 480px;
+}
+.tier-chart-wrap canvas { display: block; max-width: 100%; }
+.holders-section details.holders-collapse { margin-top: 20px; }
+.holders-section details.holders-collapse > summary {
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	margin: 0 0 8px;
+}
+.holders-section details.holders-collapse > summary::-webkit-details-marker { display: none; }
+.holders-section details.holders-collapse > summary::before { content: "▸ "; }
+.holders-section details.holders-collapse[open] > summary::before { content: "▾ "; }
+.section-meta { font-size: 0.85rem; color: #444; margin: 0 0 10px; }
+.holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.holders-section table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+.holders-section th, .holders-section td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+.holders-section th { background: #eee; white-space: nowrap; }
+.holders-section td.num { text-align: right; white-space: nowrap; }
+.holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+.holders-section td.properties { min-width: 200px; max-width: 420px; }
+.holders-section td.tier { white-space: nowrap; }
+td.trend.up { color: #1a7f37; }
+td.trend.down { color: #cf222e; }
+td.trend.flat { color: #888; }
+</style>
+</head>
+<body>
+<h1 id="project-title">Project report</h1>
+<div id="project-summary" class="project-summary" aria-label="Project summary"></div>
+
+<div id="grid" class="grid" aria-label="Property charts"></div>
+
+<section id="holders-section" class="holders-section" aria-label="Project holders">
+	<h2>Holders</h2>
+	<h3>Tier distribution</h3>
+	<div class="tier-layout">
+		<div class="tier-chart-wrap">
+			<canvas id="tier-holders-chart" aria-label="Holders by tier"></canvas>
+		</div>
+		<div class="tier-chart-wrap">
+			<canvas id="tier-supply-chart" aria-label="Supply by tier"></canvas>
+		</div>
+	</div>
+	<details id="global-holders-block" class="holders-collapse">
+		<summary>Top global holders</summary>
+		<p id="holders-meta" class="section-meta"></p>
+		<div class="holders-scroll">
+			<table id="holders-table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Address</th>
+						<th>Property names</th>
+						<th>Balance</th>
+						<th>Week</th>
+						<th>Month</th>
+						<th>% supply</th>
+						<th>Tier</th>
+					</tr>
+				</thead>
+				<tbody id="holders-body"></tbody>
+			</table>
+		</div>
+	</details>
+</section>
+
+<script type="application/json" id="project-data">{"name":"Karra Loft","generatedAt":"2026-09-28","summary":{"propertyCount":2,"totalSupply":"8800","bought":"8800","boughtPct":100},"properties":[{"name":"Karra Loft 3A","holders":[{"address":"0x5521eb7c0a62eb6bb1a6a71f0e48bd18aa2d9594","balance":"1063","weekDelta":"0","monthDelta":"0","supplyPct":24.15909090909091,"tier":"🐋 Whale"},{"address":"0xdf24253c84f16aac030917c2672720b11610e109","balance":"301.6208","weekDelta":"0","monthDelta":"0","supplyPct":6.855018181818182,"tier":"🐬 Dolphin"},{"address":"0xfffd135204d5ea4b3ed0ec9176f8900289f2e24a","balance":"300","weekDelta":"0","monthDelta":"0","supplyPct":6.818181818181818,"tier":"🐬 Dolphin"},{"address":"0x427cb5b7645244b7791f1f4a08db7c9b2604a506","balance":"200","weekDelta":"0","monthDelta":"0","supplyPct":4.545454545454546,"tier":"🐟 Fish"},{"address":"0xa01fd7df2d82d2ae03ea603d947030bc324aa0d9","balance":"168","weekDelta":"0","monthDelta":"0","supplyPct":3.8181818181818183,"tier":"🐟 Fish"},{"address":"0xefc56c1bbb392a7e7b431dad1f96deae6ad040e7","balance":"141","weekDelta":"0","monthDelta":"0","supplyPct":3.2045454545454546,"tier":"🐟 Fish"},{"address":"0x71fae3c8b74556347469d9591711b0d5ac6a668d","balance":"135.3683","weekDelta":"+1.5147","monthDelta":"+2.3683","supplyPct":3.0765522727272727,"tier":"🐟 Fish"},{"address":"0x3a780a8528e760d970e6286742b34c2261b6e353","balance":"117","weekDelta":"0","monthDelta":"0","supplyPct":2.659090909090909,"tier":"🐟 Fish"},{"address":"0x94f66f7fa91aaeeb31665ca537d5ef783a33b121","balance":"116","weekDelta":"0","monthDelta":"0","supplyPct":2.6363636363636362,"tier":"🐟 Fish"},{"address":"0x1fe95f75a9fb26bcd4eab81e1d48f4e12c806793","balance":"110","weekDelta":"0","monthDelta":"0","supplyPct":2.5,"tier":"🐟 Fish"}],"initial_sales":{"title":"Daily buys — Karra Loft 3A","labels":["2023-07-21","2023-07-22","2023-07-23","2023-07-24","2023-07-25","2023-07-26","2023-07-27","2023-07-28","2023-07-29","2023-07-30","2023-07-31","2023-08-01","2023-08-02","2023-08-03","2023-08-04","2023-08-05","2023-08-06","2023-08-07","2023-08-08","2023-08-09","2023-08-10","2023-08-11","2023-08-12","2023-08-13","2023-08-14","2023-08-15","2023-08-16","2023-08-17","2023-08-18","2023-08-19","2023-08-20","2023-08-21","2023-08-22","2023-08-23","2023-08-24","2023-08-25","2023-08-26","2023-08-27","2023-08-28","2023-08-29","2023-08-30","2023-08-31","2023-09-01","2023-09-02","2023-09-03","2023-09-04","2023-09-05","2023-09-06"],"daily":[2,0,0,0,53,11,2,47,0,1,2,0,0,1,10,0,0,113,1624,8,2,1,50,40,137,95,4,8,14,62,3,4,1,20,4,57,4,19,239,8,29,4,48,267,18,19,21,1348],"cumulative":[2,2,2,2,55,66,68,115,115,116,118,118,118,119,129,129,129,242,1866,1874,1876,1877,1927,1967,2104,2199,2203,2211,2225,2287,2290,2294,2295,2315,2319,2376,2380,2399,2638,2646,2675,2679,2727,2994,3012,3031,3052,4400],"etas":[{"window":"2023-07-21 – 2023-09-06","rate":"91.7","days":48,"date":"0001-01-01"}]},"p2p_sales":{"txCount":774,"title":"Weekly secondary volume — Karra Loft 3A","labels":["2023-08-07","2023-08-21","2023-09-04","2023-09-11","2023-09-18","2023-09-25","2023-10-02","2023-10-09","2023-10-16","2023-10-23","2023-10-30","2023-11-06","2023-11-13","2023-11-20","2023-11-27","2023-12-04","2023-12-11","2023-12-18","2023-12-25","2024-01-08","2024-01-15","2024-01-22","2024-01-29","2024-02-05","2024-02-12","2024-02-19","2024-03-04","2024-03-11","2024-03-25","2024-04-01","2024-04-08","2024-04-15","2024-04-22","2024-04-29","2024-05-06","2024-05-13","2024-05-27","2024-06-17","2024-06-24","2024-07-01","2024-07-08","2024-07-15","2024-07-29","2024-08-05","2024-08-12","2024-08-19","2024-09-09","2024-09-23","2024-10-21","2024-11-04","2024-11-11","2024-11-18","2024-11-25","2024-12-02","2024-12-09","2024-12-16","2024-12-30","2025-01-06","2025-01-13","2025-01-20","2025-01-27","2025-02-03","2025-02-24","2025-03-10","2025-03-17","2025-03-31","2025-04-14","2025-04-21","2025-04-28","2025-05-05","2025-05-12","2025-05-19","2025-05-26","2025-06-02","2025-06-09","2025-06-30","2025-07-14","2025-07-21","2025-07-28","2025-08-04","2025-08-11","2025-08-18","2025-08-25","2025-09-01","2025-09-08","2025-09-15","2025-09-22","2025-09-29","2025-10-06","2025-10-13","2025-10-20","2025-10-27","2025-11-03","2025-11-10","2025-11-17","2025-11-24","2025-12-01","2025-12-08","2025-12-15","2025-12-22","2025-12-29","2026-01-05","2026-01-12","2026-01-19","2026-01-26","2026-02-02","2026-02-16","2026-02-23","2026-03-02","2026-03-09","2026-03-16","2026-03-30","2026-04-20","2026-05-04","2026-05-11","2026-05-18","2026-05-25","2026-06-01","2026-06-22","2026-07-13","2026-08-17","2026-08-24","2026-08-31","2026-09-07","2026-09-14","2026-09-21"],"weekly":[1617,10,28,84,23,10,77,13,9,1,12,51,206,12,9,104,24,9,51,7,26,102,20,12,12,16,9,2,17,3,8,41,6,31,65,15,3,1,42,16,34,2,1,47,5,72,245,1,3,1,234,225,3,4,1,11,2,16,13,1,3,40,42,5,3,1,21,8,332,274,141,31,17,48,54,9,7,11,5,29,5,206,27,24,2,7,12,1,3,3,12,1,3,6,308,12,2,9,6,1,1,37,22,91,8,2,20,8,1,2,1,1,1,2,7,20,20,3,1,20,0.2,0.77,13.61,17.45,19.89,7.53],"cumulative":[1617,1627,1655,1739,1762,1772,1849,1862,1871,1872,1884,1935,2141,2153,2162,2266,2290,2299,2350,2357,2383,2485,2505,2517,2529,2545,2554,2556,2573,2576,2584,2625,2631,2662,2727,2742,2745,2746,2788,2804,2838,2840,2841,2888,2893,2965,3210,3211,3214,3215,3449,3674,3677,3681,3682,3693,3695,3711,3724,3725,3728,3768,3810,3815,3818,3819,3840,3848,4180,4454,4595,4626,4643,4691,4745,4754,4761,4772,4777,4806,4811,5017,5044,5068,5070,5077,5089,5090,5093,5096,5108,5109,5112,5118,5426,5438,5440,5449,5455,5456,5457,5494,5516,5607,5615,5617,5637,5645,5646,5648,5649,5650,5651,5653,5660,5680,5700,5703,5704,5724,5724.2,5724.97,5738.58,5756.03,5775.92,5783.45]}},{"name":"Karra Loft 3A","holders":[{"address":"0x5521eb7c0a62eb6bb1a6a71f0e48bd18aa2d9594","balance":"591","weekDelta":"0","monthDelta":"0","supplyPct":13.431818181818182,"tier":"🦈 Shark"},{"address":"0xa5b26cb85db1c400b2e4d0d8e81ab73ad222ffd0","balance":"372","weekDelta":"0","monthDelta":"0","supplyPct":8.454545454545455,"tier":"🐬 Dolphin"},{"address":"0xa01fd7df2d82d2ae03ea603d947030bc324aa0d9","balance":"346","weekDelta":"0","monthDelta":"0","supplyPct":7.863636363636363,"tier":"🐬 Dolphin"},{"address":"0x766be93c8f4337a8a24ae52447fd179cd7e98454","balance":"325","weekDelta":"0","monthDelta":"0","supplyPct":7.386363636363637,"tier":"🐬 Dolphin"},{"address":"0x71fae3c8b74556347469d9591711b0d5ac6a668d","balance":"315.194","weekDelta":"0","monthDelta":"+0.194","supplyPct":7.1635,"tier":"🐬 Dolphin"},{"address":"0xaef9c1ea603de7cd02118aedc729556447832f22","balance":"171","weekDelta":"0","monthDelta":"0","supplyPct":3.8863636363636362,"tier":"🐟 Fish"},{"address":"0x1fe95f75a9fb26bcd4eab81e1d48f4e12c806793","balance":"164.6097","weekDelta":"0","monthDelta":"+2.0097","supplyPct":3.7411295454545455,"tier":"🐟 Fish"},{"address":"0x360b77fc6635d2b88a70a164963709b2763c1195","balance":"157","weekDelta":"0","monthDelta":"0","supplyPct":3.5681818181818183,"tier":"🐟 Fish"},{"address":"0x427cb5b7645244b7791f1f4a08db7c9b2604a506","balance":"131","weekDelta":"0","monthDelta":"0","supplyPct":2.977272727272727,"tier":"🐟 Fish"},{"address":"0xefc56c1bbb392a7e7b431dad1f96deae6ad040e7","balance":"91","weekDelta":"0","monthDelta":"0","supplyPct":2.0681818181818183,"tier":"🐟 Fish"}],"initial_sales":{"title":"Daily buys — Karra Loft 3A","labels":["2023-09-09","2023-09-10","2023-09-11","2023-09-12","2023-09-13","2023-09-14","2023-09-15","2023-09-16","2023-09-17","2023-09-18","2023-09-19","2023-09-20","2023-09-21","2023-09-22","2023-09-23","2023-09-24","2023-09-25","2023-09-26","2023-09-27","2023-09-28","2023-09-29","2023-09-30","2023-10-01","2023-10-02","2023-10-03","2023-10-04","2023-10-05","2023-10-06","2023-10-07","2023-10-08","2023-10-09","2023-10-10","2023-10-11","2023-10-12","2023-10-13","2023-10-14","2023-10-15","2023-10-16","2023-10-17","2023-10-18","2023-10-19","2023-10-20","2023-10-21","2023-10-22","2023-10-23","2023-10-24","2023-10-25","2023-10-26","2023-10-27","2023-10-28","2023-10-29","2023-10-30","2023-10-31","2023-11-01","2023-11-02","2023-11-03","2023-11-04","2023-11-05","2023-11-06","2023-11-07","2023-11-08","2023-11-09","2023-11-10","2023-11-11","2023-11-12","2023-11-13","2023-11-14","2023-11-15","2023-11-16","2023-11-17","2023-11-18","2023-11-19","2023-11-20","2023-11-21","2023-11-22","2023-11-23","2023-11-24","2023-11-25","2023-11-26","2023-11-27","2023-11-28","2023-11-29"],"daily":[4,0,22,22,35,49,33,6,18,254,475,88,24,10,15,65,59,6,110,28,25,9,14,2,8,16,11,20,86,10,40,64,14,20,17,26,0,29,6,12,69,92,21,7,44,57,54,59,44,2,8,10,54,16,20,19,28,11,139,48,44,40,116,22,33,26,82,16,22,75,47,5,39,113,5,27,25,83,81,53,47,845],"cumulative":[4,4,26,48,83,132,165,171,189,443,918,1006,1030,1040,1055,1120,1179,1185,1295,1323,1348,1357,1371,1373,1381,1397,1408,1428,1514,1524,1564,1628,1642,1662,1679,1705,1705,1734,1740,1752,1821,1913,1934,1941,1985,2042,2096,2155,2199,2201,2209,2219,2273,2289,2309,2328,2356,2367,2506,2554,2598,2638,2754,2776,2809,2835,2917,2933,2955,3030,3077,3082,3121,3234,3239,3266,3291,3374,3455,3508,3555,4400],"etas":[{"window":"2023-09-09 – 2023-11-29","rate":"53.7","days":82,"date":"0001-01-01"}]},"p2p_sales":{"txCount":596,"title":"Weekly secondary volume — Karra Loft 3A","labels":["2023-11-13","2023-11-27","2023-12-04","2023-12-11","2023-12-18","2023-12-25","2024-01-01","2024-01-08","2024-01-15","2024-01-22","2024-01-29","2024-02-05","2024-02-12","2024-02-19","2024-02-26","2024-03-04","2024-03-11","2024-03-18","2024-03-25","2024-04-01","2024-04-08","2024-04-15","2024-04-22","2024-04-29","2024-05-06","2024-05-13","2024-05-20","2024-06-10","2024-06-17","2024-06-24","2024-07-01","2024-07-08","2024-07-15","2024-07-22","2024-07-29","2024-08-05","2024-08-12","2024-08-19","2024-08-26","2024-09-02","2024-09-09","2024-09-16","2024-09-23","2024-09-30","2024-10-07","2024-10-21","2024-10-28","2024-11-04","2024-11-11","2024-11-18","2024-11-25","2024-12-09","2024-12-16","2024-12-30","2025-01-06","2025-01-13","2025-02-03","2025-02-10","2025-02-17","2025-02-24","2025-03-17","2025-03-31","2025-04-07","2025-04-21","2025-04-28","2025-05-05","2025-05-12","2025-05-19","2025-05-26","2025-06-02","2025-06-16","2025-06-30","2025-07-07","2025-07-14","2025-07-21","2025-07-28","2025-08-04","2025-08-11","2025-08-18","2025-08-25","2025-09-01","2025-09-08","2025-09-15","2025-09-29","2025-10-06","2025-10-13","2025-10-20","2025-10-27","2025-11-03","2025-11-10","2025-11-17","2025-11-24","2025-12-01","2025-12-08","2025-12-15","2026-01-26","2026-02-16","2026-03-30","2026-04-20","2026-05-11","2026-05-18","2026-06-22","2026-07-06","2026-07-13","2026-07-20","2026-08-17","2026-08-24","2026-08-31","2026-09-07","2026-09-14","2026-09-21"],"weekly":[223,61,11,6,3,25,29,3,57,3,28,4,1,23,85,1,1,39,261,1,22,12,11,35,2,67,6,2,2,31,2,1,2,5,4,2,8,8,98,3,19,4,92,2,4,6,1,92,12,7,4,1,2,65,4,10,11,1,39,1,1,3,20,2,257,123,50,27,75,25,33,3,10,194,87,5,49,105,35,61,65,89,99,5,4,1,2,51,1,3,56,1,2,4,5,5,2,1,2,1,1,7,1,20,1,1.7,0.2,10,34.29,4.27,22.5],"cumulative":[223,284,295,301,304,329,358,361,418,421,449,453,454,477,562,563,564,603,864,865,887,899,910,945,947,1014,1020,1022,1024,1055,1057,1058,1060,1065,1069,1071,1079,1087,1185,1188,1207,1211,1303,1305,1309,1315,1316,1408,1420,1427,1431,1432,1434,1499,1503,1513,1524,1525,1564,1565,1566,1569,1589,1591,1848,1971,2021,2048,2123,2148,2181,2184,2194,2388,2475,2480,2529,2634,2669,2730,2795,2884,2983,2988,2992,2993,2995,3046,3047,3050,3106,3107,3109,3113,3118,3123,3125,3126,3128,3129,3130,3137,3138,3158,3159,3160.7,3160.9,3170.9,3205.19,3209.46,3231.96]}}],"holders":[{"address":"0x5521eb7c0a62eb6bb1a6a71f0e48bd18aa2d9594","propertyNames":["Karra Loft 3A"],"balance":"1654","weekDelta":"0","monthDelta":"0","supplyPct":18.795454545454547,"tier":"🦈 Shark"},{"address":"0xa01fd7df2d82d2ae03ea603d947030bc324aa0d9","propertyNames":["Karra Loft 3A"],"balance":"514","weekDelta":"0","monthDelta":"0","supplyPct":5.840909090909091,"tier":"🐬 Dolphin"},{"address":"0x71fae3c8b74556347469d9591711b0d5ac6a668d","propertyNames":["Karra Loft 3A"],"balance":"450.5623","weekDelta":"+1.5147","monthDelta":"+2.5623","supplyPct":5.120026136363636,"tier":"🐬 Dolphin"},{"address":"0xa5b26cb85db1c400b2e4d0d8e81ab73ad222ffd0","propertyNames":["Karra Loft 3A"],"balance":"377","weekDelta":"0","monthDelta":"0","supplyPct":4.284090909090909,"tier":"🐟 Fish"},{"address":"0xfffd135204d5ea4b3ed0ec9176f8900289f2e24a","propertyNames":["Karra Loft 3A"],"balance":"350","weekDelta":"0","monthDelta":"0","supplyPct":3.977272727272727,"tier":"🐟 Fish"},{"address":"0xdf24253c84f16aac030917c2672720b11610e109","propertyNames":["Karra Loft 3A"],"balance":"346.8088","weekDelta":"0","monthDelta":"-4","supplyPct":3.941009090909091,"tier":"🐟 Fish"},{"address":"0x766be93c8f4337a8a24ae52447fd179cd7e98454","propertyNames":["Karra Loft 3A"],"balance":"336","weekDelta":"0","monthDelta":"0","supplyPct":3.8181818181818183,"tier":"🐟 Fish"},{"address":"0x427cb5b7645244b7791f1f4a08db7c9b2604a506","propertyNames":["Karra Loft 3A"],"balance":"331","weekDelta":"0","monthDelta":"0","supplyPct":3.7613636363636362,"tier":"🐟 Fish"},{"address":"0x1fe95f75a9fb26bcd4eab81e1d48f4e12c806793","propertyNames":["Karra Loft 3A"],"balance":"274.6097","weekDelta":"0","monthDelta":"+2.0097","supplyPct":3.1205647727272727,"tier":"🐟 Fish"},{"address":"0x360b77fc6635d2b88a70a164963709b2763c1195","propertyNames":["Karra Loft 3A"],"balance":"247","weekDelta":"0","monthDelta":"0","supplyPct":2.8068181818181817,"tier":"🐟 Fish"},{"address":"0xefc56c1bbb392a7e7b431dad1f96deae6ad040e7","propertyNames":["Karra Loft 3A"],"balance":"232","weekDelta":"0","monthDelta":"0","supplyPct":2.6363636363636362,"tier":"🐟 Fish"},{"address":"0xaef9c1ea603de7cd02118aedc729556447832f22","propertyNames":["Karra Loft 3A"],"balance":"171","weekDelta":"0","monthDelta":"0","supplyPct":1.9431818181818181,"tier":"🐟 Fish"},{"address":"0x94f66f7fa91aaeeb31665ca537d5ef783a33b121","propertyNames":["Karra Loft 3A"],"balance":"147","weekDelta":"0","monthDelta":"0","supplyPct":1.6704545454545454,"tier":"🐟 Fish"},{"address":"0x0250237750bd8123ac33cc9d22161c4f65d54dc1","propertyNames":["Karra Loft 3A"],"balance":"125","weekDelta":"0","monthDelta":"0","supplyPct":1.4204545454545454,"tier":"🐟 Fish"},{"address":"0x3a780a8528e760d970e6286742b34c2261b6e353","propertyNames":["Karra Loft 3A"],"balance":"117","weekDelta":"0","monthDelta":"0","supplyPct":1.3295454545454546,"tier":"🐟 Fish"},{"address":"0x6d8f4c922a1d1d5032a8dab67e3fc622737acc04","propertyNames":["Karra Loft 3A"],"balance":"102","weekDelta":"0","monthDelta":"0","supplyPct":1.1590909090909092,"tier":"🐟 Fish"},{"address":"0x1ab4f6a692b4889ef78249910dccf6a08a028606","propertyNames":["Karra Loft 3A"],"balance":"101","weekDelta":"0","monthDelta":"0","supplyPct":1.1477272727272727,"tier":"🐟 Fish"},{"address":"0x049b371d59dc140261e2dbfd842b14603b29d594","propertyNames":["Karra Loft 3A"],"balance":"90","weekDelta":"0","monthDelta":"0","supplyPct":1.0227272727272727,"tier":"🐟 Fish"},{"address":"0xa9f1b7e4ea98775064dc6c73e17ec2e71b5f3961","propertyNames":["Karra Loft 3A"],"balance":"72","weekDelta":"0","monthDelta":"0","supplyPct":0.8181818181818182,"tier":"🦀 Crab"},{"address":"0x6a106167ccfcb2c03c879af6eff24037abb73039","propertyNames":["Karra Loft 3A"],"balance":"70","weekDelta":"0","monthDelta":"0","supplyPct":0.7954545454545454,"tier":"🦀 Crab"},{"address":"0x6e255eba88c6a151890b05d0054054900bffd506","propertyNames":["Karra Loft 3A"],"balance":"60.8301","weekDelta":"+3.861","monthDelta":"+52.8301","supplyPct":0.6912511363636363,"tier":"🦀 Crab"},{"address":"0xe57ba3906d73b841034efb33747f2e2c89d47e95","propertyNames":["Karra Loft 3A"],"balance":"60","weekDelta":"0","monthDelta":"0","supplyPct":0.6818181818181818,"tier":"🦀 Crab"},{"address":"0x08e6c9c7c235b7ea07afc20142bb9ba84cb77046","propertyNames":["Karra Loft 3A"],"balance":"59","weekDelta":"0","monthDelta":"0","supplyPct":0.6704545454545454,"tier":"🦀 Crab"},{"address":"0x516b70cacd006b6562d86d4fabc82f07347d4f9d","propertyNames":["Karra Loft 3A"],"balance":"58","weekDelta":"0","monthDelta":"0","supplyPct":0.6590909090909091,"tier":"🦀 Crab"},{"address":"0xb51ffc49fc59536b4fc57acc768516ca87d8bdda","propertyNames":["Karra Loft 3A"],"balance":"55","weekDelta":"0","monthDelta":"0","supplyPct":0.625,"tier":"🦀 Crab"},{"address":"0xdfa425556f24b9db4ff9f56699816f0cf6c34497","propertyNames":["Karra Loft 3A"],"balance":"54","weekDelta":"0","monthDelta":"0","supplyPct":0.6136363636363636,"tier":"🦀 Crab"},{"address":"0x5863339ea86aa8a3fe0b304e7a9f6dbeee532dc0","propertyNames":["Karra Loft 3A"],"balance":"48","weekDelta":"0","monthDelta":"0","supplyPct":0.5454545454545454,"tier":"🦀 Crab"},{"address":"0xd32a6254d91ed81ec6c5fd63c6c875b12ba8934c","propertyNames":["Karra Loft 3A"],"balance":"44","weekDelta":"0","monthDelta":"0","supplyPct":0.5,"tier":"🦐 Shrimp"},{"address":"0xf9d2b10215ddbc9c8c7be69afcf76209c173739c","propertyNames":["Karra Loft 3A"],"balance":"43","weekDelta":"0","monthDelta":"0","supplyPct":0.48863636363636365,"tier":"🦐 Shrimp"},{"address":"0x8603b40108bbc3d3d2b4d55c2649344a205c4335","propertyNames":["Karra Loft 3A"],"balance":"41","weekDelta":"0","monthDelta":"0","supplyPct":0.4659090909090909,"tier":"🦐 Shrimp"},{"address":"0x8adac54c28c3fd293da66b816df82638c5d1b551","propertyNames":["Karra Loft 3A"],"balance":"40","weekDelta":"0","monthDelta":"0","supplyPct":0.45454545454545453,"tier":"🦐 Shrimp"},{"address":"0x23bb4dfe3872516f76b3fe7b171ffc644a79646d","propertyNames":["Karra Loft 3A"],"balance":"40","weekDelta":"0","monthDelta":"0","supplyPct":0.45454545454545453,"tier":"🦐 Shrimp"},{"address":"0x8c022724274efa159676621e40e6c3b9b59b70f5","propertyNames":["Karra Loft 3A"],"balance":"39","weekDelta":"0","monthDelta":"0","supplyPct":0.4431818181818182,"tier":"🦐 Shrimp"},{"address":"0x972e9c827cf4da4e3d2a354a867943ce5560d7c9","propertyNames":["Karra Loft 3A"],"balance":"33","weekDelta":"0","monthDelta":"0","supplyPct":0.375,"tier":"🦐 Shrimp"},{"address":"0xf9654d31aaf88a9d386f06029a9dd4c606554bf7","propertyNames":["Karra Loft 3A"],"balance":"32","weekDelta":"0","monthDelta":"0","supplyPct":0.36363636363636365,"tier":"🦐 Shrimp"},{"address":"0x66202dbb7b555c57b1ebadd3537fefa57356347a","propertyNames":["Karra Loft 3A"],"balance":"30","weekDelta":"0","monthDelta":"0","supplyPct":0.3409090909090909,"tier":"🦐 Shrimp"},{"address":"0x8d343b8282c074524f348b7bec2860869aff8dc5","propertyNames":["Karra Loft 3A"],"balance":"30","weekDelta":"0","monthDelta":"0","supplyPct":0.3409090909090909,"tier":"🦐 Shrimp"},{"address":"0xa384f1b6de60105ac23694beef02476d7c3377bc","propertyNames":["Karra Loft 3A"],"balance":"30","weekDelta":"0","monthDelta":"0","supplyPct":0.3409090909090909,"tier":"🦐 Shrimp"},{"address":"0xb1ca127f45cadfb79e944d2f84d298236f8f6537","propertyNames":["Karra Loft 3A"],"balance":"29","weekDelta":"0","monthDelta":"0","supplyPct":0.32954545454545453,"tier":"🦐 Shrimp"},{"address":"0x234c17f68e026cdd1ac67f940d2507400869699e","propertyNames":["Karra Loft 3A"],"balance":"28","weekDelta":"0","monthDelta":"0","supplyPct":0.3181818181818182,"tier":"🦐 Shrimp"},{"address":"0xd8b10ffab18c7816c047df8345d5cf7f1b727e47","propertyNames":["Karra Loft 3A"],"balance":"27.92","weekDelta":"0","monthDelta":"+3.92","supplyPct":0.31727272727272726,"tier":"🦐 Shrimp"},{"address":"0xcc1087c8ad19ddc63695fb94b9f055bb4775fcc3","propertyNames":["Karra Loft 3A"],"balance":"27","weekDelta":"0","monthDelta":"0","supplyPct":0.3068181818181818,"tier":"🦐 Shrimp"},{"address":"0xa89d52fe3bb61092d600bd7d524d8b6af15e0f0a","propertyNames":["Karra Loft 3A"],"balance":"27","weekDelta":"0","monthDelta":"0","supplyPct":0.3068181818181818,"tier":"🦐 Shrimp"},{"address":"0xd7bb46a57f87fb8844b8d9476302cec98a2ab02e","propertyNames":["Karra Loft 3A"],"balance":"25","weekDelta":"0","monthDelta":"0","supplyPct":0.2840909090909091,"tier":"🦐 Shrimp"},{"address":"0xb8cfca75b63b2cbd31bc0c07ab299a27e62de754","propertyNames":["Karra Loft 3A"],"balance":"25","weekDelta":"0","monthDelta":"0","supplyPct":0.2840909090909091,"tier":"🦐 Shrimp"},{"address":"0xdc7ac6f2aea163c7be8aa819f002e0cbfea11ba2","propertyNames":["Karra Loft 3A"],"balance":"25","weekDelta":"0","monthDelta":"0","supplyPct":0.2840909090909091,"tier":"🦐 Shrimp"},{"address":"0xf5fe93609b852d51d03b9749d13d4122d76f482b","propertyNames":["Karra Loft 3A"],"balance":"25","weekDelta":"0","monthDelta":"0","supplyPct":0.2840909090909091,"tier":"🦐 Shrimp"},{"address":"0x7a61aa18b32704ad617d663ab8299e9c2aa7e61a","propertyNames":["Karra Loft 3A"],"balance":"25","weekDelta":"0","monthDelta":"0","supplyPct":0.2840909090909091,"tier":"🦐 Shrimp"},{"address":"0x73ca1f3ef3f7e2af8ee8df6d0ef8441a398744e7","propertyNames":["Karra Loft 3A"],"balance":"25","weekDelta":"0","monthDelta":"0","supplyPct":0.2840909090909091,"tier":"🦐 Shrimp"},{"address":"0x418038a8b80a19be2f903c523e974a59b1cbd5a2","propertyNames":["Karra Loft 3A"],"balance":"24","weekDelta":"0","monthDelta":"0","supplyPct":0.2727272727272727,"tier":"🦐 Shrimp"},{"address":"0x84c0712f1b8af69e1c5a3373ad263037f1e2b1a1","propertyNames":["Karra Loft 3A"],"balance":"23","weekDelta":"0","monthDelta":"0","supplyPct":0.26136363636363635,"tier":"🦐 Shrimp"},{"address":"0xf71debbded406ed3c5589e0686b33190486d8669","propertyNames":["Karra Loft 3A"],"balance":"23","weekDelta":"0","monthDelta":"0","supplyPct":0.26136363636363635,"tier":"🦐 Shrimp"},{"address":"0x457b75cd18bb47171105d5aaf13a2858a6d15c52","propertyNames":["Karra Loft 3A"],"balance":"22.0196","weekDelta":"0","monthDelta":"+2.0196","supplyPct":0.25022272727272726,"tier":"🦐 Shrimp"},{"address":"0x55700f07329d460ca93274814203108c748560f8","propertyNames":["Karra Loft 3A"],"balance":"22","weekDelta":"0","monthDelta":"0","supplyPct":0.25,"tier":"🦐 Shrimp"},{"address":"0xd69f4b98777151ee20435248ed61611f2b7b939d","propertyNames":["Karra Loft 3A"],"balance":"22","weekDelta":"0","monthDelta":"0","supplyPct":0.25,"tier":"🦐 Shrimp"},{"address":"0x5a0db11e2fe4d4e9c251391feed1efc560e2e8d2","propertyNames":["Karra Loft 3A"],"balance":"22","weekDelta":"0","monthDelta":"0","supplyPct":0.25,"tier":"🦐 Shrimp"},{"address":"0x4b228cb4781486875fe85077699a8f16f6f1e3c7","propertyNames":["Karra Loft 3A"],"balance":"21","weekDelta":"0","monthDelta":"0","supplyPct":0.23863636363636365,"tier":"🦐 Shrimp"},{"address":"0x05492e509e08240f86ff742295b80fb74d104aea","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x9e73b3cdf7ca1e7322c819f7b1f4c733f6f79b79","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x5ddb1199942875e612cb35afe9997c425e99fe19","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x33c78529e8d1360c4004d5093dc6da5225802af7","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x58e7e5bf433339e5b144c21bf31a8c97c971854f","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x32501db7034c756743eb3c336d2b24c00429eb73","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0xfa876cb5561ab07c8c35535ea966016231457c7a","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x282ef65dba7af170c17860ab104aaaebc0299033","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x9f4650fd058ba6382dc1c9e5f39c253333e0abb3","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0xebcf3685f17687c367a7e7a946ac564b8d15837e","propertyNames":["Karra Loft 3A"],"balance":"20","weekDelta":"0","monthDelta":"0","supplyPct":0.22727272727272727,"tier":"🦐 Shrimp"},{"address":"0x432f226e1b5e1f12da460733fb035684eb974942","propertyNames":["Karra Loft 3A"],"balance":"19.8","weekDelta":"-0.99","monthDelta":"0","supplyPct":0.225,"tier":"🦐 Shrimp"},{"address":"0xa9644a896b8fc9384dc82c1aa4d5c909dda5118b","propertyNames":["Karra Loft 3A"],"balance":"19","weekDelta":"0","monthDelta":"0","supplyPct":0.2159090909090909,"tier":"🦐 Shrimp"},{"address":"0xe3151e23d739027d4fe23c1bdb14355579611718","propertyNames":["Karra Loft 3A"],"balance":"17.9091","weekDelta":"+10.89","monthDelta":"+17.9091","supplyPct":0.2035125,"tier":"🦐 Shrimp"},{"address":"0x45749a6e737775728f829301bc6fe55437eeb49f","propertyNames":["Karra Loft 3A"],"balance":"17.6141","weekDelta":"+2.8908","monthDelta":"+12.6141","supplyPct":0.20016022727272728,"tier":"🦐 Shrimp"},{"address":"0xbff85d6f53b0a205e8ea27ddac7f94257422e116","propertyNames":["Karra Loft 3A"],"balance":"15","weekDelta":"0","monthDelta":"0","supplyPct":0.17045454545454544,"tier":"🦐 Shrimp"},{"address":"0x8063094ac7141973442ebc1095282a5b14357c6d","propertyNames":["Karra Loft 3A"],"balance":"15","weekDelta":"0","monthDelta":"0","supplyPct":0.17045454545454544,"tier":"🦐 Shrimp"},{"address":"0x498519b3f522cf23871a371e015d3961769801e3","propertyNames":["Karra Loft 3A"],"balance":"14","weekDelta":"0","monthDelta":"0","supplyPct":0.1590909090909091,"tier":"🦐 Shrimp"},{"address":"0xae79b341bb34effbce5e330cdebaff23bad4985d","propertyNames":["Karra Loft 3A"],"balance":"13","weekDelta":"0","monthDelta":"0","supplyPct":0.14772727272727273,"tier":"🦐 Shrimp"},{"address":"0x287567dbdf30421c7e9e1583ac9adc76310a2a0a","propertyNames":["Karra Loft 3A"],"balance":"13","weekDelta":"0","monthDelta":"0","supplyPct":0.14772727272727273,"tier":"🦐 Shrimp"},{"address":"0x023ddcd615eacadbd2a0d09dcd54a48b1c188b66","propertyNames":["Karra Loft 3A"],"balance":"13","weekDelta":"0","monthDelta":"0","supplyPct":0.14772727272727273,"tier":"🦐 Shrimp"},{"address":"0xf23806bfe5c395673dc92fad05aea96154d63d25","propertyNames":["Karra Loft 3A"],"balance":"12.4199","weekDelta":"-0.5701","monthDelta":"-0.5801","supplyPct":0.14113522727272726,"tier":"🦐 Shrimp"},{"address":"0x72b1a5dc54842c384e2827aa4981d8dc59b436c1","propertyNames":["Karra Loft 3A"],"balance":"12","weekDelta":"0","monthDelta":"0","supplyPct":0.13636363636363635,"tier":"🦐 Shrimp"},{"address":"0xd98f59abb818de3a388df4558c052958ced850b8","propertyNames":["Karra Loft 3A"],"balance":"12","weekDelta":"0","monthDelta":"0","supplyPct":0.13636363636363635,"tier":"🦐 Shrimp"},{"address":"0xd2a4e2b267e66f8e1f34e6e7ac24aa8837de1845","propertyNames":["Karra Loft 3A"],"balance":"12","weekDelta":"0","monthDelta":"0","supplyPct":0.13636363636363635,"tier":"🦐 Shrimp"},{"address":"0xbbbf326887deef4fb01caf918c1ef2db13a7e967","propertyNames":["Karra Loft 3A"],"balance":"12","weekDelta":"0","monthDelta":"0","supplyPct":0.13636363636363635,"tier":"🦐 Shrimp"},{"address":"0xa92ee98123d01ac5686a0694531a7f41c354051c","propertyNames":["Karra Loft 3A"],"balance":"12","weekDelta":"0","monthDelta":"0","supplyPct":0.13636363636363635,"tier":"🦐 Shrimp"},{"address":"0x128712ce26de5bbdbc5f0a8ef77ccd76df49bb29","propertyNames":["Karra Loft 3A"],"balance":"12","weekDelta":"0","monthDelta":"0","supplyPct":0.13636363636363635,"tier":"🦐 Shrimp"},{"address":"0x6590c15841c117d386467fdb4e763870add31034","propertyNames":["Karra Loft 3A"],"balance":"11","weekDelta":"0","monthDelta":"0","supplyPct":0.125,"tier":"🦐 Shrimp"},{"address":"0x07e579b16e416ac8ddfb3720853034293d1c6a05","propertyNames":["Karra Loft 3A"],"balance":"11","weekDelta":"0","monthDelta":"0","supplyPct":0.125,"tier":"🦐 Shrimp"},{"address":"0xee689691639ac73bb847c7ad1bf90fc81fe8a8ed","propertyNames":["Karra Loft 3A"],"balance":"11","weekDelta":"0","monthDelta":"0","supplyPct":0.125,"tier":"🦐 Shrimp"},{"address":"0xcd8c1af3eeb00b9aebe25e8dafcca01c7e289ba7","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x8275aea6e74fe6f52a61b9deb3d7c1c102e55e88","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x212abca9ab62774ed15a80ec442ebbd9b335b3ba","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x3f4e694f52c275b8fd7e43aae706de223efd61b7","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xec5e709e1b65ae1553775c91acbfd39f1aa284f5","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x5d52cdc572e70b2221b171460335f68058b9e9d7","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x49e9902d8be3139faa377ae5f4a2d7c18ff13ac8","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xb1a01ebaa4c5a87eccfaed2d4d7ec5f95d0b893c","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xd8f0c1d3812376cbfe08412a6f770f6ba5ed4fe5","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x37ea846b6a8651b91db49ab860a49128fa4133f2","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xf479fd896d0d31131a7b1c358e994eb1c881a277","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x7f4cc9d7e9f690f66ca03625c0930b8e20c259dd","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xb503c4c6d2bb7531c66b2b79d1a785adc940e77a","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xfc9def27d901e21875aabc788a5c28d6883330cd","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x15a5fd03ef59f61aaccb0f076ffcc74bad958e19","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xb1e0c281ac904c8b6c7b27ba6ddcaa175eaf7196","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x794afe7c0a0cede6bed0351df9234bb40ae54c6d","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x3742da73672722fbca387f40546ab31c8fecf542","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x782d810a3eafce6abc8f6568a269f9f62222ada7","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xa77b1fa226f497aa6da3141e1dda330d35a23ec1","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xec764ebae4587440bf081c4e4c2625089970e56d","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0x474eee79ec5071ff428b34511a6fe8b5cf951f2f","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xe12b9d4c16277adac6533f3709ac81c16c47bc96","propertyNames":["Karra Loft 3A"],"balance":"10","weekDelta":"0","monthDelta":"0","supplyPct":0.11363636363636363,"tier":"🦐 Shrimp"},{"address":"0xd67da12dc33d9730d9341bbfa4f0b67d0688b28b","propertyNames":["Karra Loft 3A"],"balance":"9.72","weekDelta":"0","monthDelta":"-0.28","supplyPct":0.11045454545454546,"tier":"🦐 Shrimp"},{"address":"0x4ffc6dc2fb20fbd75a8ac34be1d924a43f343e25","propertyNames":["Karra Loft 3A"],"balance":"9","weekDelta":"0","monthDelta":"0","supplyPct":0.10227272727272728,"tier":"🦐 Shrimp"},{"address":"0x3836b91ddbb1030ace9a6d439d25f2a69cc3c8a7","propertyNames":["Karra Loft 3A"],"balance":"9","weekDelta":"0","monthDelta":"0","supplyPct":0.10227272727272728,"tier":"🦐 Shrimp"},{"address":"0x0d5d610d2b4e6a220fd7fc096c4916bbd08afcf0","propertyNames":["Karra Loft 3A"],"balance":"9","weekDelta":"0","monthDelta":"0","supplyPct":0.10227272727272728,"tier":"🦐 Shrimp"},{"address":"0x0f8efea43bce813e1a9a39423ebf08c1ebf28868","propertyNames":["Karra Loft 3A"],"balance":"8.7912","weekDelta":"+7.6032","monthDelta":"+8.7912","supplyPct":0.0999,"tier":"🦐 Shrimp"},{"address":"0x33b3a516761906ee8eb778ec7b9693d79b691768","propertyNames":["Karra Loft 3A"],"balance":"8","weekDelta":"0","monthDelta":"0","supplyPct":0.09090909090909091,"tier":"🦐 Shrimp"},{"address":"0x3bec2c36cf8ca547430cd4dd202142ca9cd75405","propertyNames":["Karra Loft 3A"],"balance":"8","weekDelta":"0","monthDelta":"0","supplyPct":0.09090909090909091,"tier":"🦐 Shrimp"},{"address":"0x908386263c9dd59069245f11a6ca1c96d52666e8","propertyNames":["Karra Loft 3A"],"balance":"8","weekDelta":"0","monthDelta":"0","supplyPct":0.09090909090909091,"tier":"🦐 Shrimp"},{"address":"0x992dd027bc141e1a8995f67b4caf684b42f5c5f1","propertyNames":["Karra Loft 3A"],"balance":"8","weekDelta":"0","monthDelta":"0","supplyPct":0.09090909090909091,"tier":"🦐 Shrimp"},{"address":"0x23db5c39ef80bef9ed9ad700e225b96f4d93808d","propertyNames":["Karra Loft 3A"],"balance":"7","weekDelta":"0","monthDelta":"0","supplyPct":0.07954545454545454,"tier":"🦐 Shrimp"},{"address":"0x375e1ed35e6a44d5d089df10c6a723afe7e801a6","propertyNames":["Karra Loft 3A"],"balance":"7","weekDelta":"0","monthDelta":"0","supplyPct":0.07954545454545454,"tier":"🦐 Shrimp"},{"address":"0xfd6fe3b7b2c68bd7f86432311a79a23fd229c382","propertyNames":["Karra Loft 3A"],"balance":"7","weekDelta":"0","monthDelta":"0","supplyPct":0.07954545454545454,"tier":"🦐 Shrimp"},{"address":"0x2abd9094869f337b38dedaeeed32053106e78f93","propertyNames":["Karra Loft 3A"],"balance":"7","weekDelta":"0","monthDelta":"0","supplyPct":0.07954545454545454,"tier":"🦐 Shrimp"},{"address":"0xff5ce0b052f9d38fe5f438675a084b31fef32b19","propertyNames":["Karra Loft 3A"],"balance":"7","weekDelta":"0","monthDelta":"0","supplyPct":0.07954545454545454,"tier":"🦐 Shrimp"},{"address":"0xd4026a90ca010539fe2f72a2a2f44db56b707565","propertyNames":["Karra Loft 3A"],"balance":"7","weekDelta":"0","monthDelta":"0","supplyPct":0.07954545454545454,"tier":"🦐 Shrimp"},{"address":"0x665ad6858847b85605f14dae08af05d870a76658","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x48daf021fd90410ae042689e13bc7a5449b40436","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x51de778aa0f8341b0106c5e3218f505b9b88ab45","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x4121179416c2239d4b4ed4e11825eb26cf21d19d","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x79ba00d43f92dab8b043c31da0a364c8f6bb0b45","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x0bdf0d755ed2f427de8f9da7eaf561368a1f041e","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0xf208f554e22ee1537dd38cf6ab836dcdf10a17dd","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x351930f7d1d8911424350136bcab899a814c716f","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x640b233e3bb76a0075232d7cb2895e1535cbeac2","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x94e97d15926d1ac7238f721498e66aa6e3fae26e","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0x06d57ba695faf0434c9a95bf3fd4243e89651295","propertyNames":["Karra Loft 3A"],"balance":"6","weekDelta":"0","monthDelta":"0","supplyPct":0.06818181818181818,"tier":"🦐 Shrimp"},{"address":"0xd79eb7ae7b95637d4a8de37aa9cac6871eaef487","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x61678421c892144ce45d39e19077650f499b60e6","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x29a687b240237c27cf1d1cc6ad8fe8d9bfd7c42d","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0xf7a85c91e7d07a1edecf2481533d18508792acf7","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0xb09afd96b82ee59096914473ac48aab709bda91a","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x0e72300eb9d42210a467ff63662a8583bddf4797","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x1746072c9465f4c0f4da5011d7b00185ee21218b","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x80659247e760f28bd20934ae79d9a27a7642f6a8","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x75a517ae39e06f4326bd206191016ed144085c5d","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x01433af06a063c46d11d3da4fdc5946f6e2d7c39","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x0a52564bfe533568f2888157dd0f4b8f99ac30cc","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x1cdcf6610098cd0f30d84de1f51be1cd37fae6dc","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0xe858fdda18fe9a9bac39de5c3e10bcf0043316a9","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x13958f540111caa602d187a5001686ddf2306ff9","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x7ab94d3e9904d0b4dac107447236b9b258e6c07a","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x71755c79bde6b3f55365e31f606ad91dddfb77b2","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x8ef890a0b746ad98fd5a2d9fbde28ea0ea31e54c","propertyNames":["Karra Loft 3A"],"balance":"5","weekDelta":"0","monthDelta":"0","supplyPct":0.056818181818181816,"tier":"🦐 Shrimp"},{"address":"0x5f6cdc9c7dc9a376301a27e578128de6503759cb","propertyNames":["Karra Loft 3A"],"balance":"4.7436","weekDelta":"0","monthDelta":"+2.7436","supplyPct":0.053904545454545455,"tier":"🦐 Shrimp"},{"address":"0x92457e7c2914099e5bb9d15938a876db2d8dcd25","propertyNames":["Karra Loft 3A"],"balance":"4.56","weekDelta":"-3","monthDelta":"-3","supplyPct":0.05181818181818182,"tier":"🦐 Shrimp"},{"address":"0x7880d8994433b58a8fe3f6acc7fa15149bf94ca8","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x052b410f5e8333e58552af9fa0ffde0e571c6358","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x46dab5f2c15cac1a90c014def1cafb5de9cff0cc","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x8038df88f8bf8952ff8b5169e57739722a32fd1b","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xd82f8d5f870497de6b16b2660ca3e21df83de357","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xe2c173472e05153dcfe6e169f088974a837654ae","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x769cd9da13ff7b981ebf07cee007780ecc8ba704","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xe4c1e0de23a7f485f5257202851d7d164a41664d","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x0c6ec7b79b8d5aa395dd83c500d9ac1850f0db7c","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x0e4f2cbd784b6bd3355a9cf659a35fdf86c9e6f8","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xda43cdd42f776770f6f42af8484d99122cf1682b","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x4804da240abbc6b46fd8405d1540bad75dd5d018","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xff39b151ba5c507c6828634269fda736ba197666","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x3cd9e7dc57058c2113ca6f92f8f84a09d8190b09","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xec335a0bd4914ac8c4e25f990f5a253064d5ff60","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x48906feeccc0eaebbd7965f546c99d619feeacd4","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xf6e543d6818484f2f9ccba1d30b31ea20dd9e431","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x9c95e185342ac2ec1c21a226812521a85a6497d4","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x5743b0ccb7df351fb05a933d833b800e964d9030","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x29684ee79db9e3a0eb46e86f172c3f3975ad2da6","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x33262f8f4439c23b02a524c512ff94f46fbff1d8","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0xbce24adb76742cc6709559813be268f2dd1e514b","propertyNames":["Karra Loft 3A"],"balance":"4","weekDelta":"0","monthDelta":"0","supplyPct":0.045454545454545456,"tier":"🦐 Shrimp"},{"address":"0x8fd6c040148d3b8d4e5ebfbd6270878b265920cc","propertyNames":["Karra Loft 3A"],"balance":"3.009","weekDelta":"0","monthDelta":"+2.009","supplyPct":0.03419318181818182,"tier":"🦐 Shrimp"},{"address":"0xd9d95802b2b8bac7df7e887e2d394453eb83f057","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x6dd09ed22e63cd82565aaf93363af3a0698a8216","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x01d06fb9b5e9a34b52c5c8175fed0a8da47191b9","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xe0f439cb1c5de87611ccf247e58de0ed005b5336","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xccc7e0d8e38ed41bed16449136903717f0622060","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x1240cbe923ee9da003d4c92fbdc103a8f91b276f","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xa6f2c1c99051a6e4c0744121a5b4de8c9ab24120","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x9c8ee73937b2673ed2c0b15f2be37b58597aeb5f","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xf87bd1fcc84397cac2205effbb549f02280fcec7","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xa9145483f21544375ff57240ed0777c0dafa80c9","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x399deaab818488d3f3728492c6266245dbd97751","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xdda3ebd8b7a8505c94eef81053eea3280da5a2e3","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xe6b5a31d8bb53d2c769864ac137fe25f4989f1fd","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x5bbc261de4ffd714585d75b242575a2c55e7d89f","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x5b8f8615494c1ffa70e963f986f19c9d41922de4","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xb73c08755728308018885fe2a42e8f265e56b589","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x0b5c860c1eb1cdd094ab899319913b3541681777","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x9f514c9814d09c19966d4ebffcbec8600dc61b19","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xc2161f36a0a9120251e8b72b9ed52ca56a700ae0","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x70e984955722c1328bab2c80210e6ef13cb372d7","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x0a24164aaf2f4d75822a7ff41a4585554e7cf903","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xb4fd16fd1a40ef3e7f74fe2ef1574fddf8b1be91","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x5bb82534dd9a0b39010e3a7aacacb1fbfb6c509e","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x30b05382f08c3f9198ecec2522db86125d5ce7b4","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x3ea83493c75afdcef359d5cb03df748f2625db00","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xeaa40d5a338341c3b644fca215df93531aa47dc3","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xf2545ec799b86159f03a1ec4c8ab63b73fd06eaa","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xee550ad5cddbc1674d7180366636e61c11b05d24","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xa96f3c214f9a52c7c9551ad957dc3fc6c689c0e7","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xc997f6220c62f125eb657067a8c1264c8c12f283","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x5133835adac55a97f77a03c2fe3582cb7508ea36","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x038b4a456334062ca3be5d0dab88d51704f88c06","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xd1aca00191087c13591213c048d61fe731cf20a5","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0xaeb7eae3342c44f4a2f99d7fb3c5c04c794be1ef","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x86e048340469b7bb04a79c1d85f20716ee85f787","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x35c9d2e70edf9a0b56000e1abeb6fd4e54d1ca8f","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x9f7ae0d53ef5f6340fcf98d7d76a3cb14cc47fa8","propertyNames":["Karra Loft 3A"],"balance":"3","weekDelta":"0","monthDelta":"0","supplyPct":0.03409090909090909,"tier":"🦐 Shrimp"},{"address":"0x4f2922753e035e063216e7e455513518f3fadae4","propertyNames":["Karra Loft 3A"],"balance":"2.9779","weekDelta":"0","monthDelta":"+2.9779","supplyPct":0.033839772727272725,"tier":"🦐 Shrimp"},{"address":"0x0065512faa13d16f84ee4c56dbc3d2bc6ea40fe0","propertyNames":["Karra Loft 3A"],"balance":"2.2075","weekDelta":"+0.3003","monthDelta":"+2.1683","supplyPct":0.025085227272727273,"tier":"🦐 Shrimp"},{"address":"0x5105b6cfc1b712ae458eccf1b89679759a3d389b","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x2cbfe0622cbadc46a6d1e58d4324f63b784010fa","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xfb01a4786fd3bf14dcca047bce72fccad740b3bf","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x36af9eb1605ec78fd4e6cf6c10808a971483eee3","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x22ceffbaa3d02ad1b27d5149f6e131d425fa4c4b","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x73756c878a86d48b42c914fbf87949a814c748ad","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x1086c1ca7738eed13d946d27e9edfc4272061ad0","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x45f4dfe30612679ee47754ad4afe4ae07debe3a5","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xac3147cfe7b91a65d53ccd72eff952bd48c02fde","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xa672b0adfeafeeb7e6ff10a57689fb3d21bd1ff6","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x2742691735778c3da66a840fa7ba0cd665a51917","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x09c4d94126a0ee1a976917939dbc5d5473a92875","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x4f9352f95aa76e1072b4623691675d2d89ffe89c","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x46f2071b2652b7b717aa6e848a2f8000e69c6378","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xb41d91ad065ab38dbaa96f71585dce8a3378a3eb","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x0300ab1c756f9b25fda34b56dbfaaca7423f3c8a","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x3c22d66cae16cf44dac21c459243dc113f69cf99","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xcc02da60b3514e9d45af027dc5189f70bb201237","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xa7bf421fa46cee1e5cfe541d8db6829a99179c66","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xa1f0e6c0c6ea21cc6ceec8e719bd306a372ae95f","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x5002d1934d19741702535783fa003cf036197737","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xc6b74535f0a0757d8f08bc7a205a0db358b36692","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x8e5451415b1dadc5e7420055fd3dbc734b60c98d","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x80f493df2cf35d3e0e27ff7e3d346ec91e561d9a","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xb8ca79bd1d7cb1b874b573037dadfe6cd5b87e8f","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xa770d0cc6b660a8c319b2d8ce7c4f5d1cb924eee","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x8150e94fa6871fb09adcd40fb8b86b1f2dad7364","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xf62dc0901b9d2c9622e10b6be82a5c3a7bf904fb","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x29dc2110ba4bc00c0ed70d8637141186cac58ec7","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xc84dc42b652f5d970f3656e835a1b9512023476c","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xf31c7f55cc1fb058aab0a9c58c3ae50727578ed7","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x344e1e864f7c444eb4a3a3e17c5113627881834e","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x7ba90006b960acb3a31611016dead98ef25e31c0","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xbf090e43c843f322937ec2ddba2a75f2f88263d2","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x64fafa55e95526cd7cf2eb28d858369109bec41e","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xc16521ed07e2e5fedf7ee7b20dfcfd1afe708bae","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x4a65ea7240d219f8a42fb2f0bb9d0ddae3622d65","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xedf98ff9941c149e6cab289a7e1367f617f7683d","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x06c5606ff51ea7c1908f8f88056333dfcedd940c","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x405d7986079c87b31d393bebb5f7ccac4a05f9cb","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x5e63903d9ace9a8bbc2c439323bcd960d8f6622d","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x331918cb6c1196e8b7e1558acc2f80bb6491a99a","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x531bef9b0c386ca1ee9cc0f58c7b5f21d00d8689","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x1f5d7dbda6ca6e16e1f29722ebd16a2ba6b12cd1","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xeb7c9b14b15255372c501823d1d9af708b67cafb","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x46f37500e413f3bb0b4032eda970c26160246f3a","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x9718fabe5f5e58af1e8ff8632900420c22c02cd5","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x920f4365959733f2f782dd2205c32819ca003ca3","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x0319d6966a9e3f225b248fc81b495087b37b083c","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x51c591dcc72945a4778cea4b3044c449ed65b825","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x5244dd98e7393b9e30608ba8fcce1bfddd3f2a57","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x64ca937080b43df761d4b53429e3263422e9a2d7","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xc8c57ffcc8f4798332c5da53d19eb1b6eae13c5b","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xf057aad843499a146eb2decf6f949a8cd4042839","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x876607419b0c95f26ad7b5472a5fd187a24fdd96","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x97c345d0d5f1ab576bc4ffbd62bc3a93d753d41b","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x3161fc3ca0e8fce5080f30e54a58d992cf035d51","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xddbbb9204f5108a26b60ddab5203513cb8c7f61c","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xa1786ee7b0150c17a6e0dd8e3661bf32fe400016","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x817381c663fb96fd3c96310df98e543128a1a292","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x4b3f70844f73ea18805a95b4442a14f333188079","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xb6bfd07385a79e68d35d42866ccf0ce5fce27db5","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x7b2152df1c5605d0a82fd06c43b7016c4cbd7bd2","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x2f98d553fe00d2b687132a5792551b93c7874939","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x0e895166d2f75ba6c0db71362a448b11a6fbc854","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0x49c4c1d33c812ab8c8de104245deb36f68045a9f","propertyNames":["Karra Loft 3A"],"balance":"2","weekDelta":"0","monthDelta":"0","supplyPct":0.022727272727272728,"tier":"🦐 Shrimp"},{"address":"0xefec61aee5b38a9148f3b98d9a7a7d1647454e12","propertyNames":["Karra Loft 3A"],"balance":"1.9701","weekDelta":"+1.9701","monthDelta":"+1.9701","supplyPct":0.0223875,"tier":"🦐 Shrimp"},{"address":"0x5345fdf6ebfcd3c2ca8886a5edf626e943b7f987","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x16ad72512fe5b27db4e489bdb81e75e45c519473","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xeb57dd0a036e0bf4bf16a00c2697c3f6b54d10ab","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x50c9adea3a4e40bb1f0765cecedf0e863f522827","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xf35b14ed99a8019fe99bb5e75fb0dda7e9477a96","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x46e066505c7683fa40ada391d140e1e1ee7fe25c","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xcbe908d970e60e4a6a00897f08b5af77da7017e5","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x25feb1fc9858d09aae1e5c9b6c5bbe7d3a44cdcf","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x0ad3472ed355f833857939238772f767aaa85b2c","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x8b01365530d724e97dfddc576b42ed96b16cb92d","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xd2f8b825d6277a18f0243335ff2a27e87744c954","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x506306ad9591cf8316028a3680955a26a96f83a4","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x5203bd39dde9c51989d92e1b3f5e530abdd4a36c","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x562e1236ad1bd5be28cb78bb8d6adf9b0524d4b0","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x3645397b7dc99e897377ba21b71a96cc9c2555a1","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x9e5636159bf66eda24559b4c205a506a2f89d9ea","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x54d20b4759668ed2b2aa73d05e5f1ffe3a9d1119","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x1c55f9c7421f9d42807c637f7adfc1ea39e486eb","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x0519cb5539f6b7fa1daa6353cf99b563f8c8d0f5","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xf2f89133e54740484b1f901c4d572bcae0f64fc2","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xd9170ca575248e0b5a70a014d82e990768fbe9b0","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x61707f62a5ab5547add42dd58804a94ef5e84f65","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x6ebc34243911ee2f3502adea0a380f28b4538c6b","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x3bf2c384e1ee02b2e122a12589386a48fad2c895","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x075362b50e2a7078e99c037986ef2419eda154d0","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xe533646bf134115d8e8d5d28b8064bfee5394d04","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x77e5056514a68cc328e364f4c088c1d1d416cd34","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x57d69ba8ee3be0d87eb1c5493d3b49a23c7df5dd","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x6ed29609ddeadc9d314ecf2dbc935426caf9928e","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x5a5318640f8db353a01d4c7329c56e54cf633fdd","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x69363d74ba693cd92afa13eaf81e7948bb7b849f","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x69eeae3a39d5365a93081a3d95ee473ba317ad81","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x21f193ff4119b024e6f7c469155068b8a9f9ac63","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xf7813cb51adf88bb1c8e58675c01b704135cc226","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xd4885c5b654e874020539c10b96d75ff29bbd59e","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x27bb02006f0a4c69853b833e07e4e493897d1179","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x615f45ad3a2f66f5a7c81edd87f9358e21c86785","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x8dca53ef257a5686e8d7429ed94fba8e9e3569ed","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x272e30b22d992811df6af81484690675baa845c1","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xdc9d84bb8b7e090be93d51f0f6b751f9e498ad04","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x44f96884b767bd791716c3c191eb1407862cff77","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x6197cfe4f437cbbdd22de20d2e47ae2513dfea2c","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x68f334603fe78c0f28036205febfd6ebe4992e16","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xd616a46014f5f99d180f0b269bea41cb186d223b","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x54ae4c8a491e31e8040e4fcd912ca83a0d557fbd","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x12ed17d0061c89362a1fd0ba9aa960d68b97bd79","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xb0223214f1f0b545d3fef043c82b0b2ece75cb3b","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x60c491bea7b0b33a1bb7d605bb97dd9e4f0399a7","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xbfe81fe0a466dcc739153c10c83f5766bd1e40fb","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xa3141dfdd0bc14ca3a22ddedf90caeeda69a18d9","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x85b317237f770ea39f5e3b94f0812b12cb65dd2d","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x7849ddc1c385510e5663a9ad6f7ede32751b8942","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x8ac3ff567dce7f048814117ba5f8cf7a14f1bf59","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x4e358b5345e356578d0b2a6bb7eb6621fd5ddff8","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x4907aebe2f71060b3acb803e48c80223a566b5a2","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xa54c0d4ff6e234d33f8a7fb97779652cd850139d","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xad31e2e848bc4de32226e68125700cd54fa58223","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x46bdf1d2c6459963a610edd4014cf9ecb9abc479","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x1e6b5ebdd97ad37644b0d8e11ad55c48e6c38b43","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x79e9ca52062924d0cfd171d3bf7343ac02cb28f8","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xa1108ba1ae4ecba5523e94fbd9a2a192621839dd","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xdc657c757f2bf45ba4537edb2107fae58378a511","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x56209a886c507f8725c822b2b1f77ef4c9dc853c","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x9c245ec33f008afe2899965953fddfdf5278a814","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xb0dbcfea7118060ae69099e4a3db52938dd8783b","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x89a8a9f77c4c47e1c3f44cc7a03cf8ea73b61015","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xb699e73e8a981b2325acf85a5d021bc67ee7f3a6","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x916f0ea481930a759cf76c062232783d99dc37aa","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x439d0c51abea22f7f7c0d6b76fdf1c93e9f5cdc2","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xe461495f759de6cf528bf80887c44d3894252e90","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x5eb8ae99c8fc185cd139410027edecba172b4849","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x8a3f6876707af0208f7319e536a0d86972c440b8","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xdad43e0ec2bba1bd03059f91af77b2031fd230b1","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x0d51b6e82a1e8734ced05ff84167c364a9e4b0f5","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x02f222458cf2773fec6a9f68855bb7481e780198","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xc636ec471c8f44c8a5d79c86045aea9f3c4d5bd9","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x2c9b11b0ca0b59d249ecc08b0856b599e9526236","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x5dd39a3fc1c33e4411438e79bf86d4fab4f6932f","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x1d4ca954a772108cda616160dd774e9f1c19c910","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x97947864e51f56a37a89dc4442871aae9b2b6da7","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x642fcd301298a5ce7f2e9677171c0c5aa0fef950","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x51dea228c777624a6ef0eec93d6b2dc6a86b0831","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x412060c10745a36682af9e296ed3080df0939eef","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xa3c4298e47abc911fa9303b15e1af205b3cfc566","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x4048dbdb49281d90f28bacb8d1c67c94418a1f97","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x95fb9a61d76bd9264e37205cb390227d79ab4fa0","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x48c270a047d1b03ccde8753765f89771e0670c2c","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x83bb80730ba501b5ed158ea0ace3f9814ccf615e","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x6bb8dca8a49c5cfd91fff96c751fef61e258e6d3","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x0285bd173e399474c329252b0f53cb3c3f96971d","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xecb5caf618b1ab9fc33a86b4a373db13c75186ee","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x244d94a5d3e3fcc445a8079fdf9455ff16d85635","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x2544c49c4df65fdc3dc4e1bcc1c7cb7ae01ab20d","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x5360c6c36ef77668f2ad31a3a4302e1527160c1a","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xcdb77fc9d954bc7cee5f893ccfad310e608c09a0","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xfe24f23db2432c753945a39400f7a84ae5d5d09f","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x6a2744ec9fb3b8deea75825e8de5f7be58beb633","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xd409e9cf9bb7fa290e08d2cf637099f8123552b3","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xa4e06693d262de6c94c573966da8602a9207966b","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0x1381e354bd01b5458038f76bde67cfb1252f58d3","propertyNames":["Karra Loft 3A"],"balance":"1","weekDelta":"0","monthDelta":"0","supplyPct":0.011363636363636364,"tier":"🦐 Shrimp"},{"address":"0xb8aa11660db3e991c1f89a874e3769f4eed46320","propertyNames":["Karra Loft 3A"],"balance":"0.99","weekDelta":"0","monthDelta":"+0.99","supplyPct":0.01125,"tier":"🦐 Shrimp"},{"address":"0xea82261fcc6a63a0dab414db5e1f051d7c99574b","propertyNames":["Karra Loft 3A"],"balance":"0.392","weekDelta":"0","monthDelta":"0","supplyPct":0.004454545454545455,"tier":"🦐 Shrimp"},{"address":"0xa92beb1171fb62b28c27bbb5f3eb368af74b5a9e","propertyNames":["Karra Loft 3A"],"balance":"0.1386","weekDelta":"0","monthDelta":"+0.1386","supplyPct":0.001575,"tier":"🦐 Shrimp"},{"address":"0x25b691075f612b1ae6e7d27f9170b8e2ac1f950a","propertyNames":["Karra Loft 3A"],"balance":"0.0065","weekDelta":"-0.96","monthDelta":"+0.0065","supplyPct":0.00007386363636363637,"tier":"🦐 Shrimp"}],"tierStats":[{"name":"🦐 Shrimp","count":361,"holdersPct":93.04123711340206,"supplyPct":26.104421590909215},{"name":"🦀 Crab","count":9,"holdersPct":2.3195876288659796,"supplyPct":6.1003420454545445},{"name":"🐟 Fish","count":15,"holdersPct":3.865979381443299,"supplyPct":38.03884659090909},{"name":"🐬 Dolphin","count":2,"holdersPct":0.5154639175257731,"supplyPct":10.960935227272728},{"name":"🦈 Shark","count":1,"holdersPct":0.25773195876288657,"supplyPct":18.795454545454547},{"name":"🐋 Whale","count":0,"holdersPct":0,"supplyPct":0}],"globalHoldersTop":25,"propertyHoldersTop":10}</script>
+
+<script>
+(function () {
+	const raw = document.getElementById("project-data").textContent;
+	let projectData;
+	try {
+		projectData = JSON.parse(raw);
+	} catch (e) {
+		document.body.innerHTML = "<p>Invalid JSON in #project-data.</p>";
+		return;
+	}
+
+	function escapeHtml(s) {
+		if (s == null || s === "") return "";
+		return String(s)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
+
+	if (projectData.name) {
+		document.title = projectData.name;
+		document.getElementById("project-title").textContent = projectData.name;
+	}
+
+	if (projectData.summary) {
+		const s = projectData.summary;
+		document.getElementById("project-summary").innerHTML =
+			"<p>Properties: <strong>" + s.propertyCount + "</strong></p>" +
+			"<p>Total supply: <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
+			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " properties)</p>";
+	}
+
+	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
+	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
+	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
+	const globalHoldersTop = typeof projectData.globalHoldersTop === "number" && projectData.globalHoldersTop > 0
+		? projectData.globalHoldersTop
+		: allHolders.length;
+	const propertyHoldersTop = typeof projectData.propertyHoldersTop === "number" && projectData.propertyHoldersTop > 0
+		? projectData.propertyHoldersTop
+		: 10;
+	const grid = document.getElementById("grid");
+	const chartInstances = [];
+
+	function etaDate(row) {
+		const date = row && row.date;
+		return date && date !== "0001-01-01" ? date : "";
+	}
+
+	function renderETAsInto(container, chartData) {
+		const rows = chartData.etas;
+		if (!rows || rows.length === 0) {
+			container.innerHTML = "<h4>ETA</h4><p class=\"muted\">No ETA rows.</p>";
+			return;
+		}
+		const times = rows.map(etaDate).filter(Boolean).sort();
+		const showDate = times.length > 0;
+		let band = "";
+		if (times.length >= 2) {
+			band = "<p class=\"muted\">Band: <strong>" + escapeHtml(times[0]) + "</strong> … <strong>" + escapeHtml(times[times.length - 1]) + "</strong></p>";
+		}
+		const body = rows.map(function (r) {
+			let row = "<tr><td>" + escapeHtml(r.window) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td>";
+			if (showDate) {
+				row += "<td>" + escapeHtml(etaDate(r)) + "</td>";
+			}
+			return row + "</tr>";
+		}).join("");
+		const heading = showDate ? "<h4>ETA</h4>" : "";
+		container.innerHTML =
+			heading +
+			band +
+			"<table><thead><tr><th>Window</th><th>Avg Δ</th><th>Days</th>" + (showDate ? "<th>Date</th>" : "") + "</tr></thead><tbody>" +
+			body +
+			"</tbody></table>";
+	}
+
+	function trendCell(delta) {
+		if (!delta || delta === "0") {
+			return "<td class=\"num trend flat\">—</td>";
+		}
+		const down = delta.charAt(0) === "-";
+		return "<td class=\"num trend " + (down ? "down" : "up") + "\">" +
+			(down ? "↓ " : "↑ ") + escapeHtml(delta) + "</td>";
+	}
+
+	function renderPropertyHoldersInto(container, property) {
+		const holders = property && Array.isArray(property.holders) ? property.holders : [];
+		const summary = "<summary>Top " + propertyHoldersTop + " holders</summary>";
+		if (holders.length === 0) {
+			container.innerHTML = summary + "<p class=\"muted\">No holders.</p>";
+			return;
+		}
+		const rows = holders.map(function (h, i) {
+			return "<tr>" +
+				"<td class=\"num\">" + (i + 1) + "</td>" +
+				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+				trendCell(h.weekDelta) +
+				trendCell(h.monthDelta) +
+				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+				"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+				"</tr>";
+		}).join("");
+		container.innerHTML =
+			summary +
+			"<div class=\"holders-scroll\"><table><thead><tr>" +
+			"<th>#</th><th>Address</th><th>Balance</th><th>Week</th><th>Month</th><th>% supply</th><th>Tier</th>" +
+			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+	}
+
+	function chartOptions(dailyLabel, cumLabel) {
+		return {
+			responsive: true,
+			maintainAspectRatio: false,
+			interaction: { mode: "index", intersect: false },
+			scales: {
+				x: { ticks: { maxTicksLimit: 24 } },
+				y: {
+					type: "linear",
+					position: "left",
+					beginAtZero: true,
+					title: { display: true, text: dailyLabel || "Daily Δ", font: { size: 10 } }
+				},
+				y1: {
+					type: "linear",
+					position: "right",
+					beginAtZero: true,
+					grid: { drawOnChartArea: false },
+					title: { display: true, text: cumLabel || "Cumulative", font: { size: 10 } }
+				}
+			}
+		};
+	}
+
+	function hasSecondaryVolume(property) {
+		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
+		return !!(secondary && secondary.labels && secondary.labels.length > 0);
+	}
+
+	function mountDailyChart(canvas, initial) {
+		const ch = new Chart(canvas, {
+			type: "line",
+			data: {
+				labels: initial.labels,
+				datasets: [
+					{
+						label: "Daily Δ",
+						data: initial.daily,
+						borderColor: "rgb(75, 192, 192)",
+						backgroundColor: "rgba(75, 192, 192, 0.2)",
+						tension: 0,
+						stepped: "before",
+						fill: false,
+						yAxisID: "y"
+					},
+					{
+						label: "Cumulative",
+						data: initial.cumulative,
+						borderColor: "rgb(255, 99, 132)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions("Daily Δ", "Cumulative")
+		});
+		chartInstances.push(ch);
+		return ch;
+	}
+
+	function renderSecondaryInto(slot, property) {
+		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
+		const txCount = secondary && typeof secondary.txCount === "number" ? secondary.txCount : 0;
+		const hasVolume = hasSecondaryVolume(property);
+
+		const meta = document.createElement("p");
+		meta.className = "secondary-meta";
+		if (!hasVolume) {
+			meta.innerHTML = "Secondary market: <strong>no wallet-to-wallet transfers yet</strong>";
+			slot.appendChild(meta);
+			return;
+		}
+		meta.innerHTML = "Secondary txs: <strong>" + txCount + "</strong>";
+		slot.appendChild(meta);
+
+		const wrap = document.createElement("div");
+		wrap.className = "secondary-wrap";
+		const heading = document.createElement("h4");
+		heading.textContent = secondary.title || "Weekly secondary volume";
+		wrap.appendChild(heading);
+
+		const chartWrap = document.createElement("div");
+		chartWrap.className = "chart-wrap";
+		const canvas = document.createElement("canvas");
+		chartWrap.appendChild(canvas);
+		wrap.appendChild(chartWrap);
+		slot.appendChild(wrap);
+
+		const ch = new Chart(canvas, {
+			type: "bar",
+			data: {
+				labels: secondary.labels,
+				datasets: [
+					{
+						type: "bar",
+						label: "Weekly volume",
+						data: secondary.weekly,
+						backgroundColor: "rgba(54, 162, 235, 0.45)",
+						borderColor: "rgb(54, 162, 235)",
+						borderWidth: 1,
+						yAxisID: "y"
+					},
+					{
+						type: "line",
+						label: "Cumulative",
+						data: secondary.cumulative,
+						borderColor: "rgb(255, 159, 64)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions("Weekly volume", "Cumulative")
+		});
+		chartInstances.push(ch);
+	}
+
+	function renderHolders() {
+		const section = document.getElementById("holders-section");
+		if (allHolders.length === 0) {
+			section.hidden = true;
+			return;
+		}
+
+		const showGlobal = allProperties.length > 1;
+		const globalBlock = document.getElementById("global-holders-block");
+		globalBlock.hidden = !showGlobal;
+
+		if (showGlobal) {
+			const shown = Math.min(globalHoldersTop, allHolders.length);
+			document.getElementById("holders-meta").textContent =
+				"Showing " + shown + " of " + allHolders.length + " holders (by total balance).";
+
+			const body = document.getElementById("holders-body");
+			body.innerHTML = allHolders.slice(0, globalHoldersTop).map(function (h, i) {
+				return "<tr>" +
+					"<td class=\"num\">" + (i + 1) + "</td>" +
+					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
+					"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
+					trendCell(h.weekDelta) +
+					trendCell(h.monthDelta) +
+					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+					"<td class=\"tier\">" + escapeHtml(h.tier) + "</td>" +
+					"</tr>";
+			}).join("");
+		}
+
+		renderTierCharts();
+	}
+
+	const tierPalette = ["#94a3b8", "#fb923c", "#38bdf8", "#6366f1", "#10b981", "#1e40af"];
+
+	function formatTokens(n) {
+		if (!isFinite(n)) return "0";
+		const rounded = Math.round(n * 100) / 100;
+		if (Math.abs(rounded - Math.round(rounded)) < 1e-6) return String(Math.round(rounded));
+		return rounded.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+	}
+
+	function tierTokenTotals() {
+		const totals = {};
+		allHolders.forEach(function (h) {
+			const n = Number(h.balance);
+			if (!isFinite(n)) return;
+			totals[h.tier] = (totals[h.tier] || 0) + n;
+		});
+		return totals;
+	}
+
+	function tierSlices(include) {
+		const tokens = tierTokenTotals();
+		const slices = [];
+		tierStats.forEach(function (s, i) {
+			if (!include(s)) return;
+			slices.push({
+				stat: s,
+				tokens: tokens[s.name] || 0,
+				color: tierPalette[i % tierPalette.length]
+			});
+		});
+		return slices;
+	}
+
+	function tierTooltip(slices) {
+		return {
+			callbacks: {
+				label: function (ctx) {
+					const slice = slices[ctx.dataIndex];
+					const s = slice.stat;
+					return [
+						" Tokens: " + formatTokens(slice.tokens),
+						" % supply: " + s.supplyPct.toFixed(2) + "%",
+						" % holders: " + s.holdersPct.toFixed(1) + "%"
+					];
+				}
+			}
+		};
+	}
+
+	function mountTierPie(canvasId, title, values, slices) {
+		const canvas = document.getElementById(canvasId);
+		if (slices.length === 0) {
+			canvas.parentElement.innerHTML = "<div class=\"chart-placeholder\">No tier data</div>";
+			return;
+		}
+		const ch = new Chart(canvas, {
+			type: "pie",
+			data: {
+				labels: slices.map(function (s) { return s.stat.name; }),
+				datasets: [{
+					data: slices.map(function (s) { return values(s); }),
+					backgroundColor: slices.map(function (s) { return s.color; }),
+					borderColor: "#fff",
+					borderWidth: 2
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					title: {
+						display: true,
+						text: title,
+						font: { size: 13, weight: "600" }
+					},
+					legend: {
+						position: "bottom",
+						labels: { boxWidth: 12, font: { size: 12 } }
+					},
+					tooltip: tierTooltip(slices)
+				}
+			}
+		});
+		chartInstances.push(ch);
+	}
+
+	function renderTierCharts() {
+		mountTierPie(
+			"tier-holders-chart",
+			"Holders by tier",
+			function (s) { return s.stat.count; },
+			tierSlices(function (s) { return s.count > 0; })
+		);
+		mountTierPie(
+			"tier-supply-chart",
+			"Supply by tier",
+			function (s) { return s.stat.supplyPct; },
+			tierSlices(function (s) { return s.supplyPct > 0; })
+		);
+	}
+
+	function renderCharts() {
+		grid.innerHTML = "";
+
+		if (allProperties.length === 0) {
+			grid.innerHTML = "<p class=\"chart-placeholder\">No properties loaded</p>";
+			return;
+		}
+
+		allProperties.forEach(function (property) {
+			const initial = property && property.initial_sales ? property.initial_sales : null;
+			const collapseBuys = hasSecondaryVolume(property);
+			const slot = document.createElement("div");
+			slot.className = "slot";
+			const title = document.createElement(collapseBuys ? "summary" : "h3");
+			title.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
+
+			const chartParent = document.createElement(collapseBuys ? "details" : "div");
+			if (collapseBuys) {
+				chartParent.className = "buys-wrap";
+			}
+			chartParent.appendChild(title);
+
+			const wrap = document.createElement("div");
+			wrap.className = "chart-wrap";
+			const canvas = document.createElement("canvas");
+			wrap.appendChild(canvas);
+			chartParent.appendChild(wrap);
+			slot.appendChild(chartParent);
+
+			const etaWrap = document.createElement("div");
+			etaWrap.className = "eta-wrap";
+			slot.appendChild(etaWrap);
+
+			grid.appendChild(slot);
+
+			const holdersWrap = document.createElement("details");
+			holdersWrap.className = "holders-wrap";
+
+			const hasSeries = initial && initial.labels && initial.labels.length > 0;
+			if (!hasSeries) {
+				wrap.innerHTML = "<div class=\"chart-placeholder\">No series</div>";
+				etaWrap.innerHTML = "<h4>ETA</h4><p class=\"muted\">—</p>";
+			} else if (collapseBuys) {
+				let chart = null;
+				chartParent.addEventListener("toggle", function () {
+					if (!chartParent.open) return;
+					requestAnimationFrame(function () {
+						if (!chart) {
+							chart = mountDailyChart(canvas, initial);
+							return;
+						}
+						chart.resize();
+					});
+				});
+				renderETAsInto(etaWrap, initial);
+			} else {
+				mountDailyChart(canvas, initial);
+				renderETAsInto(etaWrap, initial);
+			}
+
+			renderSecondaryInto(slot, property);
+			renderPropertyHoldersInto(holdersWrap, property);
+			slot.appendChild(holdersWrap);
+		});
+	}
+
+	renderHolders();
+	renderCharts();
+})();
+</script>
+</body>
+</html>
