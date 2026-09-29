@@ -550,11 +550,11 @@ td.trend.flat { color: #888; }
 			const canvas = document.createElement("canvas");
 			wrap.appendChild(canvas);
 			chartParent.appendChild(wrap);
-			slot.appendChild(chartParent);
 
 			const etaWrap = document.createElement("div");
 			etaWrap.className = "eta-wrap";
-			slot.appendChild(etaWrap);
+			chartParent.appendChild(etaWrap);
+			slot.appendChild(chartParent);
 
 			grid.appendChild(slot);
 
