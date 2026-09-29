@@ -35,5 +35,5 @@ jobs:
       - name: Commit reports
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "Refresh daily holder reports"
+          commit_message: "Refresh daily reports"
           file_pattern: "reports/*.html index.html"
