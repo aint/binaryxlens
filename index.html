@@ -26,7 +26,10 @@
       overflow: hidden;
     }
     nav a {
-      display: block;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       padding: 12px 14px;
       color: #1a1a1a;
       text-decoration: none;
@@ -34,6 +37,25 @@
     }
     nav a:last-child { border-bottom: none; }
     nav a:hover { background: #f7f8fa; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .tag-construction { background: #f4efe4; color: #7a5b2e; }
+    .tag-rental { background: #e7f2ea; color: #1d6b3a; }
   </style>
 </head>
 <body>
@@ -45,25 +67,25 @@
     </p>
     <p id="reports-updated" class="updated">Reports updated 2026-09-30 02:34 UTC</p>
     <nav>
-      <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas</a>
-      <a href="reports/bali_balance_ocean_villas_report.html">Bali Balance Ocean Villas</a>
-      <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villas</a>
-      <a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a>
-      <a href="reports/cascade_villas_report.html">CASCADE Villas</a>
-      <a href="reports/cemagi_units_report.html">CEMAGI Units</a>
-      <a href="reports/dukley_report.html">Dukley</a>
-      <a href="reports/ecoverse_suites_report.html">Ecoverse Suites</a>
-      <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
-      <a href="reports/kammara_loft_report.html">Kammara Loft</a>
-      <a href="reports/kammora_living_report.html">Kammora Living</a>
-      <a href="reports/karra_loft_report.html">Karra Loft</a>
-      <a href="reports/la_casa_española_villas_report.html">La Casa Española Villas</a>
-      <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection</a>
-      <a href="reports/onyx_parq_resort_61_report.html">Onyx PARQ Resort 61</a>
-      <a href="reports/roots_villas_report.html">Roots Villas</a>
-      <a href="reports/taryan_dragon_jungle_views_report.html">Taryan Dragon Jungle Views</a>
-      <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villas</a>
-      <a href="reports/vesna_townhouse_report.html">Vesna Townhouse</a>
+      <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/bali_balance_ocean_villas_report.html">Bali Balance Ocean Villas<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villas<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/cascade_villas_report.html">CASCADE Villas<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/cemagi_units_report.html">CEMAGI Units<span class="tags"><span class="tag tag-construction">construction</span></span></a>
+      <a href="reports/dukley_report.html">Dukley<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/ecoverse_suites_report.html">Ecoverse Suites<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/hayat_green_tower_report.html">Hayat Green Tower<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/kammara_loft_report.html">Kammara Loft<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/kammora_living_report.html">Kammora Living<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/karra_loft_report.html">Karra Loft<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/la_casa_española_villas_report.html">La Casa Española Villas<span class="tags"><span class="tag tag-construction">construction</span></span></a>
+      <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/onyx_parq_resort_61_report.html">Onyx PARQ Resort 61<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/roots_villas_report.html">Roots Villas<span class="tags"><span class="tag tag-construction">construction</span></span></a>
+      <a href="reports/taryan_dragon_jungle_views_report.html">Taryan Dragon Jungle Views<span class="tags"><span class="tag tag-construction">construction</span></span></a>
+      <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villas<span class="tags"><span class="tag tag-rental">rental</span></span></a>
+      <a href="reports/vesna_townhouse_report.html">Vesna Townhouse<span class="tags"><span class="tag tag-rental">rental</span></span></a>
     </nav>
   </main>
 </body>

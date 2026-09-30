@@ -27,6 +27,27 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	width: 100%;
 }
 .slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.slot-title {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+.slot .buys-wrap > summary { display: flex; align-items: flex-start; }
+.slot .buys-wrap > summary .slot-title { flex: 1; min-width: 0; }
+.tag {
+	flex-shrink: 0;
+	font-size: 0.68rem;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0.02em;
+	text-transform: lowercase;
+	padding: 2px 7px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+.tag-construction { background: #f4efe4; color: #7a5b2e; }
+.tag-rental { background: #e7f2ea; color: #1d6b3a; }
 .slot .buys-wrap > summary {
 	font-size: 0.95rem;
 	font-weight: 600;
@@ -166,6 +187,15 @@ td.trend.flat { color: #888; }
 	} catch (e) {
 		document.body.innerHTML = "<p>Invalid JSON in #project-data.</p>";
 		return;
+	}
+
+	function propertyTypeTag(property) {
+		const type = property && property.type;
+		if (type !== "construction" && type !== "rental") return null;
+		const tag = document.createElement("span");
+		tag.className = "tag tag-" + type;
+		tag.textContent = type;
+		return tag;
 	}
 
 	function escapeHtml(s) {
@@ -537,7 +567,14 @@ td.trend.flat { color: #888; }
 			const slot = document.createElement("div");
 			slot.className = "slot";
 			const title = document.createElement(collapseBuys ? "summary" : "h3");
-			title.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
+			const titleRow = document.createElement("span");
+			titleRow.className = "slot-title";
+			const titleText = document.createElement("span");
+			titleText.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
+			titleRow.appendChild(titleText);
+			const typeTag = propertyTypeTag(property);
+			if (typeTag) titleRow.appendChild(typeTag);
+			title.appendChild(titleRow);
 
 			const chartParent = document.createElement(collapseBuys ? "details" : "div");
 			if (collapseBuys) {

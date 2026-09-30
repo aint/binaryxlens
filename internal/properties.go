@@ -20,6 +20,19 @@ const (
 	PropertyTypeRedeemed
 )
 
+func (t PropertyType) Label() string {
+	switch t {
+	case PropertyTypeConstruction:
+		return "construction"
+	case PropertyTypeRental:
+		return "rental"
+	case PropertyTypeRedeemed:
+		return "redeemed"
+	default:
+		return "unknown"
+	}
+}
+
 // IssuanceModel is how initial sales leave issuer control.
 type IssuanceModel int
 

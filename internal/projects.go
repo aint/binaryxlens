@@ -116,6 +116,7 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 
 	payload := propertyReportPayload{
 		Name:    property.Name,
+		Type:    property.Type.Label(),
 		Holders: buildPropertyHoldersPayload(property),
 		Initial: propertyInitialSalesPayload{
 			Title:      fmt.Sprintf("Daily buys — %s", property.Name),
@@ -195,6 +196,7 @@ type projectSummaryPayload struct {
 
 type propertyReportPayload struct {
 	Name      string                      `json:"name"`
+	Type      string                      `json:"type"`
 	Holders   []propertyHolderRow         `json:"holders"`
 	Initial   propertyInitialSalesPayload `json:"initial_sales"`
 	Secondary propertyP2PSalesPayload     `json:"p2p_sales"`
