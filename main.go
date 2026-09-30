@@ -42,15 +42,13 @@ func main() {
 
 func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*internal.Project {
 	var projects []*internal.Project
-	for name, contracts := range internal.AllPropertyContracts {
-		var properties []*internal.Property
-		for _, contract := range contracts {
-			property, err := internal.NewProperty(contract, client, scanPause)
+	for name, properties := range internal.AllProperties {
+		for _, property := range properties {
+			err := property.Init(client, scanPause)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to create %q property: %v\n", name, err)
 				continue
 			}
-			properties = append(properties, property)
 		}
 		project, err := internal.NewProject(name, properties)
 		if err != nil {
