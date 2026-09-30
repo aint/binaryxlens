@@ -53,7 +53,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
 .slot .holders-wrap { margin-top: 12px; }
 .slot .holders-wrap > summary {
-	font-size: 0.85rem;
+	font-size: 0.95rem;
 	font-weight: 600;
 	cursor: pointer;
 	list-style: none;
@@ -72,7 +72,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 .slot .holders-wrap td.tier { white-space: nowrap; }
 .slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 12px 0 6px; }
 .slot .secondary-wrap { margin-top: 4px; }
-.slot .secondary-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 8px; }
+.slot .secondary-wrap h4 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
@@ -187,7 +187,7 @@ td.trend.flat { color: #888; }
 		document.getElementById("project-summary").innerHTML =
 			"<p>Properties: <strong>" + s.propertyCount + "</strong></p>" +
 			"<p>Total supply: <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
-			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " properties)</p>";
+			"<p>Bought (cumulative): <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(s.bought) + " tokens)</p>";
 	}
 
 	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
