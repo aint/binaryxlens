@@ -117,6 +117,7 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 	payload := propertyReportPayload{
 		Name:    property.Name,
 		Type:    property.Type.Label(),
+		Rental:  rentalPayloadFor(property, time.Now().UTC()),
 		Holders: buildPropertyHoldersPayload(property),
 		Initial: propertyInitialSalesPayload{
 			Title:      fmt.Sprintf("Daily buys — %s", property.Name),
@@ -152,6 +153,33 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		payload.Secondary.Cumulative = append(payload.Secondary.Cumulative, bigIntToFloat(p.CumValue, property.Decimal))
 	}
 	return payload, nil
+}
+
+func rentalPayloadFor(property *Property, now time.Time) *propertyRentalPayload {
+	delayQuarters, ok := property.rentalStartDelay(now)
+	if !ok {
+		return nil
+	}
+
+	var score string
+	switch {
+	case delayQuarters <= 0:
+		score = "green"
+	case delayQuarters == 1:
+		score = "yellow"
+	default:
+		score = "red"
+	}
+
+	payload := &propertyRentalPayload{
+		Expected:      property.RentalStartExpected.String(),
+		Score:         score,
+		DelayQuarters: delayQuarters,
+	}
+	if property.RentalStartActual != nil {
+		payload.Actual = property.RentalStartActual.String()
+	}
+	return payload
 }
 
 func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
@@ -197,9 +225,17 @@ type projectSummaryPayload struct {
 type propertyReportPayload struct {
 	Name      string                      `json:"name"`
 	Type      string                      `json:"type"`
+	Rental    *propertyRentalPayload      `json:"rental,omitempty"`
 	Holders   []propertyHolderRow         `json:"holders"`
 	Initial   propertyInitialSalesPayload `json:"initial_sales"`
 	Secondary propertyP2PSalesPayload     `json:"p2p_sales"`
+}
+
+type propertyRentalPayload struct {
+	Expected      string `json:"expected"`
+	Actual        string `json:"actual,omitempty"`
+	Score         string `json:"score"`
+	DelayQuarters int    `json:"delayQuarters"`
 }
 
 type propertyInitialSalesPayload struct {

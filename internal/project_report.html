@@ -34,7 +34,13 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	gap: 12px;
 }
 .slot .buys-wrap > summary { display: flex; align-items: flex-start; }
-.slot .buys-wrap > summary .slot-title { flex: 1; min-width: 0; }
+.slot-heading {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	gap: 4px;
+}
 .tag {
 	flex-shrink: 0;
 	font-size: 0.68rem;
@@ -45,9 +51,36 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	padding: 2px 7px;
 	border-radius: 999px;
 	white-space: nowrap;
+	background: #eee;
+	color: #333;
 }
 .tag-construction { background: #f4efe4; color: #7a5b2e; }
 .tag-rental { background: #e7f2ea; color: #1d6b3a; }
+.tag-redeemed { background: #e8eef6; color: #1e4a7a; }
+.slot-tags {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 4px;
+	flex-shrink: 0;
+}
+.score {
+	font-size: 0.68rem;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 2px 7px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+.score-green { background: #e7f2ea; color: #1d6b3a; }
+.score-yellow { background: #fff4d6; color: #8a5a00; }
+.score-red { background: #fde8e8; color: #b42318; }
+.rental-dates {
+	display: block;
+	font-size: 0.78rem;
+	font-weight: 500;
+	color: #444;
+}
 .slot .buys-wrap > summary {
 	font-size: 0.95rem;
 	font-weight: 600;
@@ -191,11 +224,37 @@ td.trend.flat { color: #888; }
 
 	function propertyTypeTag(property) {
 		const type = property && property.type;
-		if (type !== "construction" && type !== "rental") return null;
+		if (!type) return null;
 		const tag = document.createElement("span");
 		tag.className = "tag tag-" + type;
 		tag.textContent = type;
 		return tag;
+	}
+
+	function rentalScoreLabel(rental) {
+		const delay = rental.delayQuarters;
+		if (delay == null || delay <= 0) return "on time";
+		if (delay === 1) return "+1 quarter";
+		return "+" + delay + " quarters";
+	}
+
+	function rentalScoreTag(property) {
+		const rental = property && property.rental;
+		if (!rental || !rental.score) return null;
+		const tag = document.createElement("span");
+		tag.className = "score score-" + rental.score;
+		tag.textContent = rentalScoreLabel(rental);
+		return tag;
+	}
+
+	function rentalDatesLine(property) {
+		const rental = property && property.rental;
+		if (!rental || !rental.expected) return null;
+		const line = document.createElement("span");
+		line.className = "rental-dates";
+		const actual = rental.actual ? rental.actual : "not started";
+		line.textContent = "Expected " + rental.expected + " · Actual " + actual;
+		return line;
 	}
 
 	function escapeHtml(s) {
@@ -572,9 +631,19 @@ td.trend.flat { color: #888; }
 			const titleText = document.createElement("span");
 			titleText.textContent = initial && initial.title ? initial.title : (property && property.name ? property.name : "—");
 			titleRow.appendChild(titleText);
+			const tags = document.createElement("span");
+			tags.className = "slot-tags";
 			const typeTag = propertyTypeTag(property);
-			if (typeTag) titleRow.appendChild(typeTag);
-			title.appendChild(titleRow);
+			if (typeTag) tags.appendChild(typeTag);
+			const scoreTag = rentalScoreTag(property);
+			if (scoreTag) tags.appendChild(scoreTag);
+			if (tags.childNodes.length) titleRow.appendChild(tags);
+			const heading = document.createElement("span");
+			heading.className = "slot-heading";
+			heading.appendChild(titleRow);
+			const rentalDates = rentalDatesLine(property);
+			if (rentalDates) heading.appendChild(rentalDates);
+			title.appendChild(heading);
 
 			const chartParent = document.createElement(collapseBuys ? "details" : "div");
 			if (collapseBuys) {

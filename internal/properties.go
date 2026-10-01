@@ -68,6 +68,10 @@ func (yq YearQuarter) String() string {
 	return fmt.Sprintf("%d Q%d", yq.Year, yq.Quarter)
 }
 
+func (yq YearQuarter) ordinal() int {
+	return yq.Year*4 + yq.Quarter - 1
+}
+
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) error {
 	p.Address = strings.ToLower(p.Address)
 
@@ -220,6 +224,18 @@ func (p *Property) extractDecimal() error {
 	p.Decimal = uint8(decimal)
 
 	return nil
+}
+
+func (p *Property) rentalStartDelay(now time.Time) (int, bool) {
+	if p.Type != PropertyTypeRental || p.RentalStartExpected.Quarter < 1 {
+		return 0, false
+	}
+	month := int(now.Month())
+	actual := YearQuarter{Year: now.Year(), Quarter: (month-1)/3 + 1}
+	if p.RentalStartActual != nil {
+		actual = *p.RentalStartActual
+	}
+	return actual.ordinal() - p.RentalStartExpected.ordinal(), true
 }
 
 var AllProperties = map[string][]*Property{
