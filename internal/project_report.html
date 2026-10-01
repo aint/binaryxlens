@@ -97,7 +97,18 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
 	height: 340px;
 	max-width: 100%;
 }
-.chart-wrap canvas { display: block; max-width: 100%; }
+.chart-wrap canvas { display: block; max-width: 100%; cursor: crosshair; }
+.zoom-reset {
+	position: absolute;
+	top: 0;
+	right: 0;
+	font-size: 0.7rem;
+	padding: 2px 8px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
 .chart-placeholder { color: #666; font-size: 0.9rem; padding: 20px 8px; text-align: center; }
 .slot .eta-wrap { margin-top: 10px; }
 .slot .eta-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
@@ -382,6 +393,80 @@ td.trend.flat { color: #888; }
 		};
 	}
 
+	// Drag across the plot area to zoom the x axis to that range; "Reset zoom" restores it.
+	const rangeSelectPlugin = {
+		id: "rangeSelect",
+		afterInit: function (chart) {
+			const canvas = chart.canvas;
+			const state = chart.$rangeSelect = { start: null, end: null };
+
+			const reset = document.createElement("button");
+			reset.type = "button";
+			reset.className = "zoom-reset";
+			reset.textContent = "Reset zoom";
+			reset.hidden = true;
+			reset.addEventListener("click", function () {
+				chart.options.scales.x.min = undefined;
+				chart.options.scales.x.max = undefined;
+				reset.hidden = true;
+				chart.update();
+			});
+			canvas.parentElement.appendChild(reset);
+
+			function pointerX(e) {
+				return e.clientX - canvas.getBoundingClientRect().left;
+			}
+			function clampX(x) {
+				return Math.min(Math.max(x, chart.chartArea.left), chart.chartArea.right);
+			}
+			function cancel() {
+				state.start = state.end = null;
+				chart.draw();
+			}
+
+			canvas.addEventListener("pointerdown", function (e) {
+				if (e.button !== 0) return;
+				const x = pointerX(e);
+				if (x < chart.chartArea.left || x > chart.chartArea.right) return;
+				e.preventDefault();
+				state.start = state.end = x;
+				canvas.setPointerCapture(e.pointerId);
+			});
+			canvas.addEventListener("pointermove", function (e) {
+				if (state.start == null) return;
+				state.end = clampX(pointerX(e));
+				chart.draw();
+			});
+			canvas.addEventListener("pointerup", function () {
+				if (state.start == null) return;
+				const from = Math.min(state.start, state.end);
+				const to = Math.max(state.start, state.end);
+				const lo = chart.scales.x.getValueForPixel(from);
+				const hi = chart.scales.x.getValueForPixel(to);
+				if (to - from < 5 || hi <= lo) {
+					cancel();
+					return;
+				}
+				state.start = state.end = null;
+				chart.options.scales.x.min = lo;
+				chart.options.scales.x.max = hi;
+				reset.hidden = false;
+				chart.update();
+			});
+			canvas.addEventListener("pointercancel", cancel);
+		},
+		afterDraw: function (chart) {
+			const state = chart.$rangeSelect;
+			if (!state || state.start == null || state.start === state.end) return;
+			const area = chart.chartArea;
+			const ctx = chart.ctx;
+			ctx.save();
+			ctx.fillStyle = "rgba(54, 162, 235, 0.15)";
+			ctx.fillRect(Math.min(state.start, state.end), area.top, Math.abs(state.end - state.start), area.bottom - area.top);
+			ctx.restore();
+		}
+	};
+
 	function hasSecondaryVolume(property) {
 		const secondary = property && property.p2p_sales ? property.p2p_sales : null;
 		return !!(secondary && secondary.labels && secondary.labels.length > 0);
@@ -413,7 +498,8 @@ td.trend.flat { color: #888; }
 					}
 				]
 			},
-			options: chartOptions("Daily Δ", "Cumulative")
+			options: chartOptions("Daily Δ", "Cumulative"),
+			plugins: [rangeSelectPlugin]
 		});
 		chartInstances.push(ch);
 		return ch;
@@ -472,7 +558,8 @@ td.trend.flat { color: #888; }
 					}
 				]
 			},
-			options: chartOptions("Weekly volume", "Cumulative")
+			options: chartOptions("Weekly volume", "Cumulative"),
+			plugins: [rangeSelectPlugin]
 		});
 		chartInstances.push(ch);
 	}
