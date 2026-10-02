@@ -14,9 +14,9 @@ type ETA struct {
 }
 
 var trailingWindows = map[string]int{
-	"last 7 UTC days":                  7,
-	"last 30 UTC days":                 30,
-	"full history (all calendar days)": -1,
+	"last7":  7,
+	"last30": 30,
+	"all":    -1,
 }
 
 // MovingAverageETA calculates up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
@@ -32,9 +32,9 @@ func (p *Property) calculateMovingAverageETA() error {
 
 	// todo: map is random order
 	trailingWindows = map[string]int{
-		"last 7 UTC days":                  min(7, len(p.InitialSaleDailyPoints)),
-		"last 30 UTC days":                 min(30, len(p.InitialSaleDailyPoints)),
-		"full history (all calendar days)": len(p.InitialSaleDailyPoints),
+		"last7":  min(7, len(p.InitialSaleDailyPoints)),
+		"last30": min(30, len(p.InitialSaleDailyPoints)),
+		"all":    len(p.InitialSaleDailyPoints),
 	}
 
 	etas := make([]ETA, 0, len(trailingWindows))

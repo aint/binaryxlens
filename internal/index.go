@@ -30,10 +30,10 @@ type projectRow struct {
 
 func WriteIndex(path string, updated time.Time) error {
 	stamp := updated.UTC().Format(reportsUpdatedLayout)
-	if !bytes.Contains(indexTemplateSrc, indexNavPlaceholder) || !bytes.Contains(indexTemplateSrc, indexUpdatedPlaceholder) {
+	if !bytes.Contains(indexTemplateSrc, indexNavPlaceholder) || !bytes.Contains(indexTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(indexTemplateSrc, i18nPlaceholder) {
 		return fmt.Errorf("index template missing placeholder")
 	}
-	out := bytes.ReplaceAll(indexTemplateSrc, indexUpdatedPlaceholder, []byte(stamp))
+	out := bytes.ReplaceAll(withI18n(indexTemplateSrc), indexUpdatedPlaceholder, []byte(stamp))
 	out = bytes.ReplaceAll(out, indexNavPlaceholder, []byte(projectLinksHTML(projectRows())))
 	if err := os.WriteFile(path, out, 0o644); err != nil {
 		return fmt.Errorf("write index: %w", err)
@@ -47,7 +47,7 @@ func projectLinksHTML(projects []projectRow) string {
 	for _, project := range projects {
 		var labels strings.Builder
 		for _, label := range project.Labels {
-			fmt.Fprintf(&labels, `<span class="tag tag-%s">%s</span>`, html.EscapeString(label), html.EscapeString(label))
+			fmt.Fprintf(&labels, `<span class="tag tag-%[1]s" data-i18n="type.%[1]s">%[1]s</span>`, html.EscapeString(label))
 		}
 		const projectLinkHTML = `
 			<a href="%s">

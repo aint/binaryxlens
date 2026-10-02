@@ -15,7 +15,21 @@
       line-height: 1.5;
     }
     main { max-width: 40rem; margin: 0 auto; }
-    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 8px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
+    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; }
+    .lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
+    .lang-switch button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
     .lede { color: #444; margin: 0 0 8px; font-size: 0.95rem; }
     .updated { color: #666; margin: 0 0 24px; font-size: 0.85rem; }
     .lede a { color: #0b57d0; }
@@ -64,14 +78,18 @@
 </head>
 <body>
   <main>
-    <h1>Binaryx Lens</h1>
+    <header>
+      <h1>Binaryx Lens</h1>
+      <div id="lang-switch" class="lang-switch"></div>
+    </header>
     <p class="lede">
-      Blockchain data analysis for tokenized properties on
+      <span data-i18n="index.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
     </p>
-    <p id="reports-updated" class="updated">Reports updated __REPORTS_UPDATED__ UTC</p>
+    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">__REPORTS_UPDATED__ UTC</time></p>
     <nav>
 __INDEX_NAV__    </nav>
   </main>
+  <script>__I18N_SCRIPT__</script>
 </body>
 </html>

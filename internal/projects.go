@@ -83,14 +83,14 @@ func (pr *Project) GenerateReport(topHolders int) error {
 	if err != nil {
 		return fmt.Errorf("marshal: %w", err)
 	}
-	if !bytes.Contains(projectReport, projectReportDataPlaceholder) {
+	if !bytes.Contains(projectReport, projectReportDataPlaceholder) || !bytes.Contains(projectReport, i18nPlaceholder) {
 		return fmt.Errorf("project template missing placeholder")
 	}
 	if err := os.MkdirAll(reportsDir, 0o755); err != nil {
 		return fmt.Errorf("create reports dir: %w", err)
 	}
 	reportPath := filepath.Join(reportsDir, projectReportFile(pr.Name))
-	out := bytes.ReplaceAll(projectReport, projectReportDataPlaceholder, jsonBytes)
+	out := bytes.ReplaceAll(withI18n(projectReport), projectReportDataPlaceholder, jsonBytes)
 	if err := os.WriteFile(reportPath, out, 0o644); err != nil {
 		return err
 	}
@@ -118,7 +118,6 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		Rental:  rentalPayloadFor(property, time.Now().UTC()),
 		Holders: buildPropertyHoldersPayload(property),
 		Initial: propertyInitialSalesPayload{
-			Title:      fmt.Sprintf("Daily buys — %s", property.Name),
 			Labels:     make([]string, 0, len(initialSaleDailyPoints)),
 			Daily:      make([]float64, 0, len(initialSaleDailyPoints)),
 			Cumulative: make([]float64, 0, len(initialSaleDailyPoints)),
@@ -126,7 +125,6 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		},
 		Secondary: propertyP2PSalesPayload{
 			TxCount:    property.p2pTxCount(),
-			Title:      fmt.Sprintf("Weekly secondary volume — %s", property.Name),
 			Labels:     make([]string, 0, len(p2pWeeklyPoints)),
 			Weekly:     make([]float64, 0, len(p2pWeeklyPoints)),
 			Cumulative: make([]float64, 0, len(p2pWeeklyPoints)),
@@ -237,7 +235,6 @@ type propertyRentalPayload struct {
 }
 
 type propertyInitialSalesPayload struct {
-	Title      string        `json:"title"`
 	Labels     []string      `json:"labels"`
 	Daily      []float64     `json:"daily"`
 	Cumulative []float64     `json:"cumulative"`
@@ -246,7 +243,6 @@ type propertyInitialSalesPayload struct {
 
 type propertyP2PSalesPayload struct {
 	TxCount    int       `json:"txCount"`
-	Title      string    `json:"title"`
 	Labels     []string  `json:"labels"`
 	Weekly     []float64 `json:"weekly"`
 	Cumulative []float64 `json:"cumulative"`

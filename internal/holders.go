@@ -185,12 +185,12 @@ var holderTierThresholds = []struct {
 	max  float64
 	name string
 }{
-	{0.5, "🦐 Shrimp"},
-	{1, "🦀 Crab"},
-	{5, "🐟 Fish"},
-	{10, "🐬 Dolphin"},
-	{20, "🦈 Shark"},
-	{100, "🐋 Whale"},
+	{0.5, "shrimp"},
+	{1, "crab"},
+	{5, "fish"},
+	{10, "dolphin"},
+	{20, "shark"},
+	{100, "whale"},
 }
 
 func holderTier(percent float64) string {
