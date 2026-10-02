@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -47,7 +46,7 @@ type Property struct {
 	Type                   PropertyType
 	RentalStartExpected    YearQuarter
 	RentalStartActual      *YearQuarter
-	txs                    []polygonscan.TokenTransfer
+	transfers              []transfer
 	issuanceModel          IssuanceModel
 	InitialSaleDailyPoints []DailyPoint
 	P2PSaleWeeklyPoints    []WeeklyPoint
@@ -75,18 +74,21 @@ func (yq YearQuarter) ordinal() int {
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) error {
 	p.Address = strings.ToLower(p.Address)
 
-	var err error
-	p.txs, err = client.FetchAllTokenTx(p.Address, 1000, scanPause)
+	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
 	if err != nil {
-		return fmt.Errorf("fetch all token tx: %v", err)
+		return fmt.Errorf("fetch token transfers: %v", err)
 	}
-	if len(p.txs) == 0 {
+	if len(tokenTransfers) == 0 {
 		// TODO: mark as new one instead of returning error
 		return fmt.Errorf("no transactions found")
 	}
+	p.transfers, err = newTransfers(tokenTransfers)
+	if err != nil {
+		return fmt.Errorf("parse token transfers: %v", err)
+	}
 	p.resolveIssuanceModel()
 
-	err = p.extractDecimal()
+	err = p.extractDecimal(tokenTransfers[0])
 	if err != nil {
 		return fmt.Errorf("extract decimal: %v", err)
 	}
@@ -96,10 +98,7 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) err
 		return fmt.Errorf("get total supply: %v", err)
 	}
 	if p.Type == PropertyTypeRedeemed {
-		p.TotalSupplyRaw, err = calculateIssuedSupply(p.txs)
-		if err != nil {
-			return fmt.Errorf("issued supply: %v", err)
-		}
+		p.TotalSupplyRaw = calculateIssuedSupply(p.transfers)
 	}
 	if p.TotalSupplyRaw.Sign() == 0 {
 		return errors.New("total supply is zero")
@@ -108,20 +107,9 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) err
 	p.calculateBoughtRaw()
 	p.RemainingRaw = new(big.Int).Sub(p.TotalSupplyRaw, p.BoughtRaw)
 
-	err = p.buildHolders()
-	if err != nil {
-		return fmt.Errorf("build holders: %v", err)
-	}
-
-	err = p.buildInitialSaleDailySeries()
-	if err != nil {
-		return fmt.Errorf("build initial sale daily series: %v", err)
-	}
-
-	err = p.buildP2PSaleWeeklySeries()
-	if err != nil {
-		return fmt.Errorf("build p2p sale weekly series: %v", err)
-	}
+	p.buildHolders()
+	p.buildInitialSaleDailySeries()
+	p.buildP2PSaleWeeklySeries()
 
 	err = p.calculateMovingAverageETA()
 	if err != nil {
@@ -135,8 +123,8 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) err
 
 func (p *Property) resolveIssuanceModel() {
 	p.issuanceModel = IssuanceMintOnPurchase
-	for _, tx := range p.txs {
-		if tx.From == p.Address {
+	for _, t := range p.transfers {
+		if t.From == p.Address {
 			p.issuanceModel = IssuanceEscrow
 			return
 		}
@@ -145,39 +133,29 @@ func (p *Property) resolveIssuanceModel() {
 
 func (p *Property) calculateBoughtRaw() {
 	boughtAmount := big.NewInt(0)
-	for _, tx := range p.txs {
-		v, ok := new(big.Int).SetString(tx.Value, 10)
-		if !ok {
-			fmt.Fprintf(os.Stderr, "parse value %q\n", tx.Value)
-			continue
-		}
-
-		if p.isInitialSale(tx.From) {
-			boughtAmount.Add(boughtAmount, v)
+	for _, t := range p.transfers {
+		if p.isInitialSale(t.From) {
+			boughtAmount.Add(boughtAmount, t.Value)
 		}
 	}
 
 	p.BoughtRaw = boughtAmount
 }
 
-func calculateIssuedSupply(txs []polygonscan.TokenTransfer) (*big.Int, error) {
+func calculateIssuedSupply(transfers []transfer) *big.Int {
 	supply, maxSupply := big.NewInt(0), big.NewInt(0)
-	for _, tx := range txs {
-		v, ok := new(big.Int).SetString(tx.Value, 10)
-		if !ok {
-			return nil, fmt.Errorf("parse value %q", tx.Value)
+	for _, t := range transfers {
+		if t.From == zeroAddr0x {
+			supply.Add(supply, t.Value)
 		}
-		if tx.From == zeroAddr0x {
-			supply.Add(supply, v)
-		}
-		if tx.To == zeroAddr0x {
-			supply.Sub(supply, v)
+		if t.To == zeroAddr0x {
+			supply.Sub(supply, t.Value)
 		}
 		if supply.Cmp(maxSupply) > 0 {
 			maxSupply.Set(supply)
 		}
 	}
-	return maxSupply, nil
+	return maxSupply
 }
 
 // isInitialSale reports whether from is an initial sale (not wallet-to-wallet).
@@ -203,16 +181,16 @@ func (p *Property) isP2PTransfer(from, to string) bool {
 
 func (p *Property) p2pTxCount() int {
 	count := 0
-	for _, tx := range p.txs {
-		if p.isP2PTransfer(tx.From, tx.To) {
+	for _, t := range p.transfers {
+		if p.isP2PTransfer(t.From, t.To) {
 			count++
 		}
 	}
 	return count
 }
 
-func (p *Property) extractDecimal() error {
-	decimalStr := strings.TrimSpace(p.txs[0].TokenDecimal)
+func (p *Property) extractDecimal(tx polygonscan.TokenTransfer) error {
+	decimalStr := strings.TrimSpace(tx.TokenDecimal)
 	if decimalStr == "" {
 		return errors.New("decimal missing")
 	}

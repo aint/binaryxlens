@@ -1,11 +1,9 @@
 package internal
 
 import (
-	"fmt"
 	"maps"
 	"math/big"
 	"slices"
-	"strconv"
 	"time"
 )
 
@@ -30,33 +28,26 @@ type ProjectHolder struct {
 	P2PBought        *big.Int
 }
 
-func (p *Property) buildHolders() error {
+func (p *Property) buildHolders() {
 	now := time.Now().UTC()
-	weekAgo := now.AddDate(0, 0, -7).Unix()
-	monthAgo := now.AddDate(0, 0, -30).Unix()
+	weekAgo := now.AddDate(0, 0, -7)
+	monthAgo := now.AddDate(0, 0, -30)
 
 	holderMap := make(map[string]*Holder)
-	for _, tx := range p.txs {
-		v, ok := new(big.Int).SetString(tx.Value, 10)
-		if !ok {
-			return fmt.Errorf("parse value %q", tx.Value)
-		}
-		ts, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
-		if err != nil {
-			return fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
-		}
-		inWeek := ts >= weekAgo
-		inMonth := ts >= monthAgo
+	for _, t := range p.transfers {
+		v := t.Value
+		inWeek := !t.Time.Before(weekAgo)
+		inMonth := !t.Time.Before(monthAgo)
 
-		if tx.From != zeroAddr0x {
-			updateHolder(holderMap, tx.From, new(big.Int).Neg(v), inWeek, inMonth)
+		if t.From != zeroAddr0x {
+			updateHolder(holderMap, t.From, new(big.Int).Neg(v), inWeek, inMonth)
 		}
-		if tx.To != zeroAddr0x {
-			updateHolder(holderMap, tx.To, v, inWeek, inMonth)
-			to := holderMap[tx.To]
-			if p.isInitialSale(tx.From) {
+		if t.To != zeroAddr0x {
+			updateHolder(holderMap, t.To, v, inWeek, inMonth)
+			to := holderMap[t.To]
+			if p.isInitialSale(t.From) {
 				to.InitialBought.Add(to.InitialBought, v)
-			} else if p.isP2PTransfer(tx.From, tx.To) {
+			} else if p.isP2PTransfer(t.From, t.To) {
 				to.P2PBought.Add(to.P2PBought, v)
 			}
 		}
@@ -77,8 +68,6 @@ func (p *Property) buildHolders() error {
 	}
 
 	p.Holders = holders
-
-	return nil
 }
 
 func updateHolder(m map[string]*Holder, addr string, v *big.Int, inWeek, inMonth bool) {

@@ -51,8 +51,8 @@ type TokenTransfer struct {
 	ContractAddress string `json:"contractAddress"`
 }
 
-// FetchAllTokenTx paginates tokentx until a page returns fewer than offset rows or maxPages reached (0 = unlimited).
-func (c *Client) FetchAllTokenTx(contract string, offset int, pause time.Duration) ([]TokenTransfer, error) {
+// FetchAllTokenTransfers paginates tokentx until a page returns fewer than offset rows or maxPages reached (0 = unlimited).
+func (c *Client) FetchAllTokenTransfers(contract string, offset int, pause time.Duration) ([]TokenTransfer, error) {
 	if offset <= 0 {
 		offset = 1000
 	}
@@ -60,7 +60,7 @@ func (c *Client) FetchAllTokenTx(contract string, offset int, pause time.Duratio
 	var all []TokenTransfer
 	page := 1
 	for {
-		batch, err := c.tokenTxPage(contract, page, offset, sort)
+		batch, err := c.tokenTransfersPage(contract, page, offset, sort)
 		if err != nil {
 			return all, err
 		}
@@ -79,7 +79,7 @@ func (c *Client) FetchAllTokenTx(contract string, offset int, pause time.Duratio
 	return all, nil
 }
 
-func (c *Client) tokenTxPage(contract string, page, offset int, sort string) ([]TokenTransfer, error) {
+func (c *Client) tokenTransfersPage(contract string, page, offset int, sort string) ([]TokenTransfer, error) {
 	q := url.Values{}
 	q.Set("module", "account")
 	q.Set("action", "tokentx")

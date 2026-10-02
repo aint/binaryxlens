@@ -1,9 +1,7 @@
 package internal
 
 import (
-	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 	"slices"
 )
@@ -21,15 +19,11 @@ type WeeklyPoint struct {
 	CumValue *big.Int
 }
 
-func (p *Property) buildInitialSaleDailySeries() error {
+func (p *Property) buildInitialSaleDailySeries() {
 	var start, end time.Time
 	timelineMap := make(map[time.Time]*big.Int)
-	for _, tx := range p.txs {
-		ts, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
-		if err != nil {
-			return fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
-		}
-		day := time.Unix(ts, 0).UTC().Truncate(24 * time.Hour)
+	for _, t := range p.transfers {
+		day := t.Time.Truncate(24 * time.Hour)
 		if start.IsZero() || day.Before(start) {
 			start = day
 		}
@@ -37,17 +31,12 @@ func (p *Property) buildInitialSaleDailySeries() error {
 			end = day
 		}
 
-		value, ok := new(big.Int).SetString(tx.Value, 10)
-		if !ok {
-			return fmt.Errorf("parse value %q: %w", tx.Value, err)
-		}
-
-		if p.isInitialSale(tx.From) {
+		if p.isInitialSale(t.From) {
 			cur := timelineMap[day]
 			if cur == nil {
 				cur = big.NewInt(0)
 			}
-			timelineMap[day] = new(big.Int).Add(cur, value)
+			timelineMap[day] = new(big.Int).Add(cur, t.Value)
 		}
 	}
 
@@ -70,37 +59,26 @@ func (p *Property) buildInitialSaleDailySeries() error {
 	}
 
 	p.InitialSaleDailyPoints = dailyPoints
-
-	return nil
 }
 
-func (p *Property) buildP2PSaleWeeklySeries() error {
+func (p *Property) buildP2PSaleWeeklySeries() {
 	timelineMap := make(map[time.Time]*big.Int)
-	for _, tx := range p.txs {
-		if !p.isP2PTransfer(tx.From, tx.To) {
+	for _, t := range p.transfers {
+		if !p.isP2PTransfer(t.From, t.To) {
 			continue
 		}
 
-		ts, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
-		if err != nil {
-			return fmt.Errorf("parse timestamp %q: %w", tx.TimeStamp, err)
-		}
-		week := startOfWeekUTC(time.Unix(ts, 0))
-
-		value, ok := new(big.Int).SetString(tx.Value, 10)
-		if !ok {
-			return fmt.Errorf("parse value %q", tx.Value)
-		}
+		week := startOfWeekUTC(t.Time)
 
 		cur := timelineMap[week]
 		if cur == nil {
 			cur = big.NewInt(0)
 		}
-		timelineMap[week] = new(big.Int).Add(cur, value)
+		timelineMap[week] = new(big.Int).Add(cur, t.Value)
 	}
 
 	if len(timelineMap) == 0 {
-		return nil
+		return
 	}
 
 	weeks := make([]time.Time, 0, len(timelineMap))
@@ -122,8 +100,6 @@ func (p *Property) buildP2PSaleWeeklySeries() error {
 	}
 
 	p.P2PSaleWeeklyPoints = series
-
-	return nil
 }
 
 func startOfWeekUTC(t time.Time) time.Time {
