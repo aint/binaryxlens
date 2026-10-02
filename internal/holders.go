@@ -12,10 +12,12 @@ import (
 const zeroAddr0x = "0x0000000000000000000000000000000000000000"
 
 type Holder struct {
-	Address    string
-	Balance    *big.Int
-	WeekDelta  *big.Int
-	MonthDelta *big.Int
+	Address       string
+	Balance       *big.Int
+	WeekDelta     *big.Int
+	MonthDelta    *big.Int
+	InitialBought *big.Int
+	P2PBought     *big.Int
 }
 
 type ProjectHolder struct {
@@ -24,6 +26,8 @@ type ProjectHolder struct {
 	TotalBalance     *big.Int
 	WeekDelta        *big.Int
 	MonthDelta       *big.Int
+	InitialBought    *big.Int
+	P2PBought        *big.Int
 }
 
 func (p *Property) buildHolders() error {
@@ -49,6 +53,12 @@ func (p *Property) buildHolders() error {
 		}
 		if tx.To != zeroAddr0x {
 			updateHolder(holderMap, tx.To, v, inWeek, inMonth)
+			to := holderMap[tx.To]
+			if p.isInitialSale(tx.From) {
+				to.InitialBought.Add(to.InitialBought, v)
+			} else if p.isP2PTransfer(tx.From, tx.To) {
+				to.P2PBought.Add(to.P2PBought, v)
+			}
 		}
 	}
 
@@ -75,10 +85,12 @@ func updateHolder(m map[string]*Holder, addr string, v *big.Int, inWeek, inMonth
 	h := m[addr]
 	if h == nil {
 		h = &Holder{
-			Address:    addr,
-			Balance:    big.NewInt(0),
-			WeekDelta:  big.NewInt(0),
-			MonthDelta: big.NewInt(0),
+			Address:       addr,
+			Balance:       big.NewInt(0),
+			WeekDelta:     big.NewInt(0),
+			MonthDelta:    big.NewInt(0),
+			InitialBought: big.NewInt(0),
+			P2PBought:     big.NewInt(0),
 		}
 		m[addr] = h
 	}
@@ -104,6 +116,8 @@ func (pr *Project) buildHolders() {
 					TotalBalance:     new(big.Int).Set(hol.Balance),
 					WeekDelta:        new(big.Int).Set(hol.WeekDelta),
 					MonthDelta:       new(big.Int).Set(hol.MonthDelta),
+					InitialBought:    new(big.Int).Set(hol.InitialBought),
+					P2PBought:        new(big.Int).Set(hol.P2PBought),
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -113,6 +127,8 @@ func (pr *Project) buildHolders() {
 			ph.TotalBalance.Add(ph.TotalBalance, hol.Balance)
 			ph.WeekDelta.Add(ph.WeekDelta, hol.WeekDelta)
 			ph.MonthDelta.Add(ph.MonthDelta, hol.MonthDelta)
+			ph.InitialBought.Add(ph.InitialBought, hol.InitialBought)
+			ph.P2PBought.Add(ph.P2PBought, hol.P2PBought)
 		}
 	}
 
@@ -141,6 +157,8 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			Balance:       FormatBigInt(h.TotalBalance, pr.Decimal),
 			WeekDelta:     formatDelta(h.WeekDelta, pr.Decimal),
 			MonthDelta:    formatDelta(h.MonthDelta, pr.Decimal),
+			InitialBought: FormatBigInt(h.InitialBought, pr.Decimal),
+			P2PBought:     FormatBigInt(h.P2PBought, pr.Decimal),
 			SupplyPct:     pct,
 			Tier:          holderTier(pct),
 		})

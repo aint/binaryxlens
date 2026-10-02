@@ -186,12 +186,14 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 		}
 		pct := PercentFloat(h.Balance, property.TotalSupplyRaw)
 		holders = append(holders, propertyHolderRow{
-			Address:    h.Address,
-			Balance:    FormatBigInt(h.Balance, property.Decimal),
-			WeekDelta:  formatDelta(h.WeekDelta, property.Decimal),
-			MonthDelta: formatDelta(h.MonthDelta, property.Decimal),
-			SupplyPct:  pct,
-			Tier:       holderTier(pct),
+			Address:       h.Address,
+			Balance:       FormatBigInt(h.Balance, property.Decimal),
+			WeekDelta:     formatDelta(h.WeekDelta, property.Decimal),
+			MonthDelta:    formatDelta(h.MonthDelta, property.Decimal),
+			InitialBought: FormatBigInt(h.InitialBought, property.Decimal),
+			P2PBought:     FormatBigInt(h.P2PBought, property.Decimal),
+			SupplyPct:     pct,
+			Tier:          holderTier(pct),
 		})
 		if len(holders) >= propertyTopHolders {
 			break
@@ -261,17 +263,21 @@ type projectHolderPayload struct {
 	Balance       string   `json:"balance"`
 	WeekDelta     string   `json:"weekDelta"`
 	MonthDelta    string   `json:"monthDelta"`
+	InitialBought string   `json:"initialBought"`
+	P2PBought     string   `json:"p2pBought"`
 	SupplyPct     float64  `json:"supplyPct"`
 	Tier          string   `json:"tier"`
 }
 
 type propertyHolderRow struct {
-	Address    string  `json:"address"`
-	Balance    string  `json:"balance"`
-	WeekDelta  string  `json:"weekDelta"`
-	MonthDelta string  `json:"monthDelta"`
-	SupplyPct  float64 `json:"supplyPct"`
-	Tier       string  `json:"tier"`
+	Address       string  `json:"address"`
+	Balance       string  `json:"balance"`
+	WeekDelta     string  `json:"weekDelta"`
+	MonthDelta    string  `json:"monthDelta"`
+	InitialBought string  `json:"initialBought"`
+	P2PBought     string  `json:"p2pBought"`
+	SupplyPct     float64 `json:"supplyPct"`
+	Tier          string  `json:"tier"`
 }
 
 type tierStatPayload struct {
