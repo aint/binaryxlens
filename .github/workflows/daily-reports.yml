@@ -27,13 +27,15 @@ jobs:
         run: go run .
 
       - name: Stamp index with job time
+        id: stamp
         run: |
           ts=$(date -u '+%Y-%m-%d %H:%M UTC')
-          sed -i -E 's|(<p id="reports-updated" class="updated">)[^<]*(</p>)|\1Reports updated '"${ts}"'\2|' index.html
-          grep -q "Reports updated ${ts}" index.html
+          echo "ts=${ts}" >> "$GITHUB_OUTPUT"
+          sed -i -E 's|(<time id="reports-updated">)[^<]*(</time>)|\1'"${ts}"'\2|' index.html
+          grep -q "<time id=\"reports-updated\">${ts}</time>" index.html
 
       - name: Commit reports
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "Refresh daily reports"
+          commit_message: Refresh daily reports (${{ steps.stamp.outputs.ts }})
           file_pattern: "reports/*.html index.html"
