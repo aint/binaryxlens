@@ -147,6 +147,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .slot .holders-wrap th, .slot .holders-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
 .slot .holders-wrap th { background: #eee; white-space: nowrap; }
 .slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
+.slot .holders-wrap td.pair .usdt { display: block; color: #666; font-size: 0.92em; }
 .slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
 .slot .holders-wrap td.tier { white-space: nowrap; }
 .slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 12px 0 6px; }
@@ -186,6 +187,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .holders-section th, .holders-section td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
 .holders-section th { background: #eee; white-space: nowrap; }
 .holders-section td.num { text-align: right; white-space: nowrap; }
+.holders-section td.pair .usdt { display: block; color: #666; font-size: 0.92em; }
 .holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
 .holders-section td.properties { min-width: 200px; max-width: 420px; }
 .holders-section td.tier { white-space: nowrap; }
@@ -224,11 +226,9 @@ td.trend.flat { color: #888; }
 						<th>#</th>
 						<th data-i18n="col.address">Address</th>
 						<th data-i18n="col.propertyNames">Property names</th>
-						<th data-i18n="col.balance">Tokens, total</th>
-						<th data-i18n="col.initialBought">Tokens, initial sale</th>
-						<th data-i18n="col.p2pBought">Tokens, P2P</th>
-						<th data-i18n="col.initSaleUSDT">USDT, initial sale</th>
-						<th data-i18n="col.p2pUSDT">USDT, P2P</th>
+						<th data-i18n="col.balance">Tokens / USDT, total</th>
+						<th data-i18n="col.initialBought">Tokens / USDT, initial sale</th>
+						<th data-i18n="col.p2pBought">Tokens / USDT, P2P</th>
 						<th data-i18n="col.week">Week</th>
 						<th data-i18n="col.month">Month</th>
 						<th data-i18n="col.supplyPct">% supply</th>
@@ -372,6 +372,21 @@ td.trend.flat { color: #888; }
 			(down ? "↓ " : "↑ ") + escapeHtml(delta) + "</td>";
 	}
 
+	function addUSDT(a, b) {
+		const scale = 1000000;
+		const sum = Math.round(((Number(a) || 0) + (Number(b) || 0)) * scale);
+		const sign = sum < 0 ? "-" : "";
+		const abs = Math.abs(sum);
+		const whole = Math.trunc(abs / scale);
+		const frac = String(abs % scale).padStart(6, "0").replace(/0+$/, "");
+		return sign + whole + (frac ? "." + frac : "");
+	}
+
+	function amountPair(tokens, usdt) {
+		return "<td class=\"num pair\"><span>" + escapeHtml(tokens) +
+			"</span><span class=\"usdt\">" + escapeHtml(usdt) + " USDT</span></td>";
+	}
+
 	function renderPropertyHoldersInto(container, property) {
 		const holders = property && Array.isArray(property.holders) ? property.holders : [];
 		const summary = "<summary>" + escapeHtml(t("holders.top", { n: propertyHoldersTop })) + "</summary>";
@@ -383,11 +398,9 @@ td.trend.flat { color: #888; }
 			return "<tr>" +
 				"<td class=\"num\">" + (i + 1) + "</td>" +
 				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.initialBought) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.p2pBought) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.initSaleUSDT) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.p2pUSDT) + "</td>" +
+				amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
+				amountPair(h.initialBought, h.initSaleUSDT) +
+				amountPair(h.p2pBought, h.p2pUSDT) +
 				trendCell(h.weekDelta) +
 				trendCell(h.monthDelta) +
 				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
@@ -397,7 +410,7 @@ td.trend.flat { color: #888; }
 		container.innerHTML =
 			summary +
 			"<div class=\"holders-scroll\"><table><thead><tr>" +
-			"<th>#</th>" + ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.initSaleUSDT", "col.p2pUSDT", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
+			"<th>#</th>" + ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
 				return "<th>" + escapeHtml(t(key)) + "</th>";
 			}).join("") +
 			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
@@ -620,11 +633,9 @@ td.trend.flat { color: #888; }
 					"<td class=\"num\">" + (i + 1) + "</td>" +
 					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
-					"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
-					"<td class=\"num\">" + escapeHtml(h.initialBought) + "</td>" +
-					"<td class=\"num\">" + escapeHtml(h.p2pBought) + "</td>" +
-					"<td class=\"num\">" + escapeHtml(h.initSaleUSDT) + "</td>" +
-					"<td class=\"num\">" + escapeHtml(h.p2pUSDT) + "</td>" +
+					amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
+					amountPair(h.initialBought, h.initSaleUSDT) +
+					amountPair(h.p2pBought, h.p2pUSDT) +
 					trendCell(h.weekDelta) +
 					trendCell(h.monthDelta) +
 					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
