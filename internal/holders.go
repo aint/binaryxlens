@@ -18,7 +18,8 @@ type Holder struct {
 	MonthDelta    *big.Int
 	InitialBought *big.Int
 	P2PBought     *big.Int
-	USDT          *big.Int // paid in initial sales
+	InitSaleUSDT  *big.Int // paid in initial sales
+	P2PUSDT       *big.Int // paid in P2P buys
 }
 
 type ProjectHolder struct {
@@ -29,7 +30,8 @@ type ProjectHolder struct {
 	MonthDelta       *big.Int
 	InitialBought    *big.Int
 	P2PBought        *big.Int
-	USDT             *big.Int
+	InitSaleUSDT     *big.Int
+	P2PUSDT          *big.Int
 }
 
 func (p *Property) buildHolders() {
@@ -52,10 +54,13 @@ func (p *Property) buildHolders() {
 			if p.isInitialSale(t.From) {
 				to.InitialBought.Add(to.InitialBought, v)
 				if t.USDT != nil {
-					to.USDT.Add(to.USDT, t.USDT)
+					to.InitSaleUSDT.Add(to.InitSaleUSDT, t.USDT)
 				}
 			} else if p.isP2PTransfer(t.From, t.To) {
 				to.P2PBought.Add(to.P2PBought, v)
+				if t.USDT != nil {
+					to.P2PUSDT.Add(to.P2PUSDT, t.USDT)
+				}
 			}
 		}
 	}
@@ -87,7 +92,8 @@ func updateHolder(m map[string]*Holder, addr string, v *big.Int, inWeek, inMonth
 			MonthDelta:    big.NewInt(0),
 			InitialBought: big.NewInt(0),
 			P2PBought:     big.NewInt(0),
-			USDT:          big.NewInt(0),
+			InitSaleUSDT:  big.NewInt(0),
+			P2PUSDT:       big.NewInt(0),
 		}
 		m[addr] = h
 	}
@@ -115,7 +121,8 @@ func (pr *Project) buildHolders() {
 					MonthDelta:       new(big.Int).Set(hol.MonthDelta),
 					InitialBought:    new(big.Int).Set(hol.InitialBought),
 					P2PBought:        new(big.Int).Set(hol.P2PBought),
-					USDT:             new(big.Int).Set(hol.USDT),
+					InitSaleUSDT:     new(big.Int).Set(hol.InitSaleUSDT),
+					P2PUSDT:          new(big.Int).Set(hol.P2PUSDT),
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -127,7 +134,8 @@ func (pr *Project) buildHolders() {
 			ph.MonthDelta.Add(ph.MonthDelta, hol.MonthDelta)
 			ph.InitialBought.Add(ph.InitialBought, hol.InitialBought)
 			ph.P2PBought.Add(ph.P2PBought, hol.P2PBought)
-			ph.USDT.Add(ph.USDT, hol.USDT)
+			ph.InitSaleUSDT.Add(ph.InitSaleUSDT, hol.InitSaleUSDT)
+			ph.P2PUSDT.Add(ph.P2PUSDT, hol.P2PUSDT)
 		}
 	}
 
@@ -158,7 +166,8 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			MonthDelta:    formatDelta(h.MonthDelta, pr.Decimal),
 			InitialBought: FormatBigInt(h.InitialBought, pr.Decimal),
 			P2PBought:     FormatBigInt(h.P2PBought, pr.Decimal),
-			Invested:      FormatBigInt(h.USDT, polygonscan.USDTDecimal),
+			InitSaleUSDT:  FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
+			P2PUSDT:       FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
 			SupplyPct:     pct,
 			Tier:          holderTier(pct),
 		})

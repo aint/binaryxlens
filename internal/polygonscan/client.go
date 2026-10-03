@@ -18,8 +18,8 @@ const (
 	apiBaseURL         = "https://api.etherscan.io/v2/api"
 	polygonChainID     = 137
 	minRequestInterval = 400 * time.Millisecond
-	// usdtAddress is the USDT0 token contract on Polygon.
-	usdtAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+	// USDTAddress is the USDT0 token contract on Polygon.
+	USDTAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
 	USDTDecimal = 6
 )
 
@@ -61,7 +61,7 @@ func (c *Client) FetchAllTokenTransfers(address string, offset int, pause time.D
 
 // FetchUSDTTransfers returns USDT transfers from or to address.
 func (c *Client) FetchUSDTTransfers(address string, offset int, pause time.Duration) ([]TokenTransfer, error) {
-	return c.fetchTokenTransfers(usdtAddress, address, offset, pause)
+	return c.fetchTokenTransfers(USDTAddress, address, offset, pause)
 }
 
 // fetchTokenTransfers paginates tokentx until a page returns fewer than offset rows or maxPages reached (0 = unlimited).

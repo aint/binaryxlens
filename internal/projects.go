@@ -194,7 +194,8 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 			MonthDelta:    formatDelta(h.MonthDelta, property.Decimal),
 			InitialBought: FormatBigInt(h.InitialBought, property.Decimal),
 			P2PBought:     FormatBigInt(h.P2PBought, property.Decimal),
-			Invested:      FormatBigInt(h.USDT, polygonscan.USDTDecimal),
+			InitSaleUSDT:  FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
+			P2PUSDT:       FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
 			SupplyPct:     pct,
 			Tier:          holderTier(pct),
 		})
@@ -268,7 +269,8 @@ type projectHolderPayload struct {
 	MonthDelta    string   `json:"monthDelta"`
 	InitialBought string   `json:"initialBought"`
 	P2PBought     string   `json:"p2pBought"`
-	Invested      string   `json:"invested"`
+	InitSaleUSDT  string   `json:"initSaleUSDT"`
+	P2PUSDT       string   `json:"p2pUSDT"`
 	SupplyPct     float64  `json:"supplyPct"`
 	Tier          string   `json:"tier"`
 }
@@ -280,7 +282,8 @@ type propertyHolderRow struct {
 	MonthDelta    string  `json:"monthDelta"`
 	InitialBought string  `json:"initialBought"`
 	P2PBought     string  `json:"p2pBought"`
-	Invested      string  `json:"invested"`
+	InitSaleUSDT  string  `json:"initSaleUSDT"`
+	P2PUSDT       string  `json:"p2pUSDT"`
 	SupplyPct     float64 `json:"supplyPct"`
 	Tier          string  `json:"tier"`
 }

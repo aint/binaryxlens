@@ -71,7 +71,9 @@ func (yq YearQuarter) ordinal() int {
 	return yq.Year*4 + yq.Quarter - 1
 }
 
-func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) error {
+// Init fetches the property's transfers and builds its stats. p2pTrades holds
+// P2P trades of all properties, keyed by token address.
+func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade) error {
 	p.Address = strings.ToLower(p.Address)
 
 	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
@@ -96,7 +98,7 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) err
 	if err != nil {
 		return fmt.Errorf("parse usdt transfers: %v", err)
 	}
-	p.attachUSDT(usdtTransfers)
+	p.attachUSDT(usdtTransfers, p2pTrades)
 
 	err = p.extractDecimal(tokenTransfers[0])
 	if err != nil {
@@ -152,28 +154,43 @@ func (p *Property) calculateBoughtRaw() {
 	p.BoughtRaw = boughtAmount
 }
 
-func (p *Property) attachUSDT(usdtTransfers []transfer) {
-	// purchase is one buyer's initial-sale purchase in one tx.
-	// It joins the two legs of that tx: USDT buyer→contract and tokens contract→buyer.
-	type purchase struct {
-		txHash string
-		buyer  string
-	}
+// purchase is one buyer's purchase in one tx.
+// It joins the two legs of that tx: USDT buyer→contract and tokens contract→buyer
+// for an initial sale, USDT buyer→seller and tokens seller→buyer for P2P.
+type purchase struct {
+	txHash string
+	buyer  string
+}
 
-	paid := make(map[purchase]*big.Int)
-	for _, t := range usdtTransfers {
-		if t.To != p.Address {
-			continue
-		}
-		k := purchase{txHash: t.Hash, buyer: t.From}
+func (p *Property) attachUSDT(initTransfers []transfer, p2pTrades []P2PTrade) {
+	addPaid := func(paid map[purchase]*big.Int, hash, buyer string, amount *big.Int) {
+		k := purchase{txHash: hash, buyer: buyer}
 		if paid[k] == nil {
 			paid[k] = new(big.Int)
 		}
-		paid[k].Add(paid[k], t.Value)
+		paid[k].Add(paid[k], amount)
 	}
 
+	paid := make(map[purchase]*big.Int)
+	for _, t := range p2pTrades {
+		addPaid(paid, t.Hash, t.Buyer, t.USDT)
+	}
+	p.setPaidUSDT(paid, func(t transfer) bool { return p.isP2PTransfer(t.From, t.To) })
+
+	paid = make(map[purchase]*big.Int)
+	for _, t := range initTransfers {
+		if t.To != p.Address {
+			continue
+		}
+		addPaid(paid, t.Hash, t.From, t.Value)
+	}
+	p.setPaidUSDT(paid, func(t transfer) bool { return p.isInitialSale(t.From) })
+}
+
+// setPaidUSDT sets USDT on each transfer that isPurchase accepts and paid has a payment for.
+func (p *Property) setPaidUSDT(paid map[purchase]*big.Int, isPurchase func(transfer) bool) {
 	for i, t := range p.transfers {
-		if !p.isInitialSale(t.From) {
+		if !isPurchase(t) {
 			continue
 		}
 		k := purchase{txHash: t.Hash, buyer: t.To}
@@ -371,7 +388,6 @@ var AllProperties = map[string][]*Property{
 			Type:                PropertyTypeRental,
 			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 3},
 			RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 3}, // first rent 17.08.2024 - 16.09.2024
-
 		},
 	},
 	"Kammara Loft": {
