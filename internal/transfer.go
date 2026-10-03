@@ -15,6 +15,7 @@ type transfer struct {
 	To    string
 	Value *big.Int
 	Time  time.Time
+	USDT  *big.Int // paid for this initial-sale transfer; nil if none
 }
 
 func newTransfers(tokenTransfers []polygonscan.TokenTransfer) ([]transfer, error) {

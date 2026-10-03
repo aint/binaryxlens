@@ -18,6 +18,9 @@ const (
 	apiBaseURL         = "https://api.etherscan.io/v2/api"
 	polygonChainID     = 137
 	minRequestInterval = 400 * time.Millisecond
+	// usdtAddress is the USDT0 token contract on Polygon.
+	usdtAddress = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+	USDTDecimal = 6
 )
 
 type Client struct {
@@ -51,8 +54,19 @@ type TokenTransfer struct {
 	ContractAddress string `json:"contractAddress"`
 }
 
-// FetchAllTokenTransfers paginates tokentx until a page returns fewer than offset rows or maxPages reached (0 = unlimited).
-func (c *Client) FetchAllTokenTransfers(contract string, offset int, pause time.Duration) ([]TokenTransfer, error) {
+// FetchAllTokenTransfers returns every transfer of the token's address.
+func (c *Client) FetchAllTokenTransfers(address string, offset int, pause time.Duration) ([]TokenTransfer, error) {
+	return c.fetchTokenTransfers(address, "", offset, pause)
+}
+
+// FetchUSDTTransfers returns USDT transfers from or to address.
+func (c *Client) FetchUSDTTransfers(address string, offset int, pause time.Duration) ([]TokenTransfer, error) {
+	return c.fetchTokenTransfers(usdtAddress, address, offset, pause)
+}
+
+// fetchTokenTransfers paginates tokentx until a page returns fewer than offset rows or maxPages reached (0 = unlimited).
+// A non-empty address limits rows to transfers from or to that address.
+func (c *Client) fetchTokenTransfers(contract, address string, offset int, pause time.Duration) ([]TokenTransfer, error) {
 	if offset <= 0 {
 		offset = 1000
 	}
@@ -60,7 +74,7 @@ func (c *Client) FetchAllTokenTransfers(contract string, offset int, pause time.
 	var all []TokenTransfer
 	page := 1
 	for {
-		batch, err := c.tokenTransfersPage(contract, page, offset, sort)
+		batch, err := c.tokenTransfersPage(contract, address, page, offset, sort)
 		if err != nil {
 			return all, err
 		}
@@ -79,11 +93,14 @@ func (c *Client) FetchAllTokenTransfers(contract string, offset int, pause time.
 	return all, nil
 }
 
-func (c *Client) tokenTransfersPage(contract string, page, offset int, sort string) ([]TokenTransfer, error) {
+func (c *Client) tokenTransfersPage(contract, address string, page, offset int, sort string) ([]TokenTransfer, error) {
 	q := url.Values{}
 	q.Set("module", "account")
 	q.Set("action", "tokentx")
 	q.Set("contractaddress", contract)
+	if address != "" {
+		q.Set("address", address)
+	}
 	q.Set("page", strconv.Itoa(page))
 	q.Set("offset", strconv.Itoa(offset))
 	q.Set("sort", sort)

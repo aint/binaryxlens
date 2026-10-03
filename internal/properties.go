@@ -88,6 +88,16 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration) err
 	}
 	p.resolveIssuanceModel()
 
+	usdtTokenTransfers, err := client.FetchUSDTTransfers(p.Address, 1000, scanPause)
+	if err != nil {
+		return fmt.Errorf("fetch usdt transfers: %v", err)
+	}
+	usdtTransfers, err := newTransfers(usdtTokenTransfers)
+	if err != nil {
+		return fmt.Errorf("parse usdt transfers: %v", err)
+	}
+	p.attachUSDT(usdtTransfers)
+
 	err = p.extractDecimal(tokenTransfers[0])
 	if err != nil {
 		return fmt.Errorf("extract decimal: %v", err)
@@ -140,6 +150,39 @@ func (p *Property) calculateBoughtRaw() {
 	}
 
 	p.BoughtRaw = boughtAmount
+}
+
+func (p *Property) attachUSDT(usdtTransfers []transfer) {
+	// purchase is one buyer's initial-sale purchase in one tx.
+	// It joins the two legs of that tx: USDT buyer→contract and tokens contract→buyer.
+	type purchase struct {
+		txHash string
+		buyer  string
+	}
+
+	paid := make(map[purchase]*big.Int)
+	for _, t := range usdtTransfers {
+		if t.To != p.Address {
+			continue
+		}
+		k := purchase{txHash: t.Hash, buyer: t.From}
+		if paid[k] == nil {
+			paid[k] = new(big.Int)
+		}
+		paid[k].Add(paid[k], t.Value)
+	}
+
+	for i, t := range p.transfers {
+		if !p.isInitialSale(t.From) {
+			continue
+		}
+		k := purchase{txHash: t.Hash, buyer: t.To}
+		if v := paid[k]; v != nil {
+			p.transfers[i].USDT = v
+			// one payment may cover several sale transfers in the same tx
+			delete(paid, k)
+		}
+	}
 }
 
 func calculateIssuedSupply(transfers []transfer) *big.Int {
@@ -242,7 +285,7 @@ var AllProperties = map[string][]*Property{
 	},
 	"Aurora Villas (Bali Balance Ocean Villas)": {
 		{
-			Name:                "Villa Aurora I (Bali Balance Ocean Villa 3)",
+			Name:                "Villa Aurora 1 (Bali Balance Ocean Villa 3)",
 			Address:             "0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b",
 			Type:                PropertyTypeRental,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
@@ -333,7 +376,7 @@ var AllProperties = map[string][]*Property{
 	},
 	"Kammara Loft": {
 		{
-			Name:                "Kammara Loft 1",
+			Name:                "Kammara Loft",
 			Address:             "0xB1B987FF1F317A47876185dE4dE9C430823Ad8c5",
 			Type:                PropertyTypeRental,
 			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 4},
@@ -441,7 +484,7 @@ var AllProperties = map[string][]*Property{
 			RentalStartExpected: YearQuarter{Year: 2026, Quarter: 3},
 		},
 	},
-	"Taryan Dragon Jungle Views": {
+	"Taryan Dragon Jungle View": {
 		{
 			Name:                "Taryan Dragon Jungle View",
 			Address:             "0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5",

@@ -225,8 +225,9 @@ td.trend.flat { color: #888; }
 						<th data-i18n="col.address">Address</th>
 						<th data-i18n="col.propertyNames">Property names</th>
 						<th data-i18n="col.balance">Tokens, total</th>
-						<th data-i18n="col.p2pBought">Tokens, P2P</th>
 						<th data-i18n="col.initialBought">Tokens, initial sale</th>
+						<th data-i18n="col.p2pBought">Tokens, P2P</th>
+						<th data-i18n="col.invested">Invested in initial sale, USDT</th>
 						<th data-i18n="col.week">Week</th>
 						<th data-i18n="col.month">Month</th>
 						<th data-i18n="col.supplyPct">% supply</th>
@@ -382,8 +383,9 @@ td.trend.flat { color: #888; }
 				"<td class=\"num\">" + (i + 1) + "</td>" +
 				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 				"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
-				"<td class=\"num\">" + escapeHtml(h.p2pBought) + "</td>" +
 				"<td class=\"num\">" + escapeHtml(h.initialBought) + "</td>" +
+				"<td class=\"num\">" + escapeHtml(h.p2pBought) + "</td>" +
+				"<td class=\"num\">" + escapeHtml(h.invested) + "</td>" +
 				trendCell(h.weekDelta) +
 				trendCell(h.monthDelta) +
 				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
@@ -393,7 +395,7 @@ td.trend.flat { color: #888; }
 		container.innerHTML =
 			summary +
 			"<div class=\"holders-scroll\"><table><thead><tr>" +
-			"<th>#</th>" + ["col.address", "col.balance", "col.p2pBought", "col.initialBought", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
+			"<th>#</th>" + ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.invested", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
 				return "<th>" + escapeHtml(t(key)) + "</th>";
 			}).join("") +
 			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
@@ -617,8 +619,9 @@ td.trend.flat { color: #888; }
 					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
 					"<td class=\"num\">" + escapeHtml(h.balance) + "</td>" +
-					"<td class=\"num\">" + escapeHtml(h.p2pBought) + "</td>" +
 					"<td class=\"num\">" + escapeHtml(h.initialBought) + "</td>" +
+					"<td class=\"num\">" + escapeHtml(h.p2pBought) + "</td>" +
+					"<td class=\"num\">" + escapeHtml(h.invested) + "</td>" +
 					trendCell(h.weekDelta) +
 					trendCell(h.monthDelta) +
 					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +

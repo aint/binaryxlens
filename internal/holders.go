@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"slices"
 	"time"
+
+	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
 const zeroAddr0x = "0x0000000000000000000000000000000000000000"
@@ -16,6 +18,7 @@ type Holder struct {
 	MonthDelta    *big.Int
 	InitialBought *big.Int
 	P2PBought     *big.Int
+	USDT          *big.Int // paid in initial sales
 }
 
 type ProjectHolder struct {
@@ -26,6 +29,7 @@ type ProjectHolder struct {
 	MonthDelta       *big.Int
 	InitialBought    *big.Int
 	P2PBought        *big.Int
+	USDT             *big.Int
 }
 
 func (p *Property) buildHolders() {
@@ -47,6 +51,9 @@ func (p *Property) buildHolders() {
 			to := holderMap[t.To]
 			if p.isInitialSale(t.From) {
 				to.InitialBought.Add(to.InitialBought, v)
+				if t.USDT != nil {
+					to.USDT.Add(to.USDT, t.USDT)
+				}
 			} else if p.isP2PTransfer(t.From, t.To) {
 				to.P2PBought.Add(to.P2PBought, v)
 			}
@@ -80,6 +87,7 @@ func updateHolder(m map[string]*Holder, addr string, v *big.Int, inWeek, inMonth
 			MonthDelta:    big.NewInt(0),
 			InitialBought: big.NewInt(0),
 			P2PBought:     big.NewInt(0),
+			USDT:          big.NewInt(0),
 		}
 		m[addr] = h
 	}
@@ -107,6 +115,7 @@ func (pr *Project) buildHolders() {
 					MonthDelta:       new(big.Int).Set(hol.MonthDelta),
 					InitialBought:    new(big.Int).Set(hol.InitialBought),
 					P2PBought:        new(big.Int).Set(hol.P2PBought),
+					USDT:             new(big.Int).Set(hol.USDT),
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -118,6 +127,7 @@ func (pr *Project) buildHolders() {
 			ph.MonthDelta.Add(ph.MonthDelta, hol.MonthDelta)
 			ph.InitialBought.Add(ph.InitialBought, hol.InitialBought)
 			ph.P2PBought.Add(ph.P2PBought, hol.P2PBought)
+			ph.USDT.Add(ph.USDT, hol.USDT)
 		}
 	}
 
@@ -148,6 +158,7 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			MonthDelta:    formatDelta(h.MonthDelta, pr.Decimal),
 			InitialBought: FormatBigInt(h.InitialBought, pr.Decimal),
 			P2PBought:     FormatBigInt(h.P2PBought, pr.Decimal),
+			Invested:      FormatBigInt(h.USDT, polygonscan.USDTDecimal),
 			SupplyPct:     pct,
 			Tier:          holderTier(pct),
 		})
