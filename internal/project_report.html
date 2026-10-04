@@ -363,13 +363,21 @@ td.trend.flat { color: #888; }
 			"</tbody></table>";
 	}
 
-	function trendCell(delta) {
-		if (!delta || delta === "0") {
+	function trendCell(delta, usdt) {
+		const tokenFlat = !delta || delta === "0";
+		const paid = usdt || "0";
+		if (tokenFlat && paid === "0") {
 			return "<td class=\"num trend flat\">—</td>";
 		}
-		const down = delta.charAt(0) === "-";
-		return "<td class=\"num trend " + (down ? "down" : "up") + "\">" +
-			(down ? "↓ " : "↑ ") + escapeHtml(delta) + "</td>";
+		let cls = "flat";
+		let tokenHtml = "—";
+		if (!tokenFlat) {
+			const down = delta.charAt(0) === "-";
+			cls = down ? "down" : "up";
+			tokenHtml = (down ? "↓ " : "↑ ") + escapeHtml(delta);
+		}
+		return "<td class=\"num trend pair " + cls + "\">" + tokenHtml +
+			"<span class=\"usdt\">" + escapeHtml(paid) + " USDT</span></td>";
 	}
 
 	function addUSDT(a, b) {
@@ -401,8 +409,8 @@ td.trend.flat { color: #888; }
 				amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
 				amountPair(h.initialBought, h.initSaleUSDT) +
 				amountPair(h.p2pBought, h.p2pUSDT) +
-				trendCell(h.weekDelta) +
-				trendCell(h.monthDelta) +
+				trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+				trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
 				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
 				"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
 				"</tr>";
@@ -636,8 +644,8 @@ td.trend.flat { color: #888; }
 					amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
 					amountPair(h.initialBought, h.initSaleUSDT) +
 					amountPair(h.p2pBought, h.p2pUSDT) +
-					trendCell(h.weekDelta) +
-					trendCell(h.monthDelta) +
+					trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+					trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
 					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
 					"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
 					"</tr>";

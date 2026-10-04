@@ -60,8 +60,8 @@
 			"col.balance": "Tokens / USDT, total",
 			"col.p2pBought": "Tokens / USDT, P2P",
 			"col.initialBought": "Tokens / USDT, initial sale",
-			"col.week": "Week",
-			"col.month": "Month",
+			"col.week": "Week Δ",
+			"col.month": "Month Δ",
 			"col.supplyPct": "% supply",
 			"col.tier": "Tier",
 
@@ -139,8 +139,8 @@
 			"col.balance": "Токени / USDT, всього",
 			"col.p2pBought": "Токени / USDT, P2P",
 			"col.initialBought": "Токени / USDT, первинний продаж",
-			"col.week": "Тиждень",
-			"col.month": "Місяць",
+			"col.week": "Тиждень Δ",
+			"col.month": "Місяць Δ",
 			"col.supplyPct": "% емісії",
 			"col.tier": "Рівень",
 

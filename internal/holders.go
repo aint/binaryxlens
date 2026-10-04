@@ -12,22 +12,26 @@ import (
 const zeroAddr0x = "0x0000000000000000000000000000000000000000"
 
 type Holder struct {
-	Address       string
-	Balance       *big.Int
-	WeekDelta     *big.Int
-	MonthDelta    *big.Int
-	InitialBought *big.Int
-	P2PBought     *big.Int
-	InitSaleUSDT  *big.Int // paid in initial sales
-	P2PUSDT       *big.Int // paid in P2P buys
+	Address          string
+	Balance          *big.Int
+	WeekDeltaTokens  *big.Int
+	MonthDeltaTokens *big.Int
+	WeekDeltaUSDT    *big.Int
+	MonthDeltaUSDT   *big.Int
+	InitialBought    *big.Int
+	P2PBought        *big.Int
+	InitSaleUSDT     *big.Int
+	P2PUSDT          *big.Int
 }
 
 type ProjectHolder struct {
 	Address          string
 	PropertyBalances map[string]*big.Int
 	TotalBalance     *big.Int
-	WeekDelta        *big.Int
-	MonthDelta       *big.Int
+	WeekDeltaTokens  *big.Int
+	MonthDeltaTokens *big.Int
+	WeekDeltaUSDT    *big.Int
+	MonthDeltaUSDT   *big.Int
 	InitialBought    *big.Int
 	P2PBought        *big.Int
 	InitSaleUSDT     *big.Int
@@ -46,10 +50,14 @@ func (p *Property) buildHolders() {
 		inMonth := !t.Time.Before(monthAgo)
 
 		if t.From != zeroAddr0x {
-			updateHolder(holderMap, t.From, new(big.Int).Neg(v), inWeek, inMonth)
+			var paid *big.Int
+			if p.isP2PTransfer(t.From, t.To) {
+				paid = negBigInt(t.USDT)
+			}
+			updateHolder(holderMap, t.From, new(big.Int).Neg(v), paid, inWeek, inMonth)
 		}
 		if t.To != zeroAddr0x {
-			updateHolder(holderMap, t.To, v, inWeek, inMonth)
+			updateHolder(holderMap, t.To, v, t.USDT, inWeek, inMonth)
 			to := holderMap[t.To]
 			if p.isInitialSale(t.From) {
 				to.InitialBought.Add(to.InitialBought, v)
@@ -82,27 +90,35 @@ func (p *Property) buildHolders() {
 	p.Holders = holders
 }
 
-func updateHolder(m map[string]*Holder, addr string, v *big.Int, inWeek, inMonth bool) {
+func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, inWeek, inMonth bool) {
 	h := m[addr]
 	if h == nil {
 		h = &Holder{
-			Address:       addr,
-			Balance:       big.NewInt(0),
-			WeekDelta:     big.NewInt(0),
-			MonthDelta:    big.NewInt(0),
-			InitialBought: big.NewInt(0),
-			P2PBought:     big.NewInt(0),
-			InitSaleUSDT:  big.NewInt(0),
-			P2PUSDT:       big.NewInt(0),
+			Address:          addr,
+			Balance:          big.NewInt(0),
+			WeekDeltaTokens:  big.NewInt(0),
+			MonthDeltaTokens: big.NewInt(0),
+			WeekDeltaUSDT:    big.NewInt(0),
+			MonthDeltaUSDT:   big.NewInt(0),
+			InitialBought:    big.NewInt(0),
+			P2PBought:        big.NewInt(0),
+			InitSaleUSDT:     big.NewInt(0),
+			P2PUSDT:          big.NewInt(0),
 		}
 		m[addr] = h
 	}
-	h.Balance.Add(h.Balance, v)
+	h.Balance.Add(h.Balance, tokens)
 	if inWeek {
-		h.WeekDelta.Add(h.WeekDelta, v)
+		h.WeekDeltaTokens.Add(h.WeekDeltaTokens, tokens)
+		if usdt != nil {
+			h.WeekDeltaUSDT.Add(h.WeekDeltaUSDT, usdt)
+		}
 	}
 	if inMonth {
-		h.MonthDelta.Add(h.MonthDelta, v)
+		h.MonthDeltaTokens.Add(h.MonthDeltaTokens, tokens)
+		if usdt != nil {
+			h.MonthDeltaUSDT.Add(h.MonthDeltaUSDT, usdt)
+		}
 	}
 }
 
@@ -117,8 +133,10 @@ func (pr *Project) buildHolders() {
 					Address:          hol.Address,
 					PropertyBalances: map[string]*big.Int{property.Name: new(big.Int).Set(hol.Balance)},
 					TotalBalance:     new(big.Int).Set(hol.Balance),
-					WeekDelta:        new(big.Int).Set(hol.WeekDelta),
-					MonthDelta:       new(big.Int).Set(hol.MonthDelta),
+					WeekDeltaTokens:  new(big.Int).Set(hol.WeekDeltaTokens),
+					MonthDeltaTokens: new(big.Int).Set(hol.MonthDeltaTokens),
+					WeekDeltaUSDT:    new(big.Int).Set(hol.WeekDeltaUSDT),
+					MonthDeltaUSDT:   new(big.Int).Set(hol.MonthDeltaUSDT),
 					InitialBought:    new(big.Int).Set(hol.InitialBought),
 					P2PBought:        new(big.Int).Set(hol.P2PBought),
 					InitSaleUSDT:     new(big.Int).Set(hol.InitSaleUSDT),
@@ -130,8 +148,10 @@ func (pr *Project) buildHolders() {
 
 			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.Balance)
 			ph.TotalBalance.Add(ph.TotalBalance, hol.Balance)
-			ph.WeekDelta.Add(ph.WeekDelta, hol.WeekDelta)
-			ph.MonthDelta.Add(ph.MonthDelta, hol.MonthDelta)
+			ph.WeekDeltaTokens.Add(ph.WeekDeltaTokens, hol.WeekDeltaTokens)
+			ph.MonthDeltaTokens.Add(ph.MonthDeltaTokens, hol.MonthDeltaTokens)
+			ph.WeekDeltaUSDT.Add(ph.WeekDeltaUSDT, hol.WeekDeltaUSDT)
+			ph.MonthDeltaUSDT.Add(ph.MonthDeltaUSDT, hol.MonthDeltaUSDT)
 			ph.InitialBought.Add(ph.InitialBought, hol.InitialBought)
 			ph.P2PBought.Add(ph.P2PBought, hol.P2PBought)
 			ph.InitSaleUSDT.Add(ph.InitSaleUSDT, hol.InitSaleUSDT)
@@ -159,17 +179,19 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 		}
 		pct := PercentFloat(h.TotalBalance, pr.TotalSupplyRaw)
 		holders = append(holders, projectHolderPayload{
-			Address:       h.Address,
-			PropertyNames: slices.Sorted(maps.Keys(h.PropertyBalances)),
-			Balance:       FormatBigInt(h.TotalBalance, pr.Decimal),
-			WeekDelta:     formatDelta(h.WeekDelta, pr.Decimal),
-			MonthDelta:    formatDelta(h.MonthDelta, pr.Decimal),
-			InitialBought: FormatBigInt(h.InitialBought, pr.Decimal),
-			P2PBought:     FormatBigInt(h.P2PBought, pr.Decimal),
-			InitSaleUSDT:  FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
-			P2PUSDT:       FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
-			SupplyPct:     pct,
-			Tier:          holderTier(pct),
+			Address:          h.Address,
+			PropertyNames:    slices.Sorted(maps.Keys(h.PropertyBalances)),
+			Balance:          FormatBigInt(h.TotalBalance, pr.Decimal),
+			WeekDeltaTokens:  formatDelta(h.WeekDeltaTokens, pr.Decimal),
+			MonthDeltaTokens: formatDelta(h.MonthDeltaTokens, pr.Decimal),
+			WeekDeltaUSDT:    formatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
+			MonthDeltaUSDT:   formatDelta(h.MonthDeltaUSDT, polygonscan.USDTDecimal),
+			InitialBought:    FormatBigInt(h.InitialBought, pr.Decimal),
+			P2PBought:        FormatBigInt(h.P2PBought, pr.Decimal),
+			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
+			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
+			SupplyPct:        pct,
+			Tier:             holderTier(pct),
 		})
 		pcts = append(pcts, pct)
 	}

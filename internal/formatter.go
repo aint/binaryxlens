@@ -75,3 +75,10 @@ func FormatBigRat(rawAmount *big.Rat, decimals uint8, prec int) string {
 	human := new(big.Rat).Quo(rawAmount, new(big.Rat).SetInt(scale))
 	return human.FloatString(prec)
 }
+
+func negBigInt(v *big.Int) *big.Int {
+	if v == nil || v.Sign() == 0 {
+		return nil
+	}
+	return new(big.Int).Neg(v)
+}

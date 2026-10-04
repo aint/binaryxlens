@@ -188,16 +188,18 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 		}
 		pct := PercentFloat(h.Balance, property.TotalSupplyRaw)
 		holders = append(holders, propertyHolderRow{
-			Address:       h.Address,
-			Balance:       FormatBigInt(h.Balance, property.Decimal),
-			WeekDelta:     formatDelta(h.WeekDelta, property.Decimal),
-			MonthDelta:    formatDelta(h.MonthDelta, property.Decimal),
-			InitialBought: FormatBigInt(h.InitialBought, property.Decimal),
-			P2PBought:     FormatBigInt(h.P2PBought, property.Decimal),
-			InitSaleUSDT:  FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
-			P2PUSDT:       FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
-			SupplyPct:     pct,
-			Tier:          holderTier(pct),
+			Address:          h.Address,
+			Balance:          FormatBigInt(h.Balance, property.Decimal),
+			WeekDeltaTokens:  formatDelta(h.WeekDeltaTokens, property.Decimal),
+			MonthDeltaTokens: formatDelta(h.MonthDeltaTokens, property.Decimal),
+			WeekDeltaUSDT:    formatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
+			MonthDeltaUSDT:   formatDelta(h.MonthDeltaUSDT, polygonscan.USDTDecimal),
+			InitialBought:    FormatBigInt(h.InitialBought, property.Decimal),
+			P2PBought:        FormatBigInt(h.P2PBought, property.Decimal),
+			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
+			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
+			SupplyPct:        pct,
+			Tier:             holderTier(pct),
 		})
 		if len(holders) >= propertyTopHolders {
 			break
@@ -262,30 +264,34 @@ type propertyETA struct {
 }
 
 type projectHolderPayload struct {
-	Address       string   `json:"address"`
-	PropertyNames []string `json:"propertyNames"`
-	Balance       string   `json:"balance"`
-	WeekDelta     string   `json:"weekDelta"`
-	MonthDelta    string   `json:"monthDelta"`
-	InitialBought string   `json:"initialBought"`
-	P2PBought     string   `json:"p2pBought"`
-	InitSaleUSDT  string   `json:"initSaleUSDT"`
-	P2PUSDT       string   `json:"p2pUSDT"`
-	SupplyPct     float64  `json:"supplyPct"`
-	Tier          string   `json:"tier"`
+	Address          string   `json:"address"`
+	PropertyNames    []string `json:"propertyNames"`
+	Balance          string   `json:"balance"`
+	WeekDeltaTokens  string   `json:"weekDeltaTokens"`
+	MonthDeltaTokens string   `json:"monthDeltaTokens"`
+	WeekDeltaUSDT    string   `json:"weekDeltaUSDT"`
+	MonthDeltaUSDT   string   `json:"monthDeltaUSDT"`
+	InitialBought    string   `json:"initialBought"`
+	P2PBought        string   `json:"p2pBought"`
+	InitSaleUSDT     string   `json:"initSaleUSDT"`
+	P2PUSDT          string   `json:"p2pUSDT"`
+	SupplyPct        float64  `json:"supplyPct"`
+	Tier             string   `json:"tier"`
 }
 
 type propertyHolderRow struct {
-	Address       string  `json:"address"`
-	Balance       string  `json:"balance"`
-	WeekDelta     string  `json:"weekDelta"`
-	MonthDelta    string  `json:"monthDelta"`
-	InitialBought string  `json:"initialBought"`
-	P2PBought     string  `json:"p2pBought"`
-	InitSaleUSDT  string  `json:"initSaleUSDT"`
-	P2PUSDT       string  `json:"p2pUSDT"`
-	SupplyPct     float64 `json:"supplyPct"`
-	Tier          string  `json:"tier"`
+	Address          string  `json:"address"`
+	Balance          string  `json:"balance"`
+	WeekDeltaTokens  string  `json:"weekDeltaTokens"`
+	MonthDeltaTokens string  `json:"monthDeltaTokens"`
+	WeekDeltaUSDT    string  `json:"weekDeltaUSDT"`
+	MonthDeltaUSDT   string  `json:"monthDeltaUSDT"`
+	InitialBought    string  `json:"initialBought"`
+	P2PBought        string  `json:"p2pBought"`
+	InitSaleUSDT     string  `json:"initSaleUSDT"`
+	P2PUSDT          string  `json:"p2pUSDT"`
+	SupplyPct        float64 `json:"supplyPct"`
+	Tier             string  `json:"tier"`
 }
 
 type tierStatPayload struct {
