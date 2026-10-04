@@ -395,6 +395,15 @@ td.trend.flat { color: #888; }
 			"</span><span class=\"usdt\">" + escapeHtml(usdt) + " USDT</span></td>";
 	}
 
+	function amountPairOrDash(tokens, usdt) {
+		const tokenFlat = !tokens || tokens === "0";
+		const paid = usdt || "0";
+		if (tokenFlat && paid === "0") {
+			return "<td class=\"num trend flat\">—</td>";
+		}
+		return amountPair(tokens, usdt);
+	}
+
 	function renderPropertyHoldersInto(container, property) {
 		const holders = property && Array.isArray(property.holders) ? property.holders : [];
 		const summary = "<summary>" + escapeHtml(t("holders.top", { n: propertyHoldersTop })) + "</summary>";
@@ -407,8 +416,8 @@ td.trend.flat { color: #888; }
 				"<td class=\"num\">" + (i + 1) + "</td>" +
 				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 				amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
-				amountPair(h.initialBought, h.initSaleUSDT) +
-				amountPair(h.p2pBought, h.p2pUSDT) +
+				amountPairOrDash(h.initialBought, h.initSaleUSDT) +
+				amountPairOrDash(h.p2pBought, h.p2pUSDT) +
 				trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
 				trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
 				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
@@ -642,8 +651,8 @@ td.trend.flat { color: #888; }
 					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
 					amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
-					amountPair(h.initialBought, h.initSaleUSDT) +
-					amountPair(h.p2pBought, h.p2pUSDT) +
+					amountPairOrDash(h.initialBought, h.initSaleUSDT) +
+					amountPairOrDash(h.p2pBought, h.p2pUSDT) +
 					trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
 					trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
 					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
