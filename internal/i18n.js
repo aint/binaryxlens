@@ -4,6 +4,7 @@
 			"lang.label": "Language",
 			"index.lede": "Blockchain data analysis for tokenized properties on",
 			"index.reportsUpdated": "Reports updated",
+			"index.reportProblem": "Report a problem",
 
 			"report.title": "Project report",
 			"report.invalidJson": "Invalid JSON in #project-data.",
@@ -86,6 +87,7 @@
 			"lang.label": "Мова",
 			"index.lede": "Аналіз блокчейн-даних токенізованої нерухомості на",
 			"index.reportsUpdated": "Звіти оновлено",
+			"index.reportProblem": "Повідомити про проблему",
 
 			"report.title": "Звіт по проєкту",
 			"report.invalidJson": "Некоректний JSON у #project-data.",
