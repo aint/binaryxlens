@@ -52,6 +52,9 @@
 
 			"holders.title": "Holders",
 			"holders.top": "Top {n} holders",
+			"holders.all": "all",
+			"holders.allTitle": "All holders",
+			"holders.limit": "Number of holders",
 			"holders.none": "No holders.",
 			"holders.global": "Top global holders",
 			"holders.showing": "Showing {shown} of {total} holders (by total balance).",
@@ -131,6 +134,9 @@
 
 			"holders.title": "Власники",
 			"holders.top": "Топ-{n} власників",
+			"holders.all": "усі",
+			"holders.allTitle": "Усі власники",
+			"holders.limit": "Кількість власників",
 			"holders.none": "Немає власників.",
 			"holders.global": "Топ власників проєкту",
 			"holders.showing": "Показано {shown} з {total} власників (за загальним балансом).",

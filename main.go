@@ -26,13 +26,12 @@ func main() {
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	apiKey := fs.String("api-key", getenv("POLYGONSCAN_API_KEY", defaultExplorerAPIKey), "Etherscan API v2 key (overrides POLYGONSCAN_API_KEY; default is built-in)")
 	scanPause := fs.Duration("scan-pause", 400*time.Millisecond, "Extra pause between tokentx pages (free tier is often ~3 req/sec; client also spaces every call)")
-	topHolders := fs.Int("top-holders", 25, "Show this many largest holders in report (0 = all)")
 	_ = fs.Parse(os.Args[1:])
 
 	client := polygonscan.NewClinet(*apiKey)
 	projects := initAllProjects(client, *scanPause)
 	for _, project := range projects {
-		err := project.GenerateReport(*topHolders)
+		err := project.GenerateReport()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to generate %q report: %v\n", project.Name, err)
 			os.Exit(1)

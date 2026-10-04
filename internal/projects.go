@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	reportsDir         = "reports"
-	propertyTopHolders = 10
+	reportsDir = "reports"
 )
 
 //go:embed project_report.html
@@ -60,7 +59,7 @@ func NewProject(name string, properties []*Property) (*Project, error) {
 	return pr, nil
 }
 
-func (pr *Project) GenerateReport(topHolders int) error {
+func (pr *Project) GenerateReport() error {
 	var payloads []propertyReportPayload
 	for _, property := range pr.Properties {
 		payload, err := buildPropertyReportPayload(property)
@@ -72,14 +71,12 @@ func (pr *Project) GenerateReport(topHolders int) error {
 
 	holders, tierStats := pr.buildHoldersPayload()
 	env := projectEnvelope{
-		Name:               pr.Name,
-		GeneratedAt:        time.Now().UTC().Format(timeDateOnly),
-		Summary:            pr.buildSummary(),
-		Properties:         payloads,
-		Holders:            holders,
-		TierStats:          tierStats,
-		GlobalHoldersTop:   topHolders,
-		PropertyHoldersTop: propertyTopHolders,
+		Name:        pr.Name,
+		GeneratedAt: time.Now().UTC().Format(timeDateOnly),
+		Summary:     pr.buildSummary(),
+		Properties:  payloads,
+		Holders:     holders,
+		TierStats:   tierStats,
 	}
 	jsonBytes, err := json.Marshal(env)
 	if err != nil {
@@ -181,7 +178,7 @@ func rentalPayloadFor(property *Property, now time.Time) *propertyRentalPayload 
 }
 
 func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
-	holders := make([]propertyHolderRow, 0, propertyTopHolders)
+	holders := make([]propertyHolderRow, 0, len(property.Holders))
 	for _, h := range property.Holders {
 		if h.Balance.Sign() <= 0 {
 			continue
@@ -201,22 +198,17 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 			SupplyPct:        pct,
 			Tier:             holderTier(pct),
 		})
-		if len(holders) >= propertyTopHolders {
-			break
-		}
 	}
 	return holders
 }
 
 type projectEnvelope struct {
-	Name               string                  `json:"name"`
-	GeneratedAt        string                  `json:"generatedAt"`
-	Summary            projectSummaryPayload   `json:"summary"`
-	Properties         []propertyReportPayload `json:"properties"`
-	Holders            []projectHolderPayload  `json:"holders"`
-	TierStats          []tierStatPayload       `json:"tierStats"`
-	GlobalHoldersTop   int                     `json:"globalHoldersTop"`
-	PropertyHoldersTop int                     `json:"propertyHoldersTop"`
+	Name        string                  `json:"name"`
+	GeneratedAt string                  `json:"generatedAt"`
+	Summary     projectSummaryPayload   `json:"summary"`
+	Properties  []propertyReportPayload `json:"properties"`
+	Holders     []projectHolderPayload  `json:"holders"`
+	TierStats   []tierStatPayload       `json:"tierStats"`
 }
 
 type projectSummaryPayload struct {

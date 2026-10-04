@@ -132,11 +132,21 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
 .slot .holders-wrap { margin-top: 12px; }
 .slot .holders-wrap > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	font-size: 0.95rem;
 	font-weight: 600;
 	cursor: pointer;
 	list-style: none;
 	margin: 0 0 6px;
+}
+.holders-limit {
+	margin-left: auto;
+	font: inherit;
+	font-size: 0.75rem;
+	font-weight: 500;
+	padding: 1px 4px;
 }
 .slot .holders-wrap > summary::-webkit-details-marker { display: none; }
 .slot .holders-wrap > summary::before { content: "▸ "; }
@@ -172,6 +182,9 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .tier-chart-wrap canvas { display: block; max-width: 100%; }
 .holders-section details.holders-collapse { margin-top: 20px; }
 .holders-section details.holders-collapse > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	font-size: 0.9rem;
 	font-weight: 600;
 	cursor: pointer;
@@ -217,7 +230,7 @@ td.trend.flat { color: #888; }
 		</div>
 	</div>
 	<details id="global-holders-block" class="holders-collapse">
-		<summary data-i18n="holders.global">Top global holders</summary>
+		<summary><span data-i18n="holders.global">Top global holders</span></summary>
 		<p id="holders-meta" class="section-meta"></p>
 		<div class="holders-scroll">
 			<table id="holders-table">
@@ -316,12 +329,8 @@ td.trend.flat { color: #888; }
 	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
 	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
 	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
-	const globalHoldersTop = typeof projectData.globalHoldersTop === "number" && projectData.globalHoldersTop > 0
-		? projectData.globalHoldersTop
-		: allHolders.length;
-	const propertyHoldersTop = typeof projectData.propertyHoldersTop === "number" && projectData.propertyHoldersTop > 0
-		? projectData.propertyHoldersTop
-		: 10;
+	const propertyHoldersDefault = 10;
+	const projectHoldersDefault = 25;
 	const grid = document.getElementById("grid");
 	const chartInstances = [];
 
@@ -404,33 +413,77 @@ td.trend.flat { color: #888; }
 		return amountPair(tokens, usdt);
 	}
 
+	const holderLimitChoices = [10, 25, 50, 0];
+
+	function shownHolders(holders, limit) {
+		if (!limit) return holders;
+		return holders.slice(0, limit);
+	}
+
+	function holdersHeading(limit) {
+		return limit ? t("holders.top", { n: limit }) : t("holders.allTitle");
+	}
+
+	// Clicks on the select must not toggle the surrounding details element.
+	function holdersLimitControl(selected, onChange) {
+		const select = document.createElement("select");
+		select.className = "holders-limit";
+		select.setAttribute("aria-label", t("holders.limit"));
+		holderLimitChoices.forEach(function (n) {
+			const option = document.createElement("option");
+			option.value = String(n);
+			option.textContent = n ? String(n) : t("holders.all");
+			if (n === selected) option.selected = true;
+			select.appendChild(option);
+		});
+		select.addEventListener("mousedown", function (e) { e.stopPropagation(); });
+		select.addEventListener("click", function (e) { e.stopPropagation(); });
+		select.addEventListener("change", function () {
+			onChange(Number(select.value));
+		});
+		return select;
+	}
+
 	function renderPropertyHoldersInto(container, property) {
 		const holders = property && Array.isArray(property.holders) ? property.holders : [];
-		const summary = "<summary>" + escapeHtml(t("holders.top", { n: propertyHoldersTop })) + "</summary>";
+		const label = document.createElement("span");
+		const summary = document.createElement("summary");
+		summary.appendChild(label);
+		const body = document.createElement("div");
+		container.appendChild(summary);
+		container.appendChild(body);
 		if (holders.length === 0) {
-			container.innerHTML = summary + "<p class=\"muted\">" + escapeHtml(t("holders.none")) + "</p>";
+			label.textContent = t("holders.none");
 			return;
 		}
-		const rows = holders.map(function (h, i) {
-			return "<tr>" +
-				"<td class=\"num\">" + (i + 1) + "</td>" +
-				"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-				amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
-				amountPairOrDash(h.initialBought, h.initSaleUSDT) +
-				amountPairOrDash(h.p2pBought, h.p2pUSDT) +
-				trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
-				trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
-				"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
-				"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
-				"</tr>";
-		}).join("");
-		container.innerHTML =
-			summary +
-			"<div class=\"holders-scroll\"><table><thead><tr>" +
-			"<th>#</th>" + ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
-				return "<th>" + escapeHtml(t(key)) + "</th>";
-			}).join("") +
-			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+		let limit = propertyHoldersDefault;
+		function paint() {
+			label.textContent = holdersHeading(limit);
+			const rows = shownHolders(holders, limit).map(function (h, i) {
+				return "<tr>" +
+					"<td class=\"num\">" + (i + 1) + "</td>" +
+					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+					amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
+					amountPairOrDash(h.initialBought, h.initSaleUSDT) +
+					amountPairOrDash(h.p2pBought, h.p2pUSDT) +
+					trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+					trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
+					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+					"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
+					"</tr>";
+			}).join("");
+			body.innerHTML =
+				"<div class=\"holders-scroll\"><table><thead><tr>" +
+				"<th>#</th>" + ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
+					return "<th>" + escapeHtml(t(key)) + "</th>";
+				}).join("") +
+				"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+		}
+		summary.appendChild(holdersLimitControl(limit, function (next) {
+			limit = next;
+			paint();
+		}));
+		paint();
 	}
 
 	function chartOptions(dailyLabel, cumLabel) {
@@ -640,25 +693,32 @@ td.trend.flat { color: #888; }
 		globalBlock.hidden = !showGlobal;
 
 		if (showGlobal) {
-			const shown = Math.min(globalHoldersTop, allHolders.length);
-			document.getElementById("holders-meta").textContent =
-				t("holders.showing", { shown: shown, total: allHolders.length });
-
-			const body = document.getElementById("holders-body");
-			body.innerHTML = allHolders.slice(0, globalHoldersTop).map(function (h, i) {
-				return "<tr>" +
-					"<td class=\"num\">" + (i + 1) + "</td>" +
-					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-					"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
-					amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
-					amountPairOrDash(h.initialBought, h.initSaleUSDT) +
-					amountPairOrDash(h.p2pBought, h.p2pUSDT) +
-					trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
-					trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
-					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
-					"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
-					"</tr>";
-			}).join("");
+			const summary = globalBlock.querySelector("summary");
+			let limit = projectHoldersDefault;
+			function paint() {
+				const shown = shownHolders(allHolders, limit);
+				document.getElementById("holders-meta").textContent =
+					t("holders.showing", { shown: shown.length, total: allHolders.length });
+				document.getElementById("holders-body").innerHTML = shown.map(function (h, i) {
+					return "<tr>" +
+						"<td class=\"num\">" + (i + 1) + "</td>" +
+						"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+						"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
+						amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
+						amountPairOrDash(h.initialBought, h.initSaleUSDT) +
+						amountPairOrDash(h.p2pBought, h.p2pUSDT) +
+						trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+						trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
+						"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+						"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
+						"</tr>";
+				}).join("");
+			}
+			summary.appendChild(holdersLimitControl(limit, function (next) {
+				limit = next;
+				paint();
+			}));
+			paint();
 		}
 
 		renderTierCharts();
