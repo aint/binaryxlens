@@ -32,7 +32,8 @@
     .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
     .lede { color: #444; margin: 0 0 8px; font-size: 0.95rem; }
     .updated { color: #666; margin: 0 0 24px; font-size: 0.85rem; }
-    .lede a { color: #0b57d0; }
+    .lede a, .report-problem a { color: #0b57d0; }
+    .report-problem { margin: 0 0 8px; font-size: 0.85rem; }
     nav {
       background: #fff;
       border: 1px solid #e0e0e0;
@@ -86,7 +87,8 @@
       <span data-i18n="index.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
     </p>
-    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">2026-10-04 02:59 UTC</time></p>
+    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="index.reportProblem">Report a problem</a></p>
+    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">2026-10-05 02:33 UTC</time></p>
     <nav>
 
 			<a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">
@@ -172,6 +174,7 @@
 			"lang.label": "Language",
 			"index.lede": "Blockchain data analysis for tokenized properties on",
 			"index.reportsUpdated": "Reports updated",
+			"index.reportProblem": "Report a problem",
 
 			"report.title": "Project report",
 			"report.invalidJson": "Invalid JSON in #project-data.",
@@ -220,6 +223,9 @@
 
 			"holders.title": "Holders",
 			"holders.top": "Top {n} holders",
+			"holders.all": "all",
+			"holders.allTitle": "All holders",
+			"holders.limit": "Number of holders",
 			"holders.none": "No holders.",
 			"holders.global": "Top global holders",
 			"holders.showing": "Showing {shown} of {total} holders (by total balance).",
@@ -228,8 +234,8 @@
 			"col.balance": "Tokens / USDT, total",
 			"col.p2pBought": "Tokens / USDT, P2P",
 			"col.initialBought": "Tokens / USDT, initial sale",
-			"col.week": "Week",
-			"col.month": "Month",
+			"col.week": "Week Δ",
+			"col.month": "Month Δ",
 			"col.supplyPct": "% supply",
 			"col.tier": "Tier",
 
@@ -251,6 +257,7 @@
 			"lang.label": "Мова",
 			"index.lede": "Аналіз блокчейн-даних токенізованої нерухомості на",
 			"index.reportsUpdated": "Звіти оновлено",
+			"index.reportProblem": "Повідомити про проблему",
 
 			"report.title": "Звіт по проєкту",
 			"report.invalidJson": "Некоректний JSON у #project-data.",
@@ -299,6 +306,9 @@
 
 			"holders.title": "Власники",
 			"holders.top": "Топ-{n} власників",
+			"holders.all": "усі",
+			"holders.allTitle": "Усі власники",
+			"holders.limit": "Кількість власників",
 			"holders.none": "Немає власників.",
 			"holders.global": "Топ власників проєкту",
 			"holders.showing": "Показано {shown} з {total} власників (за загальним балансом).",
@@ -307,8 +317,8 @@
 			"col.balance": "Токени / USDT, всього",
 			"col.p2pBought": "Токени / USDT, P2P",
 			"col.initialBought": "Токени / USDT, первинний продаж",
-			"col.week": "Тиждень",
-			"col.month": "Місяць",
+			"col.week": "Тиждень Δ",
+			"col.month": "Місяць Δ",
 			"col.supplyPct": "% емісії",
 			"col.tier": "Рівень",
 
