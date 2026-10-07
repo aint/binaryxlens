@@ -40,12 +40,26 @@ const (
 	IssuanceEscrow                              // contract → buyer; 0x0 → contract is inventory
 )
 
+type ValueTier string
+
+const (
+	ValueTierFair        ValueTier = "fair"
+	ValueTierRich        ValueTier = "rich"
+	ValueTierOverpriced  ValueTier = "overpriced"
+	ValueTierUnderpriced ValueTier = "underpriced"
+)
+
 type Property struct {
 	Name                   string
 	Address                string
 	Type                   PropertyType
 	RentalStartExpected    YearQuarter
 	RentalStartActual      *YearQuarter
+	AreaM2                 uint
+	BinaryxPrice           uint
+	MarketLowValue         uint
+	MarketHighValue        uint
+	EstimatedValueTier     ValueTier
 	transfers              []transfer
 	issuanceModel          IssuanceModel
 	InitialSaleDailyPoints []DailyPoint
@@ -75,6 +89,7 @@ func (yq YearQuarter) ordinal() int {
 // P2P trades of all properties, keyed by token address.
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade) error {
 	p.Address = strings.ToLower(p.Address)
+	p.estimateValueTier()
 
 	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
 	if err != nil {
@@ -131,6 +146,27 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 	fmt.Printf("Property %q initialized\n", p.Name)
 
 	return nil
+}
+
+func (p *Property) estimateValueTier() {
+	if p.AreaM2 == 0 {
+		return
+	}
+	avg := float64(p.MarketLowValue+p.MarketHighValue) / 2
+	if avg == 0 {
+		return
+	}
+	delta := (float64(p.BinaryxPrice)/float64(p.AreaM2) - avg) / avg
+	switch {
+	case delta < -0.10:
+		p.EstimatedValueTier = ValueTierUnderpriced
+	case delta <= 0.10:
+		p.EstimatedValueTier = ValueTierFair
+	case delta <= 0.20:
+		p.EstimatedValueTier = ValueTierRich
+	default:
+		p.EstimatedValueTier = ValueTierOverpriced
+	}
 }
 
 func (p *Property) resolveIssuanceModel() {
@@ -282,22 +318,37 @@ var AllProperties = map[string][]*Property{
 			Name:                "AWWA Hotel by Ribas B14",
 			Address:             "0x216301b87404a5839bf7b8b94c646c4eb96fec79",
 			Type:                PropertyTypeRental,
+			AreaM2:              33,
+			BinaryxPrice:        157_500,
+			MarketLowValue:      2_800,
+			MarketHighValue:     3_800,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
 			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.2025 - 01.01.2026
+
 		},
 		{
 			Name:                "AWWA Hotel by Ribas B22",
 			Address:             "0xe725a80f426a7d7f5734ba69ccec507251109d09",
 			Type:                PropertyTypeRental,
+			AreaM2:              33,
+			BinaryxPrice:        148_000, // TODO: check if this is correct
+			MarketLowValue:      2_800,
+			MarketHighValue:     3_800,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
 			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.2025 - 01.01.2026
+
 		},
 		{
 			Name:                "AWWA Hotel by Ribas A16",
 			Address:             "0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd",
 			Type:                PropertyTypeRental,
+			AreaM2:              33,
+			BinaryxPrice:        157_500,
+			MarketLowValue:      2_800,
+			MarketHighValue:     3_800,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
 			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.2025 - 01.01.2026
+
 		},
 	},
 	"Aurora Villas (Bali Balance Ocean Villas)": {
@@ -305,12 +356,20 @@ var AllProperties = map[string][]*Property{
 			Name:                "Villa Aurora 1 (Bali Balance Ocean Villa 3)",
 			Address:             "0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b",
 			Type:                PropertyTypeRental,
+			AreaM2:              165,
+			BinaryxPrice:        428_500,
+			MarketLowValue:      2_100,
+			MarketHighValue:     3_200,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
 		},
 		{
 			Name:                "Villa Aurora 2 (Bali Balance Ocean Villa 4)",
 			Address:             "0x17236ed296fbd00d3dfa016879833776dd207fd6",
 			Type:                PropertyTypeRental,
+			AreaM2:              165,
+			BinaryxPrice:        428_500,
+			MarketLowValue:      2_100,
+			MarketHighValue:     3_200,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
 		},
 	},
@@ -319,6 +378,10 @@ var AllProperties = map[string][]*Property{
 			Name:                "Bingin Magic Story Villa 3",
 			Address:             "0xe5f846592a58bcfce912bc6fc594649397b6f519",
 			Type:                PropertyTypeRental,
+			AreaM2:              115,
+			BinaryxPrice:        280_000,
+			MarketLowValue:      2_100,
+			MarketHighValue:     3_200,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
 		},
 	},
@@ -327,6 +390,10 @@ var AllProperties = map[string][]*Property{
 			Name:                "Bubbles Boutique Complex",
 			Address:             "0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1",
 			Type:                PropertyTypeRental,
+			AreaM2:              420,
+			BinaryxPrice:        1_220_000,
+			MarketLowValue:      2_100,
+			MarketHighValue:     2_700,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
 			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.25 - 31.10.25
 		},
@@ -364,6 +431,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Mountain Retreat by Dukley",
 			Address:             "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
 			Type:                PropertyTypeRedeemed,
+			BinaryxPrice:        385_000,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 1},
 		},
 		{

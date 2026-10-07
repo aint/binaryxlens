@@ -41,6 +41,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 	width: 100%;
 }
 .slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.price-facts { margin: 0 0 14px; font-size: 0.85rem; color: #333; line-height: 1.45; }
+.price-facts p { margin: 0; }
 .slot-title {
 	display: flex;
 	align-items: flex-start;
@@ -342,6 +344,32 @@ td.trend.flat { color: #888; }
 	// Trailing windows arrive as keys; a completed sale sends its date range as-is.
 	function etaWindowLabel(name) {
 		return i18n.has("eta." + name) ? t("eta." + name) : name;
+	}
+
+	function renderPriceInto(slot, property) {
+		const price = property && property.price;
+		if (!price) return;
+		const block = document.createElement("div");
+		block.className = "price-facts";
+
+		function amount(n) {
+			return n ? Number(n).toLocaleString(window.i18n.lang) : "—";
+		}
+		function line(labelKey, value) {
+			const row = document.createElement("p");
+			row.appendChild(document.createTextNode(t(labelKey) + ": "));
+			const strong = document.createElement("strong");
+			strong.textContent = value;
+			row.appendChild(strong);
+			block.appendChild(row);
+		}
+		const tier = price.estimatedValueTier;
+		line("price.area", amount(price.areaM2));
+		line("price.binaryx", amount(price.binaryx));
+		line("price.marketLow", amount(price.marketLow));
+		line("price.marketHigh", amount(price.marketHigh));
+		line("price.valueTier", tier && i18n.has("value." + tier) ? t("value." + tier) : "—");
+		slot.appendChild(block);
 	}
 
 	function renderETAsInto(container, chartData) {
@@ -838,6 +866,7 @@ td.trend.flat { color: #888; }
 			const collapseBuys = hasSecondaryVolume(property);
 			const slot = document.createElement("div");
 			slot.className = "slot";
+			renderPriceInto(slot, property);
 			const title = document.createElement(collapseBuys ? "summary" : "h3");
 			const titleRow = document.createElement("span");
 			titleRow.className = "slot-title";

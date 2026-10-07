@@ -27,6 +27,16 @@
 			"rental.notStarted": "not started",
 			"rental.dates": "Expected {expected} · Actual {actual}",
 
+			"price.area": "Area, m²",
+			"price.binaryx": "Price, Binaryx",
+			"price.marketLow": "Market low, USD/m²",
+			"price.marketHigh": "Market high, USD/m²",
+			"price.valueTier": "Value tier",
+			"value.fair": "Fair",
+			"value.rich": "Rich",
+			"value.overpriced": "Overpriced",
+			"value.underpriced": "Underpriced",
+
 			"dailyBuys": "Daily buys — {name}",
 			"noSeries": "No series",
 			"noProperties": "No properties loaded",
@@ -109,6 +119,16 @@
 			"rental.delay": { one: "+{n} квартал", few: "+{n} квартали", many: "+{n} кварталів", other: "+{n} кварталу" },
 			"rental.notStarted": "не розпочато",
 			"rental.dates": "Очікувано {expected} · Фактично {actual}",
+
+			"price.area": "Площа, м²",
+			"price.binaryx": "Ціна, Binaryx",
+			"price.marketLow": "Ринок, низ, USD/м²",
+			"price.marketHigh": "Ринок, верх, USD/м²",
+			"price.valueTier": "Оцінка вартості",
+			"value.fair": "Справедлива",
+			"value.rich": "Висока",
+			"value.overpriced": "Завищена",
+			"value.underpriced": "Занижена",
 
 			"dailyBuys": "Щоденні покупки — {name}",
 			"noSeries": "Немає даних",

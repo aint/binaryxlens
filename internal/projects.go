@@ -112,9 +112,16 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 	initialSaleDailyPoints := property.InitialSaleDailyPoints
 
 	payload := propertyReportPayload{
-		Name:    property.Name,
-		Type:    property.Type.Label(),
-		Rental:  rentalPayloadFor(property, time.Now().UTC()),
+		Name: property.Name,
+		Type: property.Type.Label(),
+		Price: propertyPricePayload{
+			AreaM2:             property.AreaM2,
+			Binaryx:            property.BinaryxPrice,
+			MarketLow:          property.MarketLowValue,
+			MarketHigh:         property.MarketHighValue,
+			EstimatedValueTier: string(property.EstimatedValueTier),
+		},
+		Rental:  buildRentalPayload(property, time.Now().UTC()),
 		Holders: buildPropertyHoldersPayload(property),
 		Initial: propertyInitialSalesPayload{
 			Labels:     make([]string, 0, len(initialSaleDailyPoints)),
@@ -150,7 +157,7 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 	return payload, nil
 }
 
-func rentalPayloadFor(property *Property, now time.Time) *propertyRentalPayload {
+func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayload {
 	delayQuarters, ok := property.rentalStartDelay(now)
 	if !ok {
 		return nil
@@ -221,10 +228,19 @@ type projectSummaryPayload struct {
 type propertyReportPayload struct {
 	Name      string                      `json:"name"`
 	Type      string                      `json:"type"`
+	Price     propertyPricePayload        `json:"price"`
 	Rental    *propertyRentalPayload      `json:"rental,omitempty"`
 	Holders   []propertyHolderRow         `json:"holders"`
 	Initial   propertyInitialSalesPayload `json:"initial_sales"`
 	Secondary propertyP2PSalesPayload     `json:"p2p_sales"`
+}
+
+type propertyPricePayload struct {
+	AreaM2             uint   `json:"areaM2"`
+	Binaryx            uint   `json:"binaryx"`
+	MarketLow          uint   `json:"marketLow"`
+	MarketHigh         uint   `json:"marketHigh"`
+	EstimatedValueTier string `json:"estimatedValueTier"`
 }
 
 type propertyRentalPayload struct {
