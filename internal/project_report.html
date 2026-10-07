@@ -54,6 +54,13 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .price-metric-tier { margin-left: auto; }
 .price-label { font-size: 0.68rem; font-weight: 500; color: #777; }
 .price-metric strong { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.price-ai-note {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 0.72rem;
+	line-height: 1.35;
+	color: #8a5a00;
+}
 .value {
 	align-self: flex-start;
 	font-size: 0.75rem;
@@ -421,6 +428,14 @@ td.trend.flat { color: #888; }
 		const ageYears = property.rental && property.rental.ageYears;
 		if (ageYears != null) metric("price.age", strong(rentalAgeText(ageYears)));
 		metric("price.valueTier", tierEl, true);
+		if (price.marketLow || price.marketHigh || tier) {
+			const note = document.createElement("p");
+			note.className = "price-ai-note";
+			const parts = new Intl.DateTimeFormat(window.i18n.lang, { month: "long", year: "numeric", timeZone: "UTC" }).formatToParts(new Date(Date.UTC(2026, 9, 1)));
+			const when = parts.filter(function (p) { return p.type === "month" || p.type === "year"; }).map(function (p) { return p.value; }).join(" ");
+			note.textContent = t("price.aiNote", { when: when });
+			block.appendChild(note);
+		}
 		slot.appendChild(block);
 	}
 
