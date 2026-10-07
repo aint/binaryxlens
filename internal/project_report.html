@@ -41,8 +41,32 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 	width: 100%;
 }
 .slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
-.price-facts { margin: 0 0 14px; font-size: 0.85rem; color: #333; line-height: 1.45; }
-.price-facts p { margin: 0; }
+.price-facts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 14px 28px;
+	margin: 0 0 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e8e8e8;
+}
+.price-metric { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.price-metric-tier { margin-left: auto; }
+.price-label { font-size: 0.68rem; font-weight: 500; color: #777; }
+.price-metric strong { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.value {
+	align-self: flex-start;
+	font-size: 0.75rem;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 3px 8px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+.value-underpriced { background: #e7f2ea; color: #1d6b3a; }
+.value-fair { background: #e8eef6; color: #1e4a7a; }
+.value-rich { background: #fff4d6; color: #8a5a00; }
+.value-overpriced { background: #fde8e8; color: #b42318; }
 .slot-title {
 	display: flex;
 	align-items: flex-start;
@@ -353,22 +377,42 @@ td.trend.flat { color: #888; }
 		block.className = "price-facts";
 
 		function amount(n) {
-			return n ? Number(n).toLocaleString(window.i18n.lang) : "—";
+			return n ? Number(n).toLocaleString(window.i18n.lang) : "";
 		}
-		function line(labelKey, value) {
-			const row = document.createElement("p");
-			row.appendChild(document.createTextNode(t(labelKey) + ": "));
-			const strong = document.createElement("strong");
-			strong.textContent = value;
-			row.appendChild(strong);
-			block.appendChild(row);
+		function metric(labelKey, valueEl, tierCell) {
+			const cell = document.createElement("div");
+			cell.className = tierCell ? "price-metric price-metric-tier" : "price-metric";
+			const label = document.createElement("span");
+			label.className = "price-label";
+			label.textContent = t(labelKey);
+			cell.appendChild(label);
+			cell.appendChild(valueEl);
+			block.appendChild(cell);
+		}
+		function strong(text) {
+			const el = document.createElement("strong");
+			el.textContent = text || "—";
+			return el;
+		}
+		function marketRange() {
+			const low = amount(price.marketLow);
+			const high = amount(price.marketHigh);
+			if (low && high) return low === high ? low : low + " – " + high;
+			return low || high;
 		}
 		const tier = price.estimatedValueTier;
-		line("price.area", amount(price.areaM2));
-		line("price.binaryx", amount(price.binaryx));
-		line("price.marketLow", amount(price.marketLow));
-		line("price.marketHigh", amount(price.marketHigh));
-		line("price.valueTier", tier && i18n.has("value." + tier) ? t("value." + tier) : "—");
+		const tierEl = document.createElement("span");
+		if (tier && i18n.has("value." + tier)) {
+			tierEl.className = "value value-" + tier;
+			tierEl.textContent = t("value." + tier);
+		} else {
+			tierEl.textContent = "—";
+		}
+
+		metric("price.area", strong(amount(price.areaM2)));
+		metric("price.binaryx", strong(amount(price.binaryx)));
+		metric("price.market", strong(marketRange()));
+		metric("price.valueTier", tierEl, true);
 		slot.appendChild(block);
 	}
 

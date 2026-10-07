@@ -29,9 +29,8 @@
 
 			"price.area": "Area, m²",
 			"price.binaryx": "Price, Binaryx",
-			"price.marketLow": "Market low, USD/m²",
-			"price.marketHigh": "Market high, USD/m²",
-			"price.valueTier": "Value tier",
+			"price.market": "Market, USD/m²",
+			"price.valueTier": "Estimated value",
 			"value.fair": "Fair",
 			"value.rich": "Rich",
 			"value.overpriced": "Overpriced",
@@ -122,8 +121,7 @@
 
 			"price.area": "Площа, м²",
 			"price.binaryx": "Ціна, Binaryx",
-			"price.marketLow": "Ринок, низ, USD/м²",
-			"price.marketHigh": "Ринок, верх, USD/м²",
+			"price.market": "Ринок, USD/м²",
 			"price.valueTier": "Оцінка вартості",
 			"value.fair": "Справедлива",
 			"value.rich": "Висока",
