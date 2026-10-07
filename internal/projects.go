@@ -180,6 +180,11 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 	}
 	if property.RentalStartActual != nil {
 		payload.Actual = property.RentalStartActual.String()
+		ageQuarters := yearQuarterAt(now).quartersSince(*property.RentalStartActual)
+		if ageQuarters >= 0 {
+			ageYears := float64(ageQuarters) / 4
+			payload.AgeYears = &ageYears
+		}
 	}
 	return payload
 }
@@ -244,10 +249,11 @@ type propertyPricePayload struct {
 }
 
 type propertyRentalPayload struct {
-	Expected      string `json:"expected"`
-	Actual        string `json:"actual,omitempty"`
-	Score         string `json:"score"`
-	DelayQuarters int    `json:"delayQuarters"`
+	Expected      string   `json:"expected"`
+	Actual        string   `json:"actual,omitempty"`
+	Score         string   `json:"score"`
+	DelayQuarters int      `json:"delayQuarters"`
+	AgeYears      *float64 `json:"ageYears,omitempty"`
 }
 
 type propertyInitialSalesPayload struct {

@@ -85,6 +85,15 @@ func (yq YearQuarter) ordinal() int {
 	return yq.Year*4 + yq.Quarter - 1
 }
 
+func yearQuarterAt(t time.Time) YearQuarter {
+	month := int(t.Month())
+	return YearQuarter{Year: t.Year(), Quarter: (month-1)/3 + 1}
+}
+
+func (yq YearQuarter) quartersSince(start YearQuarter) int {
+	return yq.ordinal() - start.ordinal()
+}
+
 // Init fetches the property's transfers and builds its stats. p2pTrades holds
 // P2P trades of all properties, keyed by token address.
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade) error {
@@ -304,12 +313,11 @@ func (p *Property) rentalStartDelay(now time.Time) (int, bool) {
 	if p.Type != PropertyTypeRental || p.RentalStartExpected.Quarter < 1 {
 		return 0, false
 	}
-	month := int(now.Month())
-	actual := YearQuarter{Year: now.Year(), Quarter: (month-1)/3 + 1}
+	actual := yearQuarterAt(now)
 	if p.RentalStartActual != nil {
 		actual = *p.RentalStartActual
 	}
-	return actual.ordinal() - p.RentalStartExpected.ordinal(), true
+	return actual.quartersSince(p.RentalStartExpected), true
 }
 
 var AllProperties = map[string][]*Property{

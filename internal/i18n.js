@@ -26,8 +26,10 @@
 			"rental.delay": { one: "+{n} quarter", other: "+{n} quarters" },
 			"rental.notStarted": "not started",
 			"rental.dates": "Expected {expected} · Actual {actual}",
+			"rental.years": { one: "{n} year", other: "{n} years" },
 
 			"price.area": "Area, m²",
+			"price.age": "Age",
 			"price.binaryx": "Price, Binaryx",
 			"price.market": "Market, USD/m²",
 			"price.valueTier": "Estimated value",
@@ -118,8 +120,10 @@
 			"rental.delay": { one: "+{n} квартал", few: "+{n} квартали", many: "+{n} кварталів", other: "+{n} кварталу" },
 			"rental.notStarted": "не розпочато",
 			"rental.dates": "Очікувано {expected} · Фактично {actual}",
+			"rental.years": { one: "{n} рік", few: "{n} роки", many: "{n} років", other: "{n} року" },
 
 			"price.area": "Площа, м²",
+			"price.age": "Вік",
 			"price.binaryx": "Ціна, Binaryx",
 			"price.market": "Ринок, USD/м²",
 			"price.valueTier": "Оцінка вартості",

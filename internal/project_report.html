@@ -320,6 +320,12 @@ td.trend.flat { color: #888; }
 		return tag;
 	}
 
+	function rentalAgeText(years) {
+		const label = t("rental.years", { n: years });
+		const shown = years.toLocaleString(window.i18n.lang, { maximumFractionDigits: 2 });
+		return label.replace(String(years), shown);
+	}
+
 	function rentalDatesLine(property) {
 		const rental = property && property.rental;
 		if (!rental || !rental.expected) return null;
@@ -412,6 +418,8 @@ td.trend.flat { color: #888; }
 		metric("price.area", strong(amount(price.areaM2)));
 		metric("price.binaryx", strong(amount(price.binaryx)));
 		metric("price.market", strong(marketRange()));
+		const ageYears = property.rental && property.rental.ageYears;
+		if (ageYears != null) metric("price.age", strong(rentalAgeText(ageYears)));
 		metric("price.valueTier", tierEl, true);
 		slot.appendChild(block);
 	}
