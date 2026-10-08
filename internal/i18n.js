@@ -25,7 +25,7 @@
 			"rental.onTime": "on time",
 			"rental.delay": { one: "+{n} quarter", other: "+{n} quarters" },
 			"rental.notStarted": "not started",
-			"rental.dates": "Expected {expected} · Actual {actual}",
+			"rental.dates": "Expected rental start: {expected} · Actual start: {actual}",
 			"rental.years": { one: "{n} year", other: "{n} years" },
 
 			"price.area": "Area, m²",
@@ -39,7 +39,7 @@
 			"value.overpriced": "Overpriced",
 			"value.underpriced": "Underpriced",
 
-			"dailyBuys": "Daily buys — {name}",
+			"initialSales": "Initial sales",
 			"noSeries": "No series",
 			"noProperties": "No properties loaded",
 			"resetZoom": "Reset zoom",
@@ -58,7 +58,7 @@
 			"eta.last30": "last 30 UTC days",
 			"eta.all": "full history (all calendar days)",
 
-			"secondary.title": "Weekly secondary volume — {name}",
+			"secondary.title": "Weekly secondary volume",
 			"secondary.market": "Secondary market",
 			"secondary.noTransfers": "no wallet-to-wallet transfers yet",
 			"secondary.txs": "Secondary txs",
@@ -120,7 +120,7 @@
 			"rental.onTime": "вчасно",
 			"rental.delay": { one: "+{n} квартал", few: "+{n} квартали", many: "+{n} кварталів", other: "+{n} кварталу" },
 			"rental.notStarted": "не розпочато",
-			"rental.dates": "Очікувано {expected} · Фактично {actual}",
+			"rental.dates": "Очікуваний старт оренди: {expected} · Фактичний старт: {actual}",
 			"rental.years": { one: "{n} рік", few: "{n} роки", many: "{n} років", other: "{n} року" },
 
 			"price.area": "Площа, м²",
@@ -134,7 +134,7 @@
 			"value.overpriced": "Завищена",
 			"value.underpriced": "Занижена",
 
-			"dailyBuys": "Щоденні покупки — {name}",
+			"initialSales": "Первинні продажі",
 			"noSeries": "Немає даних",
 			"noProperties": "Об'єкти не завантажено",
 			"resetZoom": "Скинути масштаб",
@@ -153,7 +153,7 @@
 			"eta.last30": "останні 30 днів (UTC)",
 			"eta.all": "уся історія (усі календарні дні)",
 
-			"secondary.title": "Тижневий обсяг вторинного ринку — {name}",
+			"secondary.title": "Тижневий обсяг вторинного ринку",
 			"secondary.market": "Вторинний ринок",
 			"secondary.noTransfers": "переказів між гаманцями ще немає",
 			"secondary.txs": "Вторинних транзакцій",

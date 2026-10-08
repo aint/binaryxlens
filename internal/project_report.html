@@ -41,6 +41,13 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 	width: 100%;
 }
 .slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.property-head {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0 0 12px;
+}
+.property-head h3 { margin: 0; font-size: 1.05rem; }
 .price-facts {
 	display: flex;
 	flex-wrap: wrap;
@@ -81,13 +88,6 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 	gap: 12px;
 }
 .slot .buys-wrap > summary { display: flex; align-items: flex-start; }
-.slot-heading {
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	min-width: 0;
-	gap: 4px;
-}
 .tag {
 	flex-shrink: 0;
 	font-size: 0.68rem;
@@ -193,7 +193,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .slot .holders-wrap td.pair .usdt { display: block; color: #666; font-size: 0.92em; }
 .slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
 .slot .holders-wrap td.tier { white-space: nowrap; }
-.slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 12px 0 6px; }
+.slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 0 0 8px; }
+.slot > .secondary-meta { margin: 12px 0 6px; }
 .slot .secondary-wrap { margin-top: 4px; }
 .slot .secondary-wrap h4 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section { margin-top: 28px; }
@@ -381,6 +382,27 @@ td.trend.flat { color: #888; }
 	// Trailing windows arrive as keys; a completed sale sends its date range as-is.
 	function etaWindowLabel(name) {
 		return i18n.has("eta." + name) ? t("eta." + name) : name;
+	}
+
+	function renderPropertyHead(slot, property) {
+		const head = document.createElement("div");
+		head.className = "property-head";
+		const titleRow = document.createElement("span");
+		titleRow.className = "slot-title";
+		const name = document.createElement("h3");
+		name.textContent = property && property.name ? property.name : "—";
+		titleRow.appendChild(name);
+		const tags = document.createElement("span");
+		tags.className = "slot-tags";
+		const typeTag = propertyTypeTag(property);
+		if (typeTag) tags.appendChild(typeTag);
+		const scoreTag = rentalScoreTag(property);
+		if (scoreTag) tags.appendChild(scoreTag);
+		if (tags.childNodes.length) titleRow.appendChild(tags);
+		head.appendChild(titleRow);
+		const rentalDates = rentalDatesLine(property);
+		if (rentalDates) head.appendChild(rentalDates);
+		slot.appendChild(head);
 	}
 
 	function renderPriceInto(slot, property) {
@@ -730,13 +752,13 @@ td.trend.flat { color: #888; }
 			return;
 		}
 		meta.innerHTML = escapeHtml(t("secondary.txs")) + ": <strong>" + txCount + "</strong>";
-		slot.appendChild(meta);
 
 		const wrap = document.createElement("div");
 		wrap.className = "secondary-wrap";
 		const heading = document.createElement("h4");
-		heading.textContent = t("secondary.title", { name: property.name });
+		heading.textContent = t("secondary.title");
 		wrap.appendChild(heading);
+		wrap.appendChild(meta);
 
 		const chartWrap = document.createElement("div");
 		chartWrap.className = "chart-wrap";
@@ -933,26 +955,10 @@ td.trend.flat { color: #888; }
 			const collapseBuys = hasSecondaryVolume(property);
 			const slot = document.createElement("div");
 			slot.className = "slot";
+			renderPropertyHead(slot, property);
 			renderPriceInto(slot, property);
 			const title = document.createElement(collapseBuys ? "summary" : "h3");
-			const titleRow = document.createElement("span");
-			titleRow.className = "slot-title";
-			const titleText = document.createElement("span");
-			titleText.textContent = property && property.name ? t("dailyBuys", { name: property.name }) : "—";
-			titleRow.appendChild(titleText);
-			const tags = document.createElement("span");
-			tags.className = "slot-tags";
-			const typeTag = propertyTypeTag(property);
-			if (typeTag) tags.appendChild(typeTag);
-			const scoreTag = rentalScoreTag(property);
-			if (scoreTag) tags.appendChild(scoreTag);
-			if (tags.childNodes.length) titleRow.appendChild(tags);
-			const heading = document.createElement("span");
-			heading.className = "slot-heading";
-			heading.appendChild(titleRow);
-			const rentalDates = rentalDatesLine(property);
-			if (rentalDates) heading.appendChild(rentalDates);
-			title.appendChild(heading);
+			title.textContent = t("initialSales");
 
 			const chartParent = document.createElement(collapseBuys ? "details" : "div");
 			if (collapseBuys) {
