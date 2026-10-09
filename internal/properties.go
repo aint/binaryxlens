@@ -324,7 +324,7 @@ var AllProperties = map[string][]*Property{
 	"AWWA Hotel by Ribas": {
 		{
 			Name:                "AWWA Hotel by Ribas B14",
-			Address:             "0x216301b87404a5839bf7b8b94c646c4eb96fec79",
+			Address:             strings.ToLower("0x216301b87404a5839bf7b8b94c646c4eb96fec79"),
 			Type:                PropertyTypeRental,
 			AreaM2:              33,
 			BinaryxPrice:        157_500,
@@ -336,7 +336,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "AWWA Hotel by Ribas B22",
-			Address:             "0xe725a80f426a7d7f5734ba69ccec507251109d09",
+			Address:             strings.ToLower("0xe725a80f426a7d7f5734ba69ccec507251109d09"),
 			Type:                PropertyTypeRental,
 			AreaM2:              33,
 			BinaryxPrice:        148_000, // TODO: check if this is correct
@@ -348,7 +348,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "AWWA Hotel by Ribas A16",
-			Address:             "0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd",
+			Address:             strings.ToLower("0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd"),
 			Type:                PropertyTypeRental,
 			AreaM2:              33,
 			BinaryxPrice:        157_500,
@@ -361,8 +361,8 @@ var AllProperties = map[string][]*Property{
 	},
 	"Aurora Villas (Bali Balance Ocean Villas)": {
 		{
-			Name:                "Villa Aurora 1 (Bali Balance Ocean Villa 3)",
-			Address:             "0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b",
+			Name:                "Villa Aurora 1 (Ocean Villa 3)",
+			Address:             strings.ToLower("0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b"),
 			Type:                PropertyTypeRental,
 			AreaM2:              165,
 			BinaryxPrice:        428_500,
@@ -371,8 +371,8 @@ var AllProperties = map[string][]*Property{
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
 		},
 		{
-			Name:                "Villa Aurora 2 (Bali Balance Ocean Villa 4)",
-			Address:             "0x17236ed296fbd00d3dfa016879833776dd207fd6",
+			Name:                "Villa Aurora 2 (Ocean Villa 4)",
+			Address:             strings.ToLower("0x17236ed296fbd00d3dfa016879833776dd207fd6"),
 			Type:                PropertyTypeRental,
 			AreaM2:              165,
 			BinaryxPrice:        428_500,
@@ -384,7 +384,7 @@ var AllProperties = map[string][]*Property{
 	"Bingin Magic Story Villas": {
 		{
 			Name:                "Bingin Magic Story Villa 3",
-			Address:             "0xe5f846592a58bcfce912bc6fc594649397b6f519",
+			Address:             strings.ToLower("0xe5f846592a58bcfce912bc6fc594649397b6f519"),
 			Type:                PropertyTypeRental,
 			AreaM2:              115,
 			BinaryxPrice:        280_000,
@@ -396,7 +396,7 @@ var AllProperties = map[string][]*Property{
 	"Bubbles Boutique Complex": {
 		{
 			Name:                "Bubbles Boutique Complex",
-			Address:             "0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1",
+			Address:             strings.ToLower("0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1"),
 			Type:                PropertyTypeRental,
 			AreaM2:              420,
 			BinaryxPrice:        1_220_000,
@@ -409,7 +409,7 @@ var AllProperties = map[string][]*Property{
 	"CASCADE Villas": {
 		{
 			Name:                "CASCADE Villa 2",
-			Address:             "0x5e55b3e941f42732f1b941f2f673dc8811355e5e",
+			Address:             strings.ToLower("0x5e55b3e941f42732f1b941f2f673dc8811355e5e"),
 			Type:                PropertyTypeRental,
 			AreaM2:              176,
 			BinaryxPrice:        300_000,
@@ -419,7 +419,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "CASCADE Villa 3",
-			Address:             "0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5",
+			Address:             strings.ToLower("0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5"),
 			Type:                PropertyTypeRental,
 			AreaM2:              176,
 			BinaryxPrice:        300_000,
@@ -431,7 +431,7 @@ var AllProperties = map[string][]*Property{
 	"CEMAGI Units": {
 		{
 			Name:                "CEMAGI Unit 3.44",
-			Address:             "0x852b6995628b760c84bdd02bc143b48288d4dd3a",
+			Address:             strings.ToLower("0x852b6995628b760c84bdd02bc143b48288d4dd3a"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              26,
 			BinaryxPrice:        112_000,
@@ -441,7 +441,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "CEMAGI Unit 3.46",
-			Address:             "0x2b7dca2c2bafdb1dac0e01068091590fbe09e478",
+			Address:             strings.ToLower("0x2b7dca2c2bafdb1dac0e01068091590fbe09e478"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              26,
 			BinaryxPrice:        112_000,
@@ -453,14 +453,14 @@ var AllProperties = map[string][]*Property{
 	"Dukley": {
 		{
 			Name:                "Mountain Retreat by Dukley",
-			Address:             "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
+			Address:             strings.ToLower("0x51343ee93059cbb11c4bf969a643e09117b3af6b"),
 			Type:                PropertyTypeRedeemed,
 			BinaryxPrice:        385_000,
 			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 1},
 		},
 		{
 			Name:                "Dukley Glamping 1",
-			Address:             "0xad4f81d0f2f626a6ea29864f488604e6b5360e2a",
+			Address:             strings.ToLower("0xad4f81d0f2f626a6ea29864f488604e6b5360e2a"),
 			Type:                PropertyTypeRental,
 			AreaM2:              240,
 			BinaryxPrice:        940_000,
@@ -472,7 +472,7 @@ var AllProperties = map[string][]*Property{
 	"Ecoverse Suites": {
 		{
 			Name:                "Ecoverse Suite",
-			Address:             "0x30ed65e470be4f351abf5311769505e3f977deca",
+			Address:             strings.ToLower("0x30ed65e470be4f351abf5311769505e3f977deca"),
 			Type:                PropertyTypeRental,
 			AreaM2:              41,
 			BinaryxPrice:        214_200,
@@ -484,7 +484,7 @@ var AllProperties = map[string][]*Property{
 	"Hayat Green Tower": {
 		{
 			Name:                "Hayat Green Tower",
-			Address:             "0xF9d43a9F7Fc7ee7ac47fE96De20e545243450b27",
+			Address:             strings.ToLower("0xF9d43a9F7Fc7ee7ac47fE96De20e545243450b27"),
 			Type:                PropertyTypeRental,
 			AreaM2:              105,
 			BinaryxPrice:        213_439,
@@ -497,7 +497,7 @@ var AllProperties = map[string][]*Property{
 	"Kammara Loft": {
 		{
 			Name:                "Kammara Loft",
-			Address:             "0xB1B987FF1F317A47876185dE4dE9C430823Ad8c5",
+			Address:             strings.ToLower("0xB1B987FF1F317A47876185dE4dE9C430823Ad8c5"),
 			Type:                PropertyTypeRental,
 			AreaM2:              70,
 			BinaryxPrice:        140_000,
@@ -505,13 +505,12 @@ var AllProperties = map[string][]*Property{
 			MarketHighValue:     3_000,
 			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 4},
 			RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 4}, // first rent 10.12.2023 - 11.01.2024
-
 		},
 	},
 	"Kammora Living": {
 		{
 			Name:                "Kammora Living",
-			Address:             "0x8389AcD0e05990eF0e087A3BCed3E9C5443d0455",
+			Address:             strings.ToLower("0x8389AcD0e05990eF0e087A3BCed3E9C5443d0455"),
 			Type:                PropertyTypeRental,
 			AreaM2:              49,
 			BinaryxPrice:        129_000,
@@ -524,7 +523,7 @@ var AllProperties = map[string][]*Property{
 	"Karra Loft": {
 		{
 			Name:                "Karra Loft 3A",
-			Address:             "0x27Ceb34AC7545F78A97C0500465aCE9fA10570af",
+			Address:             strings.ToLower("0x27Ceb34AC7545F78A97C0500465aCE9fA10570af"),
 			Type:                PropertyTypeRental,
 			AreaM2:              68,
 			BinaryxPrice:        98_560,
@@ -535,7 +534,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Karra Loft 5",
-			Address:             "0x2d02E704174635F5E88E17995C3a5E29f283C033",
+			Address:             strings.ToLower("0x2d02E704174635F5E88E17995C3a5E29f283C033"),
 			Type:                PropertyTypeRental,
 			AreaM2:              70,
 			BinaryxPrice:        123_200,
@@ -548,7 +547,7 @@ var AllProperties = map[string][]*Property{
 	"La Casa Española Villas": {
 		{
 			Name:                "La Casa Española Villa 4",
-			Address:             "0x7b592d8bb722324f75af834c23e6ad2058b168e1",
+			Address:             strings.ToLower("0x7b592d8bb722324f75af834c23e6ad2058b168e1"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              241,
 			BinaryxPrice:        385_000,
@@ -558,7 +557,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "La Casa Española Villa 6",
-			Address:             "0xdd36b686a5ff910b5074e3f5483135f19e49f02c",
+			Address:             strings.ToLower("0xdd36b686a5ff910b5074e3f5483135f19e49f02c"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              230,
 			BinaryxPrice:        350_000,
@@ -568,7 +567,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "La Casa Española Villa 8",
-			Address:             "0x223270bbbe4f6dac0dc3e57d985116bdc50616ee",
+			Address:             strings.ToLower("0x223270bbbe4f6dac0dc3e57d985116bdc50616ee"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              230,
 			BinaryxPrice:        350_000,
@@ -578,7 +577,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "La Casa Española Villa 9",
-			Address:             "0x89ebdfaf79308871a24c6992232984b3c84af9a8",
+			Address:             strings.ToLower("0x89ebdfaf79308871a24c6992232984b3c84af9a8"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              241,
 			BinaryxPrice:        385_000,
@@ -590,7 +589,7 @@ var AllProperties = map[string][]*Property{
 	"Oasis Royal Collection": {
 		{
 			Name:                "Oasis Royal Collection 11a",
-			Address:             "0xa26f11748ed29b3fd62e1d8e231d277a0980fb12",
+			Address:             strings.ToLower("0xa26f11748ed29b3fd62e1d8e231d277a0980fb12"),
 			Type:                PropertyTypeRental,
 			AreaM2:              40,
 			BinaryxPrice:        144_000,
@@ -600,7 +599,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Oasis Royal Collection 18b",
-			Address:             "0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed",
+			Address:             strings.ToLower("0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed"),
 			Type:                PropertyTypeRental,
 			AreaM2:              40,
 			BinaryxPrice:        144_000,
@@ -612,7 +611,7 @@ var AllProperties = map[string][]*Property{
 	"Onyx PARQ Resort 61": {
 		{
 			Name:                "Onyx PARQ Resort 61",
-			Address:             "0xA07DB641FC95067a2Fe68b6224a9dD39564bFd57",
+			Address:             strings.ToLower("0xA07DB641FC95067a2Fe68b6224a9dD39564bFd57"),
 			Type:                PropertyTypeRental,
 			AreaM2:              64,
 			BinaryxPrice:        40_860,
@@ -625,7 +624,7 @@ var AllProperties = map[string][]*Property{
 	"Roots Villas": {
 		{
 			Name:                "Roots Villa 1",
-			Address:             "0xbde380b4cc582d440255ebd89ff1839dcfad5d7b",
+			Address:             strings.ToLower("0xbde380b4cc582d440255ebd89ff1839dcfad5d7b"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              130,
 			BinaryxPrice:        303_000,
@@ -635,7 +634,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Roots Villa 3",
-			Address:             "0xc0a4b2e29bd44d3b798a02edc039711f03572739",
+			Address:             strings.ToLower("0xc0a4b2e29bd44d3b798a02edc039711f03572739"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              188,
 			BinaryxPrice:        350_000,
@@ -645,7 +644,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Roots Villa 4",
-			Address:             "0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605",
+			Address:             strings.ToLower("0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              188,
 			BinaryxPrice:        350_000,
@@ -655,7 +654,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Roots Villa 5",
-			Address:             "0x0ef68e86c3c9bc6187c69770053919e6b35991f6",
+			Address:             strings.ToLower("0x0ef68e86c3c9bc6187c69770053919e6b35991f6"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              188,
 			BinaryxPrice:        350_000,
@@ -667,7 +666,7 @@ var AllProperties = map[string][]*Property{
 	"Taryan Dragon Jungle View": {
 		{
 			Name:                "Taryan Dragon Jungle View",
-			Address:             "0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5",
+			Address:             strings.ToLower("0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5"),
 			Type:                PropertyTypeConstruction,
 			AreaM2:              55,
 			BinaryxPrice:        340_000,
@@ -679,7 +678,7 @@ var AllProperties = map[string][]*Property{
 	"Tropical Loft Villas": {
 		{
 			Name:                "Tropical Loft Villa 2",
-			Address:             "0x4b17845F255cC19dB2612ab8577Ea1e0852BBBd7",
+			Address:             strings.ToLower("0x4b17845F255cC19dB2612ab8577Ea1e0852BBBd7"),
 			Type:                PropertyTypeRental,
 			AreaM2:              126,
 			BinaryxPrice:        247_422,
@@ -690,7 +689,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Tropical Loft Villa 3",
-			Address:             "0x56467B7E0cF2116A1C7664eE60db77ED24709293",
+			Address:             strings.ToLower("0x56467B7E0cF2116A1C7664eE60db77ED24709293"),
 			Type:                PropertyTypeRental,
 			AreaM2:              126,
 			BinaryxPrice:        221_235,
@@ -701,7 +700,7 @@ var AllProperties = map[string][]*Property{
 		},
 		{
 			Name:                "Tropical Loft Villa 4",
-			Address:             "0x6a6F5681678Cc599d4d4Ae55270070406561DCa7",
+			Address:             strings.ToLower("0x6a6F5681678Cc599d4d4Ae55270070406561DCa7"),
 			Type:                PropertyTypeRental,
 			AreaM2:              126,
 			BinaryxPrice:        216_720,
@@ -714,7 +713,7 @@ var AllProperties = map[string][]*Property{
 	"Vesna Townhouse": {
 		{
 			Name:                "Vesna Townhouse",
-			Address:             "0x09558935e9cA1c4985F96163b62Fd850616F6e33",
+			Address:             strings.ToLower("0x09558935e9cA1c4985F96163b62Fd850616F6e33"),
 			Type:                PropertyTypeRental,
 			AreaM2:              64,
 			BinaryxPrice:        217_800,
