@@ -112,8 +112,9 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 	initialSaleDailyPoints := property.InitialSaleDailyPoints
 
 	payload := propertyReportPayload{
-		Name: property.Name,
-		Type: property.Type.Label(),
+		Name:    property.Name,
+		Address: property.Address,
+		Type:    property.Type.Label(),
 		Price: propertyPricePayload{
 			AreaM2:             property.AreaM2,
 			Binaryx:            property.BinaryxPrice,
@@ -233,6 +234,7 @@ type projectSummaryPayload struct {
 
 type propertyReportPayload struct {
 	Name      string                      `json:"name"`
+	Address   string                      `json:"address"`
 	Type      string                      `json:"type"`
 	Price     propertyPricePayload        `json:"price"`
 	Rental    *propertyRentalPayload      `json:"rental,omitempty"`

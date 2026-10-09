@@ -48,6 +48,12 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 	margin: 0 0 12px;
 }
 .property-head h3 { margin: 0; font-size: 1.05rem; }
+.property-scan {
+	font-family: ui-monospace, monospace;
+	font-size: 0.72rem;
+	color: #1e4a7a;
+	word-break: break-all;
+}
 .price-facts {
 	display: flex;
 	flex-wrap: wrap;
@@ -403,6 +409,15 @@ td.trend.flat { color: #888; }
 		if (scoreTag) tags.appendChild(scoreTag);
 		if (tags.childNodes.length) titleRow.appendChild(tags);
 		head.appendChild(titleRow);
+		if (property && property.address) {
+			const scan = document.createElement("a");
+			scan.className = "property-scan";
+			scan.href = "https://polygonscan.com/token/" + property.address;
+			scan.target = "_blank";
+			scan.rel = "noopener noreferrer";
+			scan.textContent = property.address;
+			head.appendChild(scan);
+		}
 		const rentalDates = rentalDatesLine(property);
 		if (rentalDates) head.appendChild(rentalDates);
 		slot.appendChild(head);
