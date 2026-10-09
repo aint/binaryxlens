@@ -492,6 +492,28 @@ td.trend.flat { color: #888; }
 			"</tbody></table>";
 	}
 
+	function formatUSDT(raw) {
+		if (raw == null || raw === "") return "";
+		const s = String(raw);
+		const plus = s.charAt(0) === "+";
+		let body = plus ? s.slice(1) : s;
+		const neg = body.charAt(0) === "-";
+		if (neg) body = body.slice(1);
+		const dot = body.indexOf(".");
+		const whole = dot < 0 ? body : body.slice(0, dot);
+		const frac = dot < 0 ? "" : body.slice(dot + 1);
+		if (!/^\d+$/.test(whole)) return s;
+		const grouped = Number(whole).toLocaleString(window.i18n.lang, { maximumFractionDigits: 0 });
+		let out = grouped;
+		if (frac) {
+			const dec = (1.1).toLocaleString(window.i18n.lang).replace(/\d/g, "");
+			out += dec + frac;
+		}
+		if (neg) return "-" + out;
+		if (plus) return "+" + out;
+		return out;
+	}
+
 	function trendCell(delta, usdt) {
 		const tokenFlat = !delta || delta === "0";
 		const paid = usdt || "0";
@@ -506,7 +528,7 @@ td.trend.flat { color: #888; }
 			tokenHtml = (down ? "↓ " : "↑ ") + escapeHtml(delta);
 		}
 		return "<td class=\"num trend pair " + cls + "\">" + tokenHtml +
-			"<span class=\"usdt\">" + escapeHtml(paid) + " USDT</span></td>";
+			"<span class=\"usdt\">" + escapeHtml(formatUSDT(paid)) + " USDT</span></td>";
 	}
 
 	function addUSDT(a, b) {
@@ -521,7 +543,7 @@ td.trend.flat { color: #888; }
 
 	function amountPair(tokens, usdt) {
 		return "<td class=\"num pair\"><span>" + escapeHtml(tokens) +
-			"</span><span class=\"usdt\">" + escapeHtml(usdt) + " USDT</span></td>";
+			"</span><span class=\"usdt\">" + escapeHtml(formatUSDT(usdt)) + " USDT</span></td>";
 	}
 
 	function amountPairOrDash(tokens, usdt) {
