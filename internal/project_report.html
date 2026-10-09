@@ -200,6 +200,8 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
+.exited-holders { margin-top: 12px; }
+.exited-holders h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
 .tier-layout {
 	display: flex;
 	flex-wrap: wrap;
@@ -285,6 +287,7 @@ td.trend.flat { color: #888; }
 				<tbody id="holders-body"></tbody>
 			</table>
 		</div>
+		<div id="holders-exited"></div>
 	</details>
 </section>
 
@@ -537,6 +540,68 @@ td.trend.flat { color: #888; }
 		return holders.slice(0, limit);
 	}
 
+	function deltaNumber(v) {
+		const n = Number(v);
+		return isFinite(n) ? n : 0;
+	}
+
+	function splitHolders(holders) {
+		const active = [];
+		const exited = [];
+		holders.forEach(function (h) {
+			(deltaNumber(h.balance) === 0 ? exited : active).push(h);
+		});
+		exited.sort(function (a, b) {
+			const week = deltaNumber(a.weekDeltaTokens) - deltaNumber(b.weekDeltaTokens);
+			if (week !== 0) return week;
+			return deltaNumber(a.monthDeltaTokens) - deltaNumber(b.monthDeltaTokens);
+		});
+		return { active: active, exited: exited };
+	}
+
+	function tierCell(h) {
+		if (!h.tier) return "<td class=\"tier\">—</td>";
+		return "<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>";
+	}
+
+	function holderRow(h, i, withProperties) {
+		const names = withProperties
+			? "<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>"
+			: "";
+		return "<tr>" +
+			"<td class=\"num\">" + (i + 1) + "</td>" +
+			"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+			names +
+			amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
+			amountPairOrDash(h.initialBought, h.initSaleUSDT) +
+			amountPairOrDash(h.p2pBought, h.p2pUSDT) +
+			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+			trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
+			"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+			tierCell(h) +
+			"</tr>";
+	}
+
+	function holdersTable(rows, columns) {
+		return "<div class=\"holders-scroll\"><table><thead><tr>" +
+			"<th>#</th>" + columns.map(function (key) {
+				return "<th>" + escapeHtml(t(key)) + "</th>";
+			}).join("") +
+			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+	}
+
+	function exitedBlock(exited, columns, withProperties) {
+		if (exited.length === 0) return "";
+		const rows = exited.map(function (h, i) {
+			return holderRow(h, i, withProperties);
+		}).join("");
+		return "<div class=\"exited-holders\"><h4>" + escapeHtml(t("holders.exited")) + "</h4>" +
+			holdersTable(rows, columns) + "</div>";
+	}
+
+	const propertyHolderColumns = ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"];
+	const projectHolderColumns = ["col.address", "col.propertyNames", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"];
+
 	function holdersHeading(limit) {
 		return limit ? t("holders.top", { n: limit }) : t("holders.allTitle");
 	}
@@ -569,32 +634,19 @@ td.trend.flat { color: #888; }
 		const body = document.createElement("div");
 		container.appendChild(summary);
 		container.appendChild(body);
-		if (holders.length === 0) {
+		const split = splitHolders(holders);
+		if (split.active.length === 0 && split.exited.length === 0) {
 			label.textContent = t("holders.none");
 			return;
 		}
 		let limit = propertyHoldersDefault;
 		function paint() {
-			label.textContent = holdersHeading(limit);
-			const rows = shownHolders(holders, limit).map(function (h, i) {
-				return "<tr>" +
-					"<td class=\"num\">" + (i + 1) + "</td>" +
-					"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-					amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
-					amountPairOrDash(h.initialBought, h.initSaleUSDT) +
-					amountPairOrDash(h.p2pBought, h.p2pUSDT) +
-					trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
-					trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
-					"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
-					"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
-					"</tr>";
+			label.textContent = split.active.length === 0 ? t("holders.none") : holdersHeading(limit);
+			const rows = shownHolders(split.active, limit).map(function (h, i) {
+				return holderRow(h, i, false);
 			}).join("");
-			body.innerHTML =
-				"<div class=\"holders-scroll\"><table><thead><tr>" +
-				"<th>#</th>" + ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"].map(function (key) {
-					return "<th>" + escapeHtml(t(key)) + "</th>";
-				}).join("") +
-				"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+			const activeTable = split.active.length === 0 ? "" : holdersTable(rows, propertyHolderColumns);
+			body.innerHTML = activeTable + exitedBlock(split.exited, propertyHolderColumns, false);
 		}
 		summary.appendChild(holdersLimitControl(limit, function (next) {
 			limit = next;
@@ -811,25 +863,17 @@ td.trend.flat { color: #888; }
 
 		if (showGlobal) {
 			const summary = globalBlock.querySelector("summary");
+			const split = splitHolders(allHolders);
 			let limit = projectHoldersDefault;
 			function paint() {
-				const shown = shownHolders(allHolders, limit);
+				const shown = shownHolders(split.active, limit);
 				document.getElementById("holders-meta").textContent =
-					t("holders.showing", { shown: shown.length, total: allHolders.length });
+					t("holders.showing", { shown: shown.length, total: split.active.length });
 				document.getElementById("holders-body").innerHTML = shown.map(function (h, i) {
-					return "<tr>" +
-						"<td class=\"num\">" + (i + 1) + "</td>" +
-						"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
-						"<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>" +
-						amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
-						amountPairOrDash(h.initialBought, h.initSaleUSDT) +
-						amountPairOrDash(h.p2pBought, h.p2pUSDT) +
-						trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
-						trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
-						"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
-						"<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>" +
-						"</tr>";
+					return holderRow(h, i, true);
 				}).join("");
+				document.getElementById("holders-exited").innerHTML =
+					exitedBlock(split.exited, projectHolderColumns, true);
 			}
 			summary.appendChild(holdersLimitControl(limit, function (next) {
 				limit = next;
@@ -854,7 +898,7 @@ td.trend.flat { color: #888; }
 		const totals = {};
 		allHolders.forEach(function (h) {
 			const n = Number(h.balance);
-			if (!isFinite(n)) return;
+			if (!isFinite(n) || n === 0) return;
 			totals[h.tier] = (totals[h.tier] || 0) + n;
 		});
 		return totals;

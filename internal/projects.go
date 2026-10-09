@@ -192,10 +192,11 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 	holders := make([]propertyHolderRow, 0, len(property.Holders))
 	for _, h := range property.Holders {
-		if h.Balance.Sign() <= 0 {
-			continue
-		}
 		pct := PercentFloat(h.Balance, property.TotalSupplyRaw)
+		tier := ""
+		if h.Balance.Sign() > 0 {
+			tier = holderTier(pct)
+		}
 		holders = append(holders, propertyHolderRow{
 			Address:          h.Address,
 			Balance:          FormatBigInt(h.Balance, property.Decimal),
@@ -208,7 +209,7 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
 			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
 			SupplyPct:        pct,
-			Tier:             holderTier(pct),
+			Tier:             tier,
 		})
 	}
 	return holders

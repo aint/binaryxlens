@@ -84,7 +84,11 @@ func (p *Property) buildHolders() {
 			// ignore unclaimed balance
 			continue
 		}
-		holders = append(holders, *holderMap[address])
+		h := holderMap[address]
+		if h.Balance.Sign() == 0 && h.MonthDeltaTokens.Sign() == 0 && h.MonthDeltaUSDT.Sign() == 0 {
+			continue
+		}
+		holders = append(holders, *h)
 	}
 
 	p.Holders = holders
@@ -174,10 +178,12 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 	holders := make([]projectHolderPayload, 0, len(pr.Holders))
 	pcts := make([]float64, 0, len(pr.Holders))
 	for _, h := range pr.Holders {
-		if h.TotalBalance.Sign() == 0 {
-			continue
-		}
 		pct := PercentFloat(h.TotalBalance, pr.TotalSupplyRaw)
+		tier := ""
+		if h.TotalBalance.Sign() > 0 {
+			tier = holderTier(pct)
+			pcts = append(pcts, pct)
+		}
 		holders = append(holders, projectHolderPayload{
 			Address:          h.Address,
 			PropertyNames:    slices.Sorted(maps.Keys(h.PropertyBalances)),
@@ -191,9 +197,8 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
 			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
 			SupplyPct:        pct,
-			Tier:             holderTier(pct),
+			Tier:             tier,
 		})
-		pcts = append(pcts, pct)
 	}
 	return holders, buildTierStatsPayload(pcts)
 }
