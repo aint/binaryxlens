@@ -14,32 +14,32 @@ type ETA struct {
 }
 
 var trailingWindows = map[string]int{
-	"last7":  7,
-	"last30": 30,
-	"all":    -1,
+	"last1": 1,
+	"last4": 4,
+	"all":   -1,
 }
 
-// MovingAverageETA calculates up to three point estimates (7-day, 30-day, lifetime trailing average of daily Δ).
+// MovingAverageETA calculates up to three point estimates (1-week, 4-week, lifetime trailing average of weekly Δ).
 // When the property is fully sold, ETAs are replaced with the sale period and average buy rate.
 func (p *Property) calculateMovingAverageETA() error {
 	if p.RemainingRaw.Sign() <= 0 {
 		return p.calculateCompletedSaleDates()
 	}
 
-	if len(p.InitialSaleDailyPoints) < 7 {
+	if len(p.InitialSaleWeeklyPoints) < 1 {
 		return fmt.Errorf("not enough data to calculate ETA")
 	}
 
 	// todo: map is random order
 	trailingWindows = map[string]int{
-		"last7":  min(7, len(p.InitialSaleDailyPoints)),
-		"last30": min(30, len(p.InitialSaleDailyPoints)),
-		"all":    len(p.InitialSaleDailyPoints),
+		"last1": min(1, len(p.InitialSaleWeeklyPoints)),
+		"last4": min(4, len(p.InitialSaleWeeklyPoints)),
+		"all":   len(p.InitialSaleWeeklyPoints),
 	}
 
 	etas := make([]ETA, 0, len(trailingWindows))
-	for name, days := range trailingWindows {
-		eta, d, rate, err := p.etaFromTrailingWindow(days)
+	for name, weeks := range trailingWindows {
+		eta, d, rate, err := p.etaFromTrailingWindow(weeks)
 		if err != nil {
 			return err
 		}
@@ -53,19 +53,20 @@ func (p *Property) calculateMovingAverageETA() error {
 
 func (p *Property) etaFromTrailingWindow(w int) (time.Time, int64, string, error) {
 	sum := big.NewInt(0)
-	from := len(p.InitialSaleDailyPoints) - w
-	for j := from; j < len(p.InitialSaleDailyPoints); j++ {
-		sum.Add(sum, p.InitialSaleDailyPoints[j].Value)
+	from := len(p.InitialSaleWeeklyPoints) - w
+	for j := from; j < len(p.InitialSaleWeeklyPoints); j++ {
+		sum.Add(sum, p.InitialSaleWeeklyPoints[j].Value)
 	}
-	// sum / w = avg daily Δ in the window
+	// sum / w = avg weekly Δ in the window
 	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(sum), big.NewInt(int64(w)))
 	if avgRat.Sign() == 0 {
-		return time.Time{}, 0, "", fmt.Errorf("average daily Δ is zero over last %d UTC days", w)
+		return time.Time{}, 0, "", fmt.Errorf("average weekly Δ is zero over last %d weeks", w)
 	}
 
-	// daysRat = remaining / avgRat : If every future day looked like this average, how many days of sales to sell remaining tokens?”
+	// daysRat = remaining / (weeklyRate / 7)
 	remRat := new(big.Rat).SetInt(p.RemainingRaw)
-	daysRat := new(big.Rat).Quo(remRat, avgRat)
+	dailyRat := new(big.Rat).Quo(avgRat, big.NewRat(7, 1))
+	daysRat := new(big.Rat).Quo(remRat, dailyRat)
 	if daysRat.Sign() < 0 {
 		return time.Time{}, 0, "", fmt.Errorf("negative days (unexpected)")
 	}
@@ -75,26 +76,26 @@ func (p *Property) etaFromTrailingWindow(w int) (time.Time, int64, string, error
 		return time.Time{}, 0, "", fmt.Errorf("day count out of int64 range")
 	}
 
-	lastDay := p.InitialSaleDailyPoints[len(p.InitialSaleDailyPoints)-1].Day
-	eta := lastDay.AddDate(0, 0, int(daysInt))
+	lastWeek := p.InitialSaleWeeklyPoints[len(p.InitialSaleWeeklyPoints)-1].Week
+	eta := lastWeek.AddDate(0, 0, int(daysInt))
 	rate := FormatBigRat(avgRat, p.Decimal, 1)
 	return eta, daysInt, rate, nil
 }
 
 func (p *Property) calculateCompletedSaleDates() error {
-	pts := p.InitialSaleDailyPoints
+	pts := p.InitialSaleWeeklyPoints
 	if len(pts) == 0 {
-		return fmt.Errorf("no daily points for completed sale")
+		return fmt.Errorf("no weekly points for completed sale")
 	}
 
-	start := pts[0].Day
-	end := pts[len(pts)-1].Day
-	days := inclusiveUTCDays(start, end)
+	start := pts[0].Week
+	end := pts[len(pts)-1].Week
+	days := inclusiveUTCDays(start, end.AddDate(0, 0, 6))
 	if days <= 0 {
 		return fmt.Errorf("invalid sale period: %s – %s", start.Format(timeDateOnly), end.Format(timeDateOnly))
 	}
 
-	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(p.TotalSupplyRaw), big.NewInt(days))
+	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(p.TotalSupplyRaw), big.NewInt(int64(len(pts))))
 	p.ETAs = []ETA{{
 		Days:   days,
 		Rate:   FormatBigRat(avgRat, p.Decimal, 1),

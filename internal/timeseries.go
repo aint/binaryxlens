@@ -2,16 +2,9 @@ package internal
 
 import (
 	"math/big"
-	"time"
 	"slices"
+	"time"
 )
-
-type DailyPoint struct {
-	Day        time.Time
-	Value      *big.Int
-	CumValue   *big.Int
-	CumPercent float64
-}
 
 type WeeklyPoint struct {
 	Week     time.Time // Monday 00:00 UTC
@@ -19,57 +12,28 @@ type WeeklyPoint struct {
 	CumValue *big.Int
 }
 
-func (p *Property) buildInitialSaleDailySeries() {
-	var start, end time.Time
-	timelineMap := make(map[time.Time]*big.Int)
-	for _, t := range p.transfers {
-		day := t.Time.Truncate(24 * time.Hour)
-		if start.IsZero() || day.Before(start) {
-			start = day
-		}
-		if day.After(end) {
-			end = day
-		}
-
-		if p.isInitialSale(t.From) {
-			cur := timelineMap[day]
-			if cur == nil {
-				cur = big.NewInt(0)
-			}
-			timelineMap[day] = new(big.Int).Add(cur, t.Value)
-		}
-	}
-
-	cumValue := big.NewInt(0)
-	dailyPoints := make([]DailyPoint, 0, len(timelineMap))
-	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
-		value, ok := timelineMap[d]
-		if !ok {
-			value = big.NewInt(0)
-		}
-		cumValue = new(big.Int).Add(cumValue, value)
-		pct, _ := new(big.Rat).Mul(
-			new(big.Rat).SetFrac(cumValue, p.TotalSupplyRaw),
-			big.NewRat(100, 1),
-		).Float64()
-		dailyPoints = append(dailyPoints, DailyPoint{Day: d, Value: value, CumValue: cumValue, CumPercent: pct})
-		if cumValue.Cmp(p.TotalSupplyRaw) == 0 {
-			break
-		}
-	}
-
-	p.InitialSaleDailyPoints = dailyPoints
+func (p *Property) buildInitialSaleWeeklySeries() {
+	p.InitialSaleWeeklyPoints = p.buildWeeklySeries(func(t transfer) bool {
+		return p.isInitialSale(t.From)
+	}, true)
 }
 
 func (p *Property) buildP2PSaleWeeklySeries() {
+	p.P2PSaleWeeklyPoints = p.buildWeeklySeries(func(t transfer) bool {
+		return p.isP2PTransfer(t.From, t.To)
+	}, false)
+}
+
+// buildWeeklySeries buckets matching transfers by Monday UTC. When stopAtSupply
+// is set, the series ends on the week cumulative volume reaches total supply.
+func (p *Property) buildWeeklySeries(match func(transfer) bool, stopAtSupply bool) []WeeklyPoint {
 	timelineMap := make(map[time.Time]*big.Int)
 	for _, t := range p.transfers {
-		if !p.isP2PTransfer(t.From, t.To) {
+		if !match(t) {
 			continue
 		}
 
 		week := startOfWeekUTC(t.Time)
-
 		cur := timelineMap[week]
 		if cur == nil {
 			cur = big.NewInt(0)
@@ -78,7 +42,7 @@ func (p *Property) buildP2PSaleWeeklySeries() {
 	}
 
 	if len(timelineMap) == 0 {
-		return
+		return nil
 	}
 
 	weeks := make([]time.Time, 0, len(timelineMap))
@@ -97,9 +61,12 @@ func (p *Property) buildP2PSaleWeeklySeries() {
 			Value:    value,
 			CumValue: new(big.Int).Set(cumValue),
 		})
+		if stopAtSupply && cumValue.Cmp(p.TotalSupplyRaw) >= 0 {
+			break
+		}
 	}
 
-	p.P2PSaleWeeklyPoints = series
+	return series
 }
 
 func startOfWeekUTC(t time.Time) time.Time {

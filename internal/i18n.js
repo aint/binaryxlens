@@ -43,7 +43,6 @@
 			"noSeries": "No series",
 			"noProperties": "No properties loaded",
 			"resetZoom": "Reset zoom",
-			"chart.dailyDelta": "Daily Δ",
 			"chart.weeklyVolume": "Weekly volume",
 			"chart.cumulative": "Cumulative",
 
@@ -54,9 +53,9 @@
 			"eta.rate": "Avg Δ",
 			"eta.days": "Days",
 			"eta.date": "Date",
-			"eta.last7": "last 7 UTC days",
-			"eta.last30": "last 30 UTC days",
-			"eta.all": "full history (all calendar days)",
+			"eta.last1": "last 1 week",
+			"eta.last4": "last 4 weeks",
+			"eta.all": "full history (all weeks)",
 
 			"secondary.title": "Weekly secondary volume",
 			"secondary.market": "Secondary market",
@@ -139,7 +138,6 @@
 			"noSeries": "Немає даних",
 			"noProperties": "Об'єкти не завантажено",
 			"resetZoom": "Скинути масштаб",
-			"chart.dailyDelta": "Денна Δ",
 			"chart.weeklyVolume": "Тижневий обсяг",
 			"chart.cumulative": "Накопичено",
 
@@ -150,9 +148,9 @@
 			"eta.rate": "Сер. Δ",
 			"eta.days": "Днів",
 			"eta.date": "Дата",
-			"eta.last7": "останні 7 днів (UTC)",
-			"eta.last30": "останні 30 днів (UTC)",
-			"eta.all": "уся історія (усі календарні дні)",
+			"eta.last1": "останній 1 тиждень",
+			"eta.last4": "останні 4 тижні",
+			"eta.all": "уся історія (усі тижні)",
 
 			"secondary.title": "Тижневий обсяг вторинного ринку",
 			"secondary.market": "Вторинний ринок",

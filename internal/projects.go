@@ -109,7 +109,7 @@ func (pr *Project) buildSummary() projectSummaryPayload {
 
 func buildPropertyReportPayload(property *Property) (propertyReportPayload, error) {
 	p2pWeeklyPoints := property.P2PSaleWeeklyPoints
-	initialSaleDailyPoints := property.InitialSaleDailyPoints
+	initialSaleWeeklyPoints := property.InitialSaleWeeklyPoints
 
 	payload := propertyReportPayload{
 		Name:    property.Name,
@@ -125,9 +125,9 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		Rental:  buildRentalPayload(property, time.Now().UTC()),
 		Holders: buildPropertyHoldersPayload(property),
 		Initial: propertyInitialSalesPayload{
-			Labels:     make([]string, 0, len(initialSaleDailyPoints)),
-			Daily:      make([]float64, 0, len(initialSaleDailyPoints)),
-			Cumulative: make([]float64, 0, len(initialSaleDailyPoints)),
+			Labels:     make([]string, 0, len(initialSaleWeeklyPoints)),
+			Weekly:     make([]float64, 0, len(initialSaleWeeklyPoints)),
+			Cumulative: make([]float64, 0, len(initialSaleWeeklyPoints)),
 			ETAs:       make([]propertyETA, 0, len(property.ETAs)),
 		},
 		Secondary: propertyP2PSalesPayload{
@@ -137,9 +137,9 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 			Cumulative: make([]float64, 0, len(p2pWeeklyPoints)),
 		},
 	}
-	for _, p := range initialSaleDailyPoints {
-		payload.Initial.Labels = append(payload.Initial.Labels, p.Day.UTC().Format(timeDateOnly))
-		payload.Initial.Daily = append(payload.Initial.Daily, bigIntToFloat(p.Value, property.Decimal))
+	for _, p := range initialSaleWeeklyPoints {
+		payload.Initial.Labels = append(payload.Initial.Labels, p.Week.UTC().Format(timeDateOnly))
+		payload.Initial.Weekly = append(payload.Initial.Weekly, bigIntToFloat(p.Value, property.Decimal))
 		payload.Initial.Cumulative = append(payload.Initial.Cumulative, bigIntToFloat(p.CumValue, property.Decimal))
 	}
 	for _, e := range property.ETAs {
@@ -261,7 +261,7 @@ type propertyRentalPayload struct {
 
 type propertyInitialSalesPayload struct {
 	Labels     []string      `json:"labels"`
-	Daily      []float64     `json:"daily"`
+	Weekly     []float64     `json:"weekly"`
 	Cumulative []float64     `json:"cumulative"`
 	ETAs       []propertyETA `json:"etas"`
 }

@@ -50,26 +50,26 @@ const (
 )
 
 type Property struct {
-	Name                   string
-	Address                string
-	Type                   PropertyType
-	RentalStartExpected    YearQuarter
-	RentalStartActual      *YearQuarter
-	AreaM2                 uint
-	BinaryxPrice           uint
-	MarketLowValue         uint
-	MarketHighValue        uint
-	EstimatedValueTier     ValueTier
-	transfers              []transfer
-	issuanceModel          IssuanceModel
-	InitialSaleDailyPoints []DailyPoint
-	P2PSaleWeeklyPoints    []WeeklyPoint
-	ETAs                   []ETA
-	Holders                []Holder
-	TotalSupplyRaw         *big.Int
-	BoughtRaw              *big.Int
-	RemainingRaw           *big.Int
-	Decimal                uint8
+	Name                    string
+	Address                 string
+	Type                    PropertyType
+	RentalStartExpected     YearQuarter
+	RentalStartActual       *YearQuarter
+	AreaM2                  uint
+	BinaryxPrice            uint
+	MarketLowValue          uint
+	MarketHighValue         uint
+	EstimatedValueTier      ValueTier
+	transfers               []transfer
+	issuanceModel           IssuanceModel
+	InitialSaleWeeklyPoints []WeeklyPoint
+	P2PSaleWeeklyPoints     []WeeklyPoint
+	ETAs                    []ETA
+	Holders                 []Holder
+	TotalSupplyRaw          *big.Int
+	BoughtRaw               *big.Int
+	RemainingRaw            *big.Int
+	Decimal                 uint8
 }
 
 type YearQuarter struct {
@@ -144,7 +144,7 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 	p.RemainingRaw = new(big.Int).Sub(p.TotalSupplyRaw, p.BoughtRaw)
 
 	p.buildHolders()
-	p.buildInitialSaleDailySeries()
+	p.buildInitialSaleWeeklySeries()
 	p.buildP2PSaleWeeklySeries()
 
 	err = p.calculateMovingAverageETA()

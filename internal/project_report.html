@@ -692,7 +692,7 @@ td.trend.flat { color: #888; }
 		paint();
 	}
 
-	function chartOptions(dailyLabel, cumLabel) {
+	function chartOptions(volumeLabel, cumLabel) {
 		return {
 			responsive: true,
 			maintainAspectRatio: false,
@@ -703,7 +703,7 @@ td.trend.flat { color: #888; }
 					type: "linear",
 					position: "left",
 					beginAtZero: true,
-					title: { display: true, text: dailyLabel, font: { size: 10 } }
+					title: { display: true, text: volumeLabel, font: { size: 10 } }
 				},
 				y1: {
 					type: "linear",
@@ -795,15 +795,15 @@ td.trend.flat { color: #888; }
 		return !!(secondary && secondary.labels && secondary.labels.length > 0);
 	}
 
-	function mountDailyChart(canvas, initial) {
+	function mountInitialChart(canvas, initial) {
 		const ch = new Chart(canvas, {
 			type: "line",
 			data: {
 				labels: initial.labels,
 				datasets: [
 					{
-						label: t("chart.dailyDelta"),
-						data: initial.daily,
+						label: t("chart.weeklyVolume"),
+						data: initial.weekly,
 						borderColor: "rgb(75, 192, 192)",
 						backgroundColor: "rgba(75, 192, 192, 0.2)",
 						tension: 0,
@@ -821,7 +821,7 @@ td.trend.flat { color: #888; }
 					}
 				]
 			},
-			options: chartOptions(t("chart.dailyDelta"), t("chart.cumulative")),
+			options: chartOptions(t("chart.weeklyVolume"), t("chart.cumulative")),
 			plugins: [rangeSelectPlugin]
 		});
 		chartInstances.push(ch);
@@ -1073,7 +1073,7 @@ td.trend.flat { color: #888; }
 					if (!chartParent.open) return;
 					requestAnimationFrame(function () {
 						if (!chart) {
-							chart = mountDailyChart(canvas, initial);
+							chart = mountInitialChart(canvas, initial);
 							return;
 						}
 						chart.resize();
@@ -1081,7 +1081,7 @@ td.trend.flat { color: #888; }
 				});
 				renderETAsInto(etaWrap, initial);
 			} else {
-				mountDailyChart(canvas, initial);
+				mountInitialChart(canvas, initial);
 				renderETAsInto(etaWrap, initial);
 			}
 
