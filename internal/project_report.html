@@ -507,6 +507,12 @@ td.trend.flat { color: #888; }
 			"</tbody></table>";
 	}
 
+	function amountIsZero(raw) {
+		if (raw == null || raw === "") return true;
+		const n = Number(String(raw).replace(/^\+/, ""));
+		return n === 0;
+	}
+
 	function formatUSDT(raw) {
 		if (raw == null || raw === "") return "";
 		const s = String(raw);
@@ -530,15 +536,15 @@ td.trend.flat { color: #888; }
 	}
 
 	function trendCell(delta, usdt) {
-		const tokenFlat = !delta || delta === "0";
+		const tokenFlat = amountIsZero(delta);
 		const paid = usdt || "0";
-		if (tokenFlat && paid === "0") {
+		if (tokenFlat && amountIsZero(paid)) {
 			return "<td class=\"num trend flat\">—</td>";
 		}
 		let cls = "flat";
 		let tokenHtml = "—";
 		if (!tokenFlat) {
-			const down = delta.charAt(0) === "-";
+			const down = String(delta).charAt(0) === "-";
 			cls = down ? "down" : "up";
 			tokenHtml = (down ? "↓ " : "↑ ") + escapeHtml(delta);
 		}
@@ -547,13 +553,13 @@ td.trend.flat { color: #888; }
 	}
 
 	function addUSDT(a, b) {
-		const scale = 1000000;
+		const scale = 100;
 		const sum = Math.round(((Number(a) || 0) + (Number(b) || 0)) * scale);
 		const sign = sum < 0 ? "-" : "";
 		const abs = Math.abs(sum);
 		const whole = Math.trunc(abs / scale);
-		const frac = String(abs % scale).padStart(6, "0").replace(/0+$/, "");
-		return sign + whole + (frac ? "." + frac : "");
+		const frac = String(abs % scale).padStart(2, "0");
+		return sign + whole + "." + frac;
 	}
 
 	function amountPair(tokens, usdt) {
@@ -562,9 +568,9 @@ td.trend.flat { color: #888; }
 	}
 
 	function amountPairOrDash(tokens, usdt) {
-		const tokenFlat = !tokens || tokens === "0";
+		const tokenFlat = amountIsZero(tokens);
 		const paid = usdt || "0";
-		if (tokenFlat && paid === "0") {
+		if (tokenFlat && amountIsZero(paid)) {
 			return "<td class=\"num trend flat\">—</td>";
 		}
 		return amountPair(tokens, usdt);
@@ -925,10 +931,8 @@ td.trend.flat { color: #888; }
 	const tierPalette = ["#94a3b8", "#fb923c", "#38bdf8", "#6366f1", "#10b981", "#1e40af"];
 
 	function formatTokens(n) {
-		if (!isFinite(n)) return "0";
-		const rounded = Math.round(n * 100) / 100;
-		if (Math.abs(rounded - Math.round(rounded)) < 1e-6) return String(Math.round(rounded));
-		return rounded.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+		if (!isFinite(n)) return "0.00";
+		return n.toFixed(2);
 	}
 
 	function tierTokenTotals() {
