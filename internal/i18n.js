@@ -81,6 +81,9 @@
 			"col.month": "Month Δ",
 			"col.supplyPct": "% supply",
 			"col.tier": "Tier",
+			"col.invested": "Tokens / USDT, invested",
+			"col.dateIn": "Date in",
+			"col.dateOut": "Date out",
 
 			"tier.distribution": "Tier distribution",
 			"tier.holdersChart": "Holders by tier",
@@ -177,6 +180,9 @@
 			"col.month": "Місяць Δ",
 			"col.supplyPct": "% емісії",
 			"col.tier": "Рівень",
+			"col.invested": "Токени / USDT, вкладено",
+			"col.dateIn": "Дата входу",
+			"col.dateOut": "Дата виходу",
 
 			"tier.distribution": "Розподіл за рівнями",
 			"tier.holdersChart": "Власники за рівнями",

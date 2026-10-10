@@ -23,6 +23,8 @@ type Holder struct {
 	InitSaleUSDT     *big.Int
 	P2PUSDT          *big.Int
 	OffPlatformP2P   bool
+	Entered          time.Time
+	Exited           time.Time
 }
 
 type ProjectHolder struct {
@@ -38,6 +40,8 @@ type ProjectHolder struct {
 	InitSaleUSDT     *big.Int
 	P2PUSDT          *big.Int
 	OffPlatformP2P   bool
+	Entered          time.Time
+	Exited           time.Time
 }
 
 func (p *Property) buildHolders() {
@@ -57,10 +61,20 @@ func (p *Property) buildHolders() {
 				paid = negBigInt(t.USDT)
 			}
 			updateHolder(holderMap, t.From, new(big.Int).Neg(v), paid, inWeek, inMonth)
+			from := holderMap[t.From]
+			if from.Balance.Sign() == 0 {
+				from.Exited = t.Time
+			}
 		}
 		if t.To != zeroAddr0x {
-			updateHolder(holderMap, t.To, v, t.USDT, inWeek, inMonth)
 			to := holderMap[t.To]
+			opening := to == nil || to.Balance.Sign() == 0
+			updateHolder(holderMap, t.To, v, t.USDT, inWeek, inMonth)
+			to = holderMap[t.To]
+			if opening {
+				to.Entered = t.Time
+				to.Exited = time.Time{}
+			}
 			if p.isInitialSale(t.From) {
 				to.InitialBought.Add(to.InitialBought, v)
 				if t.USDT != nil {
@@ -152,6 +166,8 @@ func (pr *Project) buildHolders() {
 					InitSaleUSDT:     new(big.Int).Set(hol.InitSaleUSDT),
 					P2PUSDT:          new(big.Int).Set(hol.P2PUSDT),
 					OffPlatformP2P:   hol.OffPlatformP2P,
+					Entered:          hol.Entered,
+					Exited:           hol.Exited,
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -168,6 +184,8 @@ func (pr *Project) buildHolders() {
 			ph.InitSaleUSDT.Add(ph.InitSaleUSDT, hol.InitSaleUSDT)
 			ph.P2PUSDT.Add(ph.P2PUSDT, hol.P2PUSDT)
 			ph.OffPlatformP2P = ph.OffPlatformP2P || hol.OffPlatformP2P
+			ph.Entered = earlierTime(ph.Entered, hol.Entered)
+			ph.Exited = laterTime(ph.Exited, hol.Exited)
 		}
 	}
 
@@ -207,6 +225,8 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			OffPlatformP2P:   h.OffPlatformP2P,
 			SupplyPct:        pct,
 			Tier:             tier,
+			Entered:          formatDate(h.Entered),
+			Exited:           formatDate(h.Exited),
 		})
 	}
 	return holders, buildTierStatsPayload(pcts)
@@ -254,6 +274,27 @@ var holderTierThresholds = []struct {
 	{10, "dolphin"},
 	{20, "shark"},
 	{100, "whale"},
+}
+
+func earlierTime(a, b time.Time) time.Time {
+	if a.IsZero() || (!b.IsZero() && b.Before(a)) {
+		return b
+	}
+	return a
+}
+
+func laterTime(a, b time.Time) time.Time {
+	if b.After(a) {
+		return b
+	}
+	return a
+}
+
+func formatDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format(timeDateOnly)
 }
 
 func holderTier(percent float64) string {

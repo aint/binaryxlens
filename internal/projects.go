@@ -212,6 +212,8 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 			OffPlatformP2P:   h.OffPlatformP2P,
 			SupplyPct:        pct,
 			Tier:             tier,
+			Entered:          formatDate(h.Entered),
+			Exited:           formatDate(h.Exited),
 		})
 	}
 	return holders
@@ -296,6 +298,8 @@ type projectHolderPayload struct {
 	OffPlatformP2P   bool     `json:"offPlatformP2P,omitempty"`
 	SupplyPct        float64  `json:"supplyPct"`
 	Tier             string   `json:"tier"`
+	Entered          string   `json:"entered,omitempty"`
+	Exited           string   `json:"exited,omitempty"`
 }
 
 type propertyHolderRow struct {
@@ -312,6 +316,8 @@ type propertyHolderRow struct {
 	OffPlatformP2P   bool    `json:"offPlatformP2P,omitempty"`
 	SupplyPct        float64 `json:"supplyPct"`
 	Tier             string  `json:"tier"`
+	Entered          string  `json:"entered,omitempty"`
+	Exited           string  `json:"exited,omitempty"`
 }
 
 type tierStatPayload struct {

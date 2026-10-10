@@ -642,10 +642,32 @@ td.trend.flat { color: #888; }
 			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
 	}
 
-	function exitedBlock(exited, columns, withProperties) {
+	function dateCell(value) {
+		if (!value) return "<td class=\"num\">—</td>";
+		return "<td class=\"num\">" + escapeHtml(value) + "</td>";
+	}
+
+	function exitedRow(h, i, withProperties) {
+		const names = withProperties
+			? "<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>"
+			: "";
+		return "<tr>" +
+			"<td class=\"num\">" + (i + 1) + "</td>" +
+			"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+			names +
+			amountPair(addUSDT(h.initialBought, h.p2pBought), addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
+			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+			trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
+			dateCell(h.entered) +
+			dateCell(h.exited) +
+			"</tr>";
+	}
+
+	function exitedBlock(exited, withProperties) {
 		if (exited.length === 0) return "";
+		const columns = withProperties ? projectExitedColumns : propertyExitedColumns;
 		const rows = exited.map(function (h, i) {
-			return holderRow(h, i, withProperties);
+			return exitedRow(h, i, withProperties);
 		}).join("");
 		return "<div class=\"exited-holders\"><h4>" + escapeHtml(t("holders.exited")) + "</h4>" +
 			holdersTable(rows, columns) + "</div>";
@@ -653,6 +675,8 @@ td.trend.flat { color: #888; }
 
 	const propertyHolderColumns = ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"];
 	const projectHolderColumns = ["col.address", "col.propertyNames", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"];
+	const propertyExitedColumns = ["col.address", "col.invested", "col.week", "col.month", "col.dateIn", "col.dateOut"];
+	const projectExitedColumns = ["col.address", "col.propertyNames", "col.invested", "col.week", "col.month", "col.dateIn", "col.dateOut"];
 
 	function holdersHeading(limit) {
 		return limit ? t("holders.top", { n: limit }) : t("holders.allTitle");
@@ -699,7 +723,7 @@ td.trend.flat { color: #888; }
 				return holderRow(h, i, false);
 			}).join("");
 			const activeTable = split.active.length === 0 ? "" : holdersTable(rows, propertyHolderColumns);
-			body.innerHTML = activeTable + exitedBlock(split.exited, propertyHolderColumns, false) +
+			body.innerHTML = activeTable + exitedBlock(split.exited, false) +
 				offPlatformNote(shown.concat(split.exited));
 		}
 		summary.appendChild(holdersLimitControl(limit, function (next) {
@@ -927,7 +951,7 @@ td.trend.flat { color: #888; }
 					return holderRow(h, i, true);
 				}).join("");
 				document.getElementById("holders-exited").innerHTML =
-					exitedBlock(split.exited, projectHolderColumns, true);
+					exitedBlock(split.exited, true);
 				const note = document.getElementById("holders-off-platform");
 				const marked = shown.concat(split.exited).some(function (h) { return h.offPlatformP2P; });
 				note.hidden = !marked;
