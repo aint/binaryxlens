@@ -209,6 +209,7 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 			P2PBought:        FormatBigInt(h.P2PBought, property.Decimal),
 			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
 			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
+			OffPlatformP2P:   h.OffPlatformP2P,
 			SupplyPct:        pct,
 			Tier:             tier,
 		})
@@ -292,6 +293,7 @@ type projectHolderPayload struct {
 	P2PBought        string   `json:"p2pBought"`
 	InitSaleUSDT     string   `json:"initSaleUSDT"`
 	P2PUSDT          string   `json:"p2pUSDT"`
+	OffPlatformP2P   bool     `json:"offPlatformP2P,omitempty"`
 	SupplyPct        float64  `json:"supplyPct"`
 	Tier             string   `json:"tier"`
 }
@@ -307,6 +309,7 @@ type propertyHolderRow struct {
 	P2PBought        string  `json:"p2pBought"`
 	InitSaleUSDT     string  `json:"initSaleUSDT"`
 	P2PUSDT          string  `json:"p2pUSDT"`
+	OffPlatformP2P   bool    `json:"offPlatformP2P,omitempty"`
 	SupplyPct        float64 `json:"supplyPct"`
 	Tier             string  `json:"tier"`
 }

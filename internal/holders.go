@@ -22,6 +22,7 @@ type Holder struct {
 	P2PBought        *big.Int
 	InitSaleUSDT     *big.Int
 	P2PUSDT          *big.Int
+	OffPlatformP2P   bool
 }
 
 type ProjectHolder struct {
@@ -36,6 +37,7 @@ type ProjectHolder struct {
 	P2PBought        *big.Int
 	InitSaleUSDT     *big.Int
 	P2PUSDT          *big.Int
+	OffPlatformP2P   bool
 }
 
 func (p *Property) buildHolders() {
@@ -68,6 +70,10 @@ func (p *Property) buildHolders() {
 				to.P2PBought.Add(to.P2PBought, v)
 				if t.USDT != nil {
 					to.P2PUSDT.Add(to.P2PUSDT, t.USDT)
+				}
+				// Wallet-to-wallet with no platform payment.
+				if t.USDT == nil || t.USDT.Sign() == 0 {
+					to.OffPlatformP2P = true
 				}
 			}
 		}
@@ -145,6 +151,7 @@ func (pr *Project) buildHolders() {
 					P2PBought:        new(big.Int).Set(hol.P2PBought),
 					InitSaleUSDT:     new(big.Int).Set(hol.InitSaleUSDT),
 					P2PUSDT:          new(big.Int).Set(hol.P2PUSDT),
+					OffPlatformP2P:   hol.OffPlatformP2P,
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -160,6 +167,7 @@ func (pr *Project) buildHolders() {
 			ph.P2PBought.Add(ph.P2PBought, hol.P2PBought)
 			ph.InitSaleUSDT.Add(ph.InitSaleUSDT, hol.InitSaleUSDT)
 			ph.P2PUSDT.Add(ph.P2PUSDT, hol.P2PUSDT)
+			ph.OffPlatformP2P = ph.OffPlatformP2P || hol.OffPlatformP2P
 		}
 	}
 
@@ -196,6 +204,7 @@ func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayl
 			P2PBought:        FormatBigInt(h.P2PBought, pr.Decimal),
 			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
 			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
+			OffPlatformP2P:   h.OffPlatformP2P,
 			SupplyPct:        pct,
 			Tier:             tier,
 		})

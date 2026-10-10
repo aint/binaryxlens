@@ -249,6 +249,7 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 td.trend.up { color: #1a7f37; }
 td.trend.down { color: #cf222e; }
 td.trend.flat { color: #888; }
+.off-platform-note { color: #666; font-size: 0.8rem; margin: 8px 0 0; }
 </style>
 </head>
 <body>
@@ -294,6 +295,7 @@ td.trend.flat { color: #888; }
 			</table>
 		</div>
 		<div id="holders-exited"></div>
+		<p id="holders-off-platform" class="off-platform-note" hidden></p>
 	</details>
 </section>
 
@@ -562,18 +564,25 @@ td.trend.flat { color: #888; }
 		return sign + whole + "." + frac;
 	}
 
-	function amountPair(tokens, usdt) {
+	function amountPair(tokens, usdt, mark) {
+		const star = mark ? "*" : "";
 		return "<td class=\"num pair\"><span>" + escapeHtml(tokens) +
-			"</span><span class=\"usdt\">" + escapeHtml(formatUSDT(usdt)) + " USDT</span></td>";
+			"</span><span class=\"usdt\">" + escapeHtml(formatUSDT(usdt)) + " USDT" + star + "</span></td>";
 	}
 
-	function amountPairOrDash(tokens, usdt) {
+	function amountPairOrDash(tokens, usdt, mark) {
 		const tokenFlat = amountIsZero(tokens);
 		const paid = usdt || "0";
 		if (tokenFlat && amountIsZero(paid)) {
 			return "<td class=\"num trend flat\">—</td>";
 		}
-		return amountPair(tokens, usdt);
+		return amountPair(tokens, usdt, mark);
+	}
+
+	function offPlatformNote(rows) {
+		const marked = rows.some(function (h) { return h.offPlatformP2P; });
+		if (!marked) return "";
+		return "<p class=\"off-platform-note\">" + escapeHtml(t("holders.offPlatformP2P")) + "</p>";
 	}
 
 	const holderLimitChoices = [10, 25, 50, 0];
@@ -615,9 +624,9 @@ td.trend.flat { color: #888; }
 			"<td class=\"num\">" + (i + 1) + "</td>" +
 			"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
 			names +
-			amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT)) +
+			amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
 			amountPairOrDash(h.initialBought, h.initSaleUSDT) +
-			amountPairOrDash(h.p2pBought, h.p2pUSDT) +
+			amountPairOrDash(h.p2pBought, h.p2pUSDT, h.offPlatformP2P) +
 			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
 			trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
 			"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
@@ -685,11 +694,13 @@ td.trend.flat { color: #888; }
 		let limit = propertyHoldersDefault;
 		function paint() {
 			label.textContent = split.active.length === 0 ? t("holders.none") : holdersHeading(limit);
-			const rows = shownHolders(split.active, limit).map(function (h, i) {
+			const shown = shownHolders(split.active, limit);
+			const rows = shown.map(function (h, i) {
 				return holderRow(h, i, false);
 			}).join("");
 			const activeTable = split.active.length === 0 ? "" : holdersTable(rows, propertyHolderColumns);
-			body.innerHTML = activeTable + exitedBlock(split.exited, propertyHolderColumns, false);
+			body.innerHTML = activeTable + exitedBlock(split.exited, propertyHolderColumns, false) +
+				offPlatformNote(shown.concat(split.exited));
 		}
 		summary.appendChild(holdersLimitControl(limit, function (next) {
 			limit = next;
@@ -917,6 +928,10 @@ td.trend.flat { color: #888; }
 				}).join("");
 				document.getElementById("holders-exited").innerHTML =
 					exitedBlock(split.exited, projectHolderColumns, true);
+				const note = document.getElementById("holders-off-platform");
+				const marked = shown.concat(split.exited).some(function (h) { return h.offPlatformP2P; });
+				note.hidden = !marked;
+				note.textContent = marked ? t("holders.offPlatformP2P") : "";
 			}
 			summary.appendChild(holdersLimitControl(limit, function (next) {
 				limit = next;
