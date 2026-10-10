@@ -30,10 +30,72 @@
       cursor: pointer;
     }
     .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-    .lede { color: #444; margin: 0 0 8px; font-size: 0.95rem; }
-    .updated { color: #666; margin: 0 0 24px; font-size: 0.85rem; }
+    .lede { color: #444; margin: 0 0 16px; font-size: 0.95rem; }
+    .updated {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    .updated time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+      color: #1a1a1a;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
     .lede a, .report-problem a { color: #0b57d0; }
-    .report-problem { margin: 0 0 8px; font-size: 0.85rem; }
+    .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
+    .tools { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
+    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; }
+    .search input {
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 400;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: inherit;
+    }
+    .search input:focus-visible, #type-filters button:focus-visible {
+      outline: 2px solid #0b57d0;
+      outline-offset: 2px;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 12px;
+    }
+    #type-filters { display: flex; flex-wrap: wrap; gap: 4px; }
+    #type-filters button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    #type-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    #project-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
+    .empty {
+      margin: 0;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      color: #444;
+    }
     nav {
       background: #fff;
       border: 1px solid #e0e0e0;
@@ -50,7 +112,8 @@
       text-decoration: none;
       border-bottom: 1px solid #eee;
     }
-    nav a:last-child { border-bottom: none; }
+    nav a[hidden], nav[hidden] { display: none; }
+    nav a:last-child, nav a.is-last { border-bottom: none; }
     nav a:hover { background: #f7f8fa; }
     .item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .name { font-weight: 550; }
@@ -83,15 +146,80 @@
       <h1>Binaryx Lens</h1>
       <div id="lang-switch" class="lang-switch"></div>
     </header>
+    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">__REPORTS_UPDATED__ UTC</time></p>
     <p class="lede">
       <span data-i18n="index.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
     </p>
-    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="index.reportProblem">Report a problem</a></p>
-    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">__REPORTS_UPDATED__ UTC</time></p>
+    <div class="tools">
+      <label class="search">
+        <span data-i18n="index.search">Search</span>
+        <input id="project-search" type="search" placeholder="Project or property" autocomplete="off">
+      </label>
+      <div class="filters">
+        <div id="type-filters" role="group" data-i18n-aria="index.type">
+          <button type="button" data-type-filter="all" data-i18n="index.all" aria-pressed="true">All</button>
+          <button type="button" data-type-filter="rental" data-i18n="type.rental" aria-pressed="false">rental</button>
+          <button type="button" data-type-filter="construction" data-i18n="type.construction" aria-pressed="false">construction</button>
+          <button type="button" data-type-filter="redeemed" data-i18n="type.redeemed" aria-pressed="false">redeemed</button>
+        </div>
+        <p id="project-count" aria-live="polite"></p>
+      </div>
+    </div>
+    <p id="project-empty" class="empty" hidden data-i18n="index.empty">No projects match. Clear the search or choose All.</p>
     <nav>
 __INDEX_NAV__    </nav>
+    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="index.reportProblem">Report a problem</a></p>
   </main>
   <script>__I18N_SCRIPT__</script>
+  <script>
+    (function () {
+      const search = document.getElementById("project-search");
+      const filters = document.getElementById("type-filters");
+      const list = document.querySelector("nav");
+      const rows = Array.from(list.querySelectorAll("a"));
+      const countEl = document.getElementById("project-count");
+      const empty = document.getElementById("project-empty");
+      const t = window.i18n.t;
+
+      search.placeholder = t("index.searchPlaceholder");
+
+      function apply() {
+        const query = search.value.trim().toLowerCase();
+        const pressed = filters.querySelector('[aria-pressed="true"]');
+        const type = pressed ? pressed.dataset.typeFilter : "all";
+        let shown = 0;
+        let last = null;
+        rows.forEach(function (row) {
+          const name = row.querySelector(".name");
+          const props = row.querySelector(".props");
+          const text = ((name ? name.textContent : "") + " " + (props ? props.textContent : "")).toLowerCase();
+          const typeOk = type === "all" || row.querySelector(".tag-" + type);
+          const match = text.indexOf(query) !== -1 && typeOk;
+          row.hidden = !match;
+          row.classList.remove("is-last");
+          if (match) {
+            shown += 1;
+            last = row;
+          }
+        });
+        if (last) last.classList.add("is-last");
+        list.hidden = shown === 0;
+        empty.hidden = shown !== 0;
+        countEl.textContent = t("index.projects", { n: shown });
+      }
+
+      search.addEventListener("input", apply);
+      filters.addEventListener("click", function (event) {
+        const button = event.target.closest("[data-type-filter]");
+        if (!button) return;
+        filters.querySelectorAll("[data-type-filter]").forEach(function (el) {
+          el.setAttribute("aria-pressed", String(el === button));
+        });
+        apply();
+      });
+      apply();
+    })();
+  </script>
 </body>
 </html>
