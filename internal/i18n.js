@@ -36,6 +36,9 @@
 			"rental.notStarted": "not started",
 			"rental.age": "Age",
 			"rental.years": { one: "{n} year", other: "{n} years" },
+			"rent.title": "Posted rent",
+			"rent.caption": "Raw profit, on the month each window starts.",
+			"rent.monthly": "USDT",
 
 			"price.area": "Area, m²",
 			"price.binaryx": "Price, Binaryx",
@@ -143,6 +146,9 @@
 			"rental.notStarted": "не розпочато",
 			"rental.age": "Вік",
 			"rental.years": { one: "{n} рік", few: "{n} роки", many: "{n} років", other: "{n} року" },
+			"rent.title": "Нарахована оренда",
+			"rent.caption": "Сирий прибуток у місяці початку періоду.",
+			"rent.monthly": "USDT",
 
 			"price.area": "Площа, м²",
 			"price.binaryx": "Ціна, Binaryx",

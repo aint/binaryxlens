@@ -187,7 +187,23 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 			payload.AgeYears = &ageYears
 		}
 	}
+	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths)
 	return payload
+}
+
+func rentalProfitSeries(months []rentalProfitMonth) rentalProfit {
+	if len(months) == 0 {
+		return rentalProfit{}
+	}
+	profit := rentalProfit{
+		Labels:  make([]string, 0, len(months)),
+		Monthly: make([]string, 0, len(months)),
+	}
+	for _, month := range months {
+		profit.Labels = append(profit.Labels, month.Month.UTC().Format("2006-01"))
+		profit.Monthly = append(profit.Monthly, FormatBigInt(month.USDT, polygonscan.USDTDecimal))
+	}
+	return profit
 }
 
 func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
@@ -260,6 +276,12 @@ type propertyRentalPayload struct {
 	Score         string   `json:"score"`
 	DelayQuarters int      `json:"delayQuarters"`
 	AgeYears      *float64 `json:"ageYears,omitempty"`
+	rentalProfit
+}
+
+type rentalProfit struct {
+	Labels  []string `json:"labels,omitempty"`
+	Monthly []string `json:"monthly,omitempty"`
 }
 
 type propertyInitialSalesPayload struct {

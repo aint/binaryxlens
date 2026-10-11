@@ -64,6 +64,7 @@ type Property struct {
 	issuanceModel           IssuanceModel
 	InitialSaleWeeklyPoints []WeeklyPoint
 	P2PSaleWeeklyPoints     []WeeklyPoint
+	RentalProfitMonths      []rentalProfitMonth
 	ETAs                    []ETA
 	Holders                 []Holder
 	TotalSupplyRaw          *big.Int
@@ -96,9 +97,11 @@ func (yq YearQuarter) quartersSince(start YearQuarter) int {
 
 // Init fetches the property's transfers and builds its stats. p2pTrades holds
 // P2P trades of all properties, keyed by token address.
-func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade) error {
+func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade, monthlyRentalProfit []rentalProfitMonth) error {
 	p.Address = strings.ToLower(p.Address)
 	p.estimateValueTier()
+
+	p.RentalProfitMonths = monthlyRentalProfit
 
 	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
 	if err != nil {

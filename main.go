@@ -49,11 +49,16 @@ func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*int
 		fmt.Fprintf(os.Stderr, "Failed to fetch allP2P trades: %v\n", err)
 		os.Exit(1)
 	}
+	monthlyRentalProfit, err := internal.FetchRentalProfit(client, scanPause)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to fetch monthly rental profit: %v\n", err)
+		os.Exit(1)
+	}
 
 	var projects []*internal.Project
 	for name, properties := range internal.AllProperties {
 		for _, property := range properties {
-			err := property.Init(client, scanPause, allP2PTrades[property.Address])
+			err := property.Init(client, scanPause, allP2PTrades[property.Address], monthlyRentalProfit[property.Address])
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to create %q property: %v\n", name, err)
 				continue

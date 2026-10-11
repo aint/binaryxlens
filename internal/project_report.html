@@ -146,6 +146,14 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .rental-metric strong { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .rental-metric .score { align-self: flex-start; font-size: 0.75rem; padding: 3px 8px; }
 .rental-pending { font-size: 0.95rem; font-weight: 500; color: #888; }
+.rent-wrap {
+	margin: 0 0 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e8e8e8;
+}
+.rent-wrap h4 { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; }
+.rent-caption { margin: 0 0 8px; font-size: 0.75rem; line-height: 1.35; color: #666; }
+.chart-wrap.rent-chart { height: 220px; }
 .slot .buys-wrap > summary {
 	font-size: 0.95rem;
 	font-weight: 600;
@@ -392,6 +400,63 @@ td.trend.flat { color: #888; }
 		if (score) metric("rental.status", score);
 		if (rental.ageYears != null) metric("rental.age", strong(rentalAgeText(rental.ageYears)));
 		slot.appendChild(block);
+	}
+
+	function renderRentInto(slot, property) {
+		const rent = property && property.rental;
+		if (!rent || !rent.labels || rent.labels.length === 0) return;
+
+		const wrap = document.createElement("div");
+		wrap.className = "rent-wrap";
+		const heading = document.createElement("h4");
+		heading.textContent = t("rent.title");
+		const caption = document.createElement("p");
+		caption.className = "rent-caption";
+		caption.textContent = t("rent.caption");
+		const chartWrap = document.createElement("div");
+		chartWrap.className = "chart-wrap rent-chart";
+		const canvas = document.createElement("canvas");
+		chartWrap.appendChild(canvas);
+		wrap.appendChild(heading);
+		wrap.appendChild(caption);
+		wrap.appendChild(chartWrap);
+		slot.appendChild(wrap);
+
+		const ch = new Chart(canvas, {
+			type: "bar",
+			data: {
+				labels: rent.labels,
+				datasets: [{
+					label: t("rent.monthly"),
+					data: rent.monthly.map(function (s) { return Number(s); }),
+					backgroundColor: "rgba(29, 107, 58, 0.45)",
+					borderColor: "rgb(29, 107, 58)",
+					borderWidth: 1
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				interaction: { mode: "index", intersect: false },
+				plugins: {
+					tooltip: {
+						callbacks: {
+							label: function (ctx) {
+								return rent.monthly[ctx.dataIndex] + " USDT";
+							}
+						}
+					}
+				},
+				scales: {
+					x: { ticks: { maxTicksLimit: 24 } },
+					y: {
+						beginAtZero: true,
+						title: { display: true, text: t("rent.monthly"), font: { size: 10 } }
+					}
+				}
+			}
+		});
+		chartInstances.push(ch);
 	}
 
 	function escapeHtml(s) {
@@ -1207,8 +1272,9 @@ td.trend.flat { color: #888; }
 			const slot = document.createElement("div");
 			slot.className = "slot";
 			renderPropertyHead(slot, property);
-			renderRentalInto(slot, property);
 			renderPriceInto(slot, property);
+			renderRentalInto(slot, property);
+			renderRentInto(slot, property);
 			const title = document.createElement(collapseBuys ? "summary" : "h3");
 			title.textContent = t("initialSales");
 
