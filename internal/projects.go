@@ -187,18 +187,21 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 			payload.AgeYears = &ageYears
 		}
 	}
-	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths)
+	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.BinaryxPrice)
 	return payload
 }
 
-func rentalProfitSeries(months []rentalProfitMonth) rentalProfit {
+func rentalProfitSeries(months []rentalProfitMonth, binaryxPrice uint) rentalProfit {
+	profit := rentalProfit{}
+	if percent, basis, ok := netRentalYield(months, binaryxPrice); ok {
+		profit.NetYield = &percent
+		profit.YieldMonths = basis
+	}
 	if len(months) == 0 {
-		return rentalProfit{}
+		return profit
 	}
-	profit := rentalProfit{
-		Labels:  make([]string, 0, len(months)),
-		Monthly: make([]string, 0, len(months)),
-	}
+	profit.Labels = make([]string, 0, len(months))
+	profit.Monthly = make([]string, 0, len(months))
 	for _, month := range months {
 		profit.Labels = append(profit.Labels, month.Month.UTC().Format("2006-01"))
 		profit.Monthly = append(profit.Monthly, FormatBigInt(month.USDT, polygonscan.USDTDecimal))
@@ -280,8 +283,10 @@ type propertyRentalPayload struct {
 }
 
 type rentalProfit struct {
-	Labels  []string `json:"labels,omitempty"`
-	Monthly []string `json:"monthly,omitempty"`
+	Labels      []string `json:"labels,omitempty"`
+	Monthly     []string `json:"monthly,omitempty"`
+	NetYield    *float64 `json:"netYield,omitempty"`
+	YieldMonths int      `json:"yieldMonths,omitempty"`
 }
 
 type propertyInitialSalesPayload struct {

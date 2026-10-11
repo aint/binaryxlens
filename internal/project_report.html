@@ -359,6 +359,15 @@ td.trend.flat { color: #888; }
 		return tag;
 	}
 
+	function rentalYieldText(rental) {
+		const pct = Number(rental.netYield).toLocaleString(window.i18n.lang, {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}) + "%";
+		if (!rental.yieldMonths || rental.yieldMonths >= 12) return pct;
+		return pct + " · " + t("rent.yieldBasis", { n: rental.yieldMonths });
+	}
+
 	function rentalAgeText(years) {
 		const label = t("rental.years", { n: years });
 		const shown = years.toLocaleString(window.i18n.lang, { maximumFractionDigits: 2 });
@@ -399,6 +408,7 @@ td.trend.flat { color: #888; }
 		const score = rentalScoreTag(property);
 		if (score) metric("rental.status", score);
 		if (rental.ageYears != null) metric("rental.age", strong(rentalAgeText(rental.ageYears)));
+		if (rental.netYield != null) metric("rent.yield", strong(rentalYieldText(rental)));
 		slot.appendChild(block);
 	}
 
