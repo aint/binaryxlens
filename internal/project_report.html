@@ -364,7 +364,7 @@ td.trend.flat { color: #888; }
 			minimumFractionDigits: 2,
 			maximumFractionDigits: 2
 		}) + "%";
-		if (!rental.yieldMonths || rental.yieldMonths >= 12) return pct;
+		if (!rental.yieldMonths) return pct;
 		return pct + " · " + t("rent.yieldBasis", { n: rental.yieldMonths });
 	}
 
