@@ -121,10 +121,10 @@ func monthStart(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 }
 
-// netRentalYield is (annualized rent profit / Binaryx price) × 100.
+// netRentalYield is (annualized rent profit / amount collected) × 100.
 // The window is the last 12 months, or 6, 3, or 1 when history is shorter.
 // A shorter window scales to a year: 6 months × 2, 3 × 4, 1 × 12.
-func netRentalYield(months []rentalProfitMonth, binaryxPrice uint) (percent float64, basis int, ok bool) {
+func netRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float64, basis int, ok bool) {
 	monthsCount := len(months)
 	switch {
 	case monthsCount >= 12:
@@ -136,7 +136,7 @@ func netRentalYield(months []rentalProfitMonth, binaryxPrice uint) (percent floa
 	case monthsCount >= 1:
 		basis = 1
 	}
-	if basis == 0 || binaryxPrice == 0 {
+	if basis == 0 || raisedValue == 0 {
 		return 0, 0, false
 	}
 	sum := big.NewInt(0)
@@ -148,7 +148,7 @@ func netRentalYield(months []rentalProfitMonth, binaryxPrice uint) (percent floa
 	scale := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(polygonscan.USDTDecimal)), nil)
 	annual := new(big.Rat).SetInt(sum)
 	annual.Mul(annual, big.NewRat(12, int64(basis)))
-	price := new(big.Int).Mul(scale, new(big.Int).SetUint64(uint64(binaryxPrice)))
+	price := new(big.Int).Mul(scale, new(big.Int).SetUint64(uint64(raisedValue)))
 	annual.Quo(annual, new(big.Rat).SetInt(price))
 	annual.Mul(annual, big.NewRat(100, 1))
 	f, _ := annual.Float64()

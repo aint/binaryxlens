@@ -43,7 +43,8 @@
 			"rent.yieldBasis": { one: "from {n} month", other: "from {n} months" },
 
 			"price.area": "Area, m²",
-			"price.binaryx": "Price, Binaryx",
+			"price.raised": "Raised, Binaryx",
+			"price.projected": "Projected, Binaryx",
 			"price.market": "Market, USD/m²",
 			"price.valueTier": "Estimated value",
 			"price.aiNote": "AI analysis, {when}. Market value and estimated value may be inaccurate.",
@@ -155,7 +156,8 @@
 			"rent.yieldBasis": { one: "за {n} місяць", few: "за {n} місяці", many: "за {n} місяців", other: "за {n} місяця" },
 
 			"price.area": "Площа, м²",
-			"price.binaryx": "Ціна, Binaryx",
+			"price.raised": "Зібрано, Binaryx",
+			"price.projected": "Прогноз, Binaryx",
 			"price.market": "Ринок, USD/м²",
 			"price.valueTier": "Оцінка вартості",
 			"price.aiNote": "Аналіз ШІ, {when}. Ринкова вартість і оцінка вартості можуть бути неточними.",

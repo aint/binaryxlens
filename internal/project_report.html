@@ -669,7 +669,8 @@ td.trend.flat { color: #888; }
 		}
 
 		metric("price.area", strong(amount(price.areaM2)));
-		metric("price.binaryx", strong(amount(price.binaryx)));
+		metric("price.raised", strong(amount(price.raised)));
+		metric("price.projected", strong(amount(price.projected)));
 		metric("price.market", strong(marketRange()));
 		metric("price.valueTier", tierEl, true);
 		if (price.marketLow || price.marketHigh || tier) {

@@ -117,7 +117,8 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		Type:    property.Type.Label(),
 		Price: propertyPricePayload{
 			AreaM2:             property.AreaM2,
-			Binaryx:            property.BinaryxPrice,
+			Raised:             property.BinaryxRaisedValue,
+			Projected:          property.BinaryxProjectedValue,
 			MarketLow:          property.MarketLowValue,
 			MarketHigh:         property.MarketHighValue,
 			EstimatedValueTier: string(property.EstimatedValueTier),
@@ -187,13 +188,13 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 			payload.AgeYears = &ageYears
 		}
 	}
-	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.BinaryxPrice)
+	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.BinaryxRaisedValue)
 	return payload
 }
 
-func rentalProfitSeries(months []rentalProfitMonth, binaryxPrice uint) rentalProfit {
+func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProfit {
 	profit := rentalProfit{}
-	if percent, basis, ok := netRentalYield(months, binaryxPrice); ok {
+	if percent, basis, ok := netRentalYield(months, raisedValue); ok {
 		profit.NetYield = &percent
 		profit.YieldMonths = basis
 	}
@@ -267,7 +268,8 @@ type propertyReportPayload struct {
 
 type propertyPricePayload struct {
 	AreaM2             uint   `json:"areaM2"`
-	Binaryx            uint   `json:"binaryx"`
+	Raised             uint   `json:"raised"`
+	Projected          uint   `json:"projected"`
 	MarketLow          uint   `json:"marketLow"`
 	MarketHigh         uint   `json:"marketHigh"`
 	EstimatedValueTier string `json:"estimatedValueTier"`
