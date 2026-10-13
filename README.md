@@ -53,6 +53,43 @@ Flags:
 
 Open `index.html` in a browser.
 
+## Roadmap
+
+### Holders
+
+- [ ] Wallet pages — click a holder address to see all assets across the platform.
+- [ ] Global top holders — leaderboard across all projects.
+- [ ] Exited holders — former holdings (tokens and USDT invested), hold duration, exit date.
+
+### Secondary market (P2P)
+
+- [ ] Volume and price trends over time.
+- [ ] Summary stats — total transaction count, average transactions per week, this week’s count, trend vs the previous week.
+
+### Signals
+
+- [ ] Insider trades — platform staff wallets (e.g. `0xdf24253c84f16aac030917c2672720b11610e109`).
+- [ ] Platform entry and exit — new and fully exited investors.
+
+### Analytics
+
+- [ ] Side-by-side property or project comparison.
+- [ ] Sell-out ETA — linear interpolation model in addition to current projections.
+- [ ] Developers — track real-estate developers and delivery terms.
+- [ ] Actual ARR and ROI per property.
+- [ ] Rent consistency — posted rent vs promised amount; flag missed or skipped months.
+
+### Property report
+
+- [ ] Show token count (supply) per property on the report.
+- [ ] Explain rent-delay scoring (expected vs actual quarters).
+- [ ] Binaryx initial sale price vs current implied price (from latest token pricing).
+
+### UI
+
+- [ ] Tier pie charts — count per tier (e.g. crabs), short tier legend, clearer colors.
+- [ ] Screenshots — refresh `docs/screenshots/` (see comment under **Screenshots** above).
+
 ## Disclaimer
 
 Not affiliated with Binaryx. Data comes from public blockchain records and the Binaryx website. Not financial advice.
