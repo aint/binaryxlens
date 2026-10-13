@@ -6,21 +6,25 @@ On-chain analytics for tokenized real estate on [binaryx.com](https://binaryx.co
 
 ## Why
 
-Binaryx sells fractional shares of rental and development properties (Indonesia, Turkey, Montenegro) as ERC-20 tokens on Polygon. The platform shows marketing numbers. Binaryx Lens reads the token transfers straight from the chain and shows what is happening: how fast each property sells, who holds it, and whether rental income starts on time.
+Binaryx sells fractional shares of rental and development properties as ERC-20 tokens on Polygon. The platform shows marketing numbers. Binaryx Lens reads token transfers, marketplace fills, and posted rent from the chain and shows what is happening: how fast each property sells, who holds it, what they paid, and whether rental income starts on time.
 
 ## What it shows
 
-Each project gets its own report page with:
+The index lists every project, with search and filters for construction, rental, and redeemed. Each project is a static report page:
 
 - **Summary** — properties, total supply, tokens bought.
-- **Property status** — construction, rental or redeemed; expected vs actual rental start date.
-- **Initial sales** — daily buys and the cumulative curve, with drag-to-zoom.
-- **Sell-out ETA** — projected completion date from moving averages over several trailing windows.
-- **Secondary market** — weekly wallet-to-wallet volume and transaction count.
-- **Holders** — top holders per property and across the project, with week/month balance changes.
+- **Price** — area, Binaryx list price, USDT raised on the initial sale (on-chain), market USD/m² band, and an estimated value tier (underpriced, fair, rich, overpriced). Market ranges and the tier are estimates and can be wrong.
+- **Rental status** — expected vs actual start quarter. On time, one quarter late, or later.
+- **Posted rent** — monthly USDT from on-chain rent windows, plus **net rental yield** (annualized profit vs raised USDT) over the last 12, 6, 3, or 1 months of history, with the window shown. Claims and wallet pushes are not included.
+- **Initial sales** — weekly buys and the cumulative curve, with drag-to-zoom.
+- **Sell-out ETA** — projected completion from the last week, the last four weeks, and full history. A sold-out property shows the sale period and average buy rate instead.
+- **Secondary market** — weekly wallet-to-wallet volume, cumulative volume, and transaction count.
+- **Holders** — balance, initial-sale and P2P tokens and USDT, week and month changes, entry and exit dates. Exited holders are listed separately.
 - **Tier distribution** — holders grouped by share of supply: 🦐 shrimp ≤0.5%, 🦀 crab ≤1%, 🐟 fish ≤5%, 🐬 dolphin ≤10%, 🦈 shark ≤20%, 🐋 whale >20%.
 
 Reports are available in English and Ukrainian.
+
+`go run .` writes `index.html` and `reports/*.html`. A daily GitHub Action regenerates those files at 00:00 UTC. The property catalog is `internal/properties.go`.
 
 ## Screenshots
 
@@ -32,21 +36,23 @@ Reports are available in English and Ukrainian.
 
 | Initial sales & ETA | Holders & tiers |
 | --- | --- |
-| ![Daily buys chart and ETA table](docs/screenshots/sales-eta.png) | ![Holder tier charts](docs/screenshots/holders.png) |
+| ![Weekly buys chart and ETA table](docs/screenshots/sales-eta.png) | ![Holder tier charts](docs/screenshots/holders.png) |
 
 ## Run locally
 
 ```bash
-POLYGONSCAN_API_KEY=<key> go run .
+go run .
 ```
+
+Local runs use a built-in Etherscan API v2 fallback when no key is set. Override with `POLYGONSCAN_API_KEY` or `-api-key` (Polygon, chain id 137). Prefer env or flag in shared clones so the fallback is not relied on.
 
 Flags:
 
-- `-api-key` — Etherscan v2 API key (overrides the env var).
-- `-scan-pause` — pause between API pages (default `400ms`).
+- `-api-key` — Etherscan API v2 key (overrides `POLYGONSCAN_API_KEY`).
+- `-scan-pause` — extra pause between token-transfer pages (default `400ms`). The client also spaces every call.
 
 Open `index.html` in a browser.
 
 ## Disclaimer
 
-Not affiliated with Binaryx. Data comes from public blockchain records and Binaryx website. Not financial advice.
+Not affiliated with Binaryx. Data comes from public blockchain records and the Binaryx website. Not financial advice.
