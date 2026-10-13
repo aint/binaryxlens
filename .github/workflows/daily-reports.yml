@@ -38,4 +38,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Refresh daily reports (${{ steps.stamp.outputs.ts }})
-          file_pattern: "reports/*.html index.html"
+          file_pattern: "reports/*.html index.html signals.html"

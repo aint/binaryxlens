@@ -37,6 +37,10 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	// if err := internal.WriteSignals("signals.html", projects, time.Time{}); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Failed to write signals: %v\n", err)
+	// 	os.Exit(1)
+	// }
 	if err := internal.WriteIndex("index.html", time.Now().UTC()); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write index: %v\n", err)
 		os.Exit(1)

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signals — Binaryx Lens</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      padding: 32px 16px 48px;
+      line-height: 1.5;
+    }
+    main { max-width: 40rem; margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
+    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; }
+    .lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
+    .lang-switch button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    .lede { color: #444; margin: 0 0 8px; font-size: 0.95rem; }
+    .page-link { margin: 0 0 16px; font-size: 0.95rem; }
+    .page-link a { color: #0b57d0; }
+    .tools { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
+    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; }
+    .search input {
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 400;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: inherit;
+    }
+    .search input:focus-visible, #kind-filters button:focus-visible {
+      outline: 2px solid #0b57d0;
+      outline-offset: 2px;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 12px;
+    }
+    #kind-filters { display: flex; flex-wrap: wrap; gap: 4px; }
+    #kind-filters button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    #kind-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    #signal-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
+    .empty {
+      margin: 0;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      color: #444;
+    }
+    #signals {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #signals[hidden] { display: none; }
+    .signal { padding: 12px 14px; border-bottom: 1px solid #eee; }
+    .signal[hidden] { display: none; }
+    .signal:last-child { border-bottom: none; }
+    .meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    time { font-size: 0.8rem; color: #555; font-variant-numeric: tabular-nums; }
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .tag-insider_in, .tag-new_holder { background: #e7f2ea; color: #1d6b3a; }
+    .tag-insider_out { background: #fdecea; color: #8a2424; }
+    .tag-exited_holder { background: #f4efe4; color: #7a5b2e; }
+    .tag-new_investor { background: #e8eef6; color: #1e4a7a; }
+    .tag-exited_investor { background: #eee; color: #444; }
+    .who, .where, .amt, .tx { margin: 2px 0 0; }
+    .who { font-weight: 550; }
+    .who a { color: inherit; text-decoration: none; }
+    .who a:hover { text-decoration: underline; }
+    .addr { color: #555; font-size: 0.8rem; font-weight: 400; }
+    .where { font-size: 0.9rem; }
+    .amt { font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+    .signal.in .num { color: #1d6b3a; }
+    .signal.out .num { color: #8a2424; }
+    .usdt { color: #555; }
+    .tx a { font-size: 0.8rem; color: #0b57d0; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1 data-i18n="signal.title">Signals</h1>
+      <div id="lang-switch" class="lang-switch"></div>
+    </header>
+    <p class="lede" data-i18n="signal.lede">Oleh's trades, new and exited holders, and full platform entry and exit. Newest first.</p>
+    <p class="page-link"><a href="index.html" data-i18n="signal.projects">Projects</a></p>
+    <div class="tools">
+      <label class="search">
+        <span data-i18n="signal.search">Search</span>
+        <input id="signal-search" type="search" placeholder="Wallet, project, or property" autocomplete="off">
+      </label>
+      <div class="filters">
+        <div id="kind-filters" role="group" data-i18n-aria="signal.kind">
+          <button type="button" data-kind-filter="all" data-i18n="signal.all" aria-pressed="true">All</button>
+          <button type="button" data-kind-filter="insider" data-i18n="signal.oleh" aria-pressed="false">Oleh</button>
+          <button type="button" data-kind-filter="new_holder" data-i18n="signal.new_holder" aria-pressed="false">New holder</button>
+          <button type="button" data-kind-filter="exited_holder" data-i18n="signal.exited_holder" aria-pressed="false">Exited holder</button>
+          <button type="button" data-kind-filter="new_investor" data-i18n="signal.new_investor" aria-pressed="false">New investor</button>
+          <button type="button" data-kind-filter="exited_investor" data-i18n="signal.exited_investor" aria-pressed="false">Exited investor</button>
+        </div>
+        <p id="signal-count" aria-live="polite"></p>
+      </div>
+    </div>
+    <p id="signal-empty" class="empty" hidden data-i18n="signal.empty">No signals match. Clear the search or choose All.</p>
+    <div id="signals">
+__SIGNALS__    </div>
+  </main>
+  <script>__I18N_SCRIPT__</script>
+  <script>
+    (function () {
+      const search = document.getElementById("signal-search");
+      const filters = document.getElementById("kind-filters");
+      const list = document.getElementById("signals");
+      const rows = Array.from(list.querySelectorAll(".signal"));
+      const countEl = document.getElementById("signal-count");
+      const empty = document.getElementById("signal-empty");
+      const t = window.i18n.t;
+
+      search.placeholder = t("signal.searchPlaceholder");
+
+      function apply() {
+        const query = search.value.trim().toLowerCase();
+        const pressed = filters.querySelector('[aria-pressed="true"]');
+        const kind = pressed ? pressed.dataset.kindFilter : "all";
+        let shown = 0;
+        rows.forEach(function (row) {
+          const rowKind = row.dataset.kind || "";
+          const kindOk = kind === "all" || rowKind === kind || (kind === "insider" && rowKind.indexOf("insider_") === 0);
+          const match = kindOk && (row.dataset.text || "").indexOf(query) !== -1;
+          row.hidden = !match;
+          if (match) shown += 1;
+        });
+        list.hidden = shown === 0;
+        empty.hidden = shown !== 0;
+        countEl.textContent = t("signal.count", { n: shown });
+      }
+
+      search.addEventListener("input", apply);
+      filters.addEventListener("click", function (event) {
+        const button = event.target.closest("[data-kind-filter]");
+        if (!button) return;
+        filters.querySelectorAll("[data-kind-filter]").forEach(function (el) {
+          el.setAttribute("aria-pressed", String(el === button));
+        });
+        apply();
+      });
+      apply();
+    })();
+  </script>
+</body>
+</html>
