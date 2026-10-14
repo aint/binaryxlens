@@ -207,13 +207,35 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 	list-style: none;
 	margin: 0 0 6px;
 }
+.holders-count { color: #6b7280; font-weight: 500; }
+.holders-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px 12px;
+	margin: 0 0 8px;
+}
+.holders-toolbar .section-meta { margin: 0; }
 .holders-limit {
-	margin-left: auto;
+	display: inline-flex;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	overflow: hidden;
+}
+.holders-limit button {
+	border: 0;
+	background: #fff;
+	padding: 3px 10px;
 	font: inherit;
 	font-size: 0.75rem;
 	font-weight: 500;
-	padding: 1px 4px;
+	color: #374151;
+	cursor: pointer;
+	text-transform: capitalize;
 }
+.holders-limit button + button { border-left: 1px solid #d1d5db; }
+.holders-limit button[aria-pressed="true"] { background: #1f2937; color: #fff; }
 .slot .holders-wrap > summary::-webkit-details-marker { display: none; }
 .slot .holders-wrap > summary::before { content: "▸ "; }
 .slot .holders-wrap[open] > summary::before { content: "▾ "; }
@@ -230,6 +252,54 @@ h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .slot > .secondary-meta { margin: 12px 0 6px; }
 .slot .secondary-wrap { margin-top: 4px; }
 .slot .secondary-wrap h4 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.slot .tier-wrap { margin: 4px 0 0 14px; }
+.tier-row {
+	display: grid;
+	grid-template-columns: 140px 1fr;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 6px;
+	font-size: 0.8rem;
+}
+.tier-row-label { color: #444; }
+.tier-bar {
+	display: flex;
+	height: 22px;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #eee;
+}
+.tier-seg {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2px;
+	overflow: hidden;
+	white-space: nowrap;
+	color: #fff;
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+.tier-seg + .tier-seg { border-left: 1px solid #fff; }
+.tier-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	list-style: none;
+	margin: 8px 0 0 150px;
+	padding: 0;
+	font-size: 0.75rem;
+	color: #444;
+}
+.tier-swatch {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	margin-right: 6px;
+	vertical-align: -1px;
+}
 .holders-section { margin-top: 28px; }
 .holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
 .holders-section h3 { font-size: 0.9rem; font-weight: 600; margin: 20px 0 8px; }
@@ -289,8 +359,7 @@ td.trend.flat { color: #888; }
 <div id="grid" class="grid" aria-label="Property charts" data-i18n-aria="aria.charts"></div>
 
 <section id="holders-section" class="holders-section" aria-label="Project holders" data-i18n-aria="aria.holders">
-	<h2 data-i18n="holders.title">Holders</h2>
-	<h3 data-i18n="tier.distribution">Tier distribution</h3>
+	<h2 data-i18n="holders.project">Project holders</h2>
 	<div class="tier-layout">
 		<div class="tier-chart-wrap">
 			<canvas id="tier-holders-chart" aria-label="Holders by tier" data-i18n-aria="tier.holdersChart"></canvas>
@@ -300,8 +369,8 @@ td.trend.flat { color: #888; }
 		</div>
 	</div>
 	<details id="global-holders-block" class="holders-collapse">
-		<summary><span data-i18n="holders.global">Top global holders</span></summary>
-		<p id="holders-meta" class="section-meta"></p>
+		<summary><span data-i18n="holders.global">Top project holders</span></summary>
+		<div id="holders-toolbar" class="holders-toolbar"><p id="holders-meta" class="section-meta"></p></div>
 		<div class="holders-scroll">
 			<table id="holders-table">
 				<thead>
@@ -893,55 +962,67 @@ td.trend.flat { color: #888; }
 	const propertyExitedColumns = ["col.address", "col.invested", "col.week", "col.month", "col.dateIn", "col.dateOut"];
 	const projectExitedColumns = ["col.address", "col.propertyNames", "col.invested", "col.week", "col.month", "col.dateIn", "col.dateOut"];
 
-	function holdersHeading(limit) {
-		return limit ? t("holders.top", { n: limit }) : t("holders.allTitle");
+	function holdersLimitControl(selected, onChange) {
+		const group = document.createElement("div");
+		group.className = "holders-limit";
+		group.setAttribute("role", "group");
+		group.setAttribute("aria-label", t("holders.limit"));
+		holderLimitChoices.forEach(function (n) {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.textContent = n ? String(n) : t("holders.all");
+			button.setAttribute("aria-pressed", String(n === selected));
+			button.addEventListener("click", function () {
+				group.querySelectorAll("button").forEach(function (b) {
+					b.setAttribute("aria-pressed", String(b === button));
+				});
+				onChange(n);
+			});
+			group.appendChild(button);
+		});
+		return group;
 	}
 
-	// Clicks on the select must not toggle the surrounding details element.
-	function holdersLimitControl(selected, onChange) {
-		const select = document.createElement("select");
-		select.className = "holders-limit";
-		select.setAttribute("aria-label", t("holders.limit"));
-		holderLimitChoices.forEach(function (n) {
-			const option = document.createElement("option");
-			option.value = String(n);
-			option.textContent = n ? String(n) : t("holders.all");
-			if (n === selected) option.selected = true;
-			select.appendChild(option);
-		});
-		select.addEventListener("mousedown", function (e) { e.stopPropagation(); });
-		select.addEventListener("click", function (e) { e.stopPropagation(); });
-		select.addEventListener("change", function () {
-			onChange(Number(select.value));
-		});
-		return select;
+	function holdersCount(n) {
+		const el = document.createElement("span");
+		el.className = "holders-count";
+		el.textContent = "· " + n;
+		return el;
 	}
 
 	function renderPropertyHoldersInto(container, property) {
 		const holders = property && Array.isArray(property.holders) ? property.holders : [];
-		const label = document.createElement("span");
 		const summary = document.createElement("summary");
-		summary.appendChild(label);
 		const body = document.createElement("div");
 		container.appendChild(summary);
 		container.appendChild(body);
 		const split = splitHolders(holders);
-		if (split.active.length === 0 && split.exited.length === 0) {
-			label.textContent = t("holders.none");
+		if (split.active.length === 0) {
+			summary.textContent = t("holders.none");
+			body.innerHTML = exitedBlock(split.exited, false) + offPlatformNote(split.exited);
 			return;
 		}
+		summary.textContent = t("holders.title");
+		summary.appendChild(holdersCount(split.active.length));
+		const toolbar = document.createElement("div");
+		toolbar.className = "holders-toolbar";
+		const meta = document.createElement("p");
+		meta.className = "section-meta";
+		toolbar.appendChild(meta);
+		const list = document.createElement("div");
+		body.appendChild(toolbar);
+		body.appendChild(list);
 		let limit = propertyHoldersDefault;
 		function paint() {
-			label.textContent = split.active.length === 0 ? t("holders.none") : holdersHeading(limit);
 			const shown = shownHolders(split.active, limit);
+			meta.textContent = t("holders.showing", { shown: shown.length, total: split.active.length });
 			const rows = shown.map(function (h, i) {
 				return holderRow(h, i, false);
 			}).join("");
-			const activeTable = split.active.length === 0 ? "" : holdersTable(rows, propertyHolderColumns);
-			body.innerHTML = activeTable + exitedBlock(split.exited, false) +
+			list.innerHTML = holdersTable(rows, propertyHolderColumns) + exitedBlock(split.exited, false) +
 				offPlatformNote(shown.concat(split.exited));
 		}
-		summary.appendChild(holdersLimitControl(limit, function (next) {
+		toolbar.appendChild(holdersLimitControl(limit, function (next) {
 			limit = next;
 			paint();
 		}));
@@ -1145,41 +1226,41 @@ td.trend.flat { color: #888; }
 
 	function renderHolders() {
 		const section = document.getElementById("holders-section");
-		if (allHolders.length === 0) {
+		if (allHolders.length === 0 || allProperties.length < 2) {
 			section.hidden = true;
 			return;
 		}
 
-		const showGlobal = allProperties.length > 1;
-		const globalBlock = document.getElementById("global-holders-block");
-		globalBlock.hidden = !showGlobal;
-
-		if (showGlobal) {
-			const summary = globalBlock.querySelector("summary");
-			const split = splitHolders(allHolders);
-			let limit = projectHoldersDefault;
-			function paint() {
-				const shown = shownHolders(split.active, limit);
-				document.getElementById("holders-meta").textContent =
-					t("holders.showing", { shown: shown.length, total: split.active.length });
-				document.getElementById("holders-body").innerHTML = shown.map(function (h, i) {
-					return holderRow(h, i, true);
-				}).join("");
-				document.getElementById("holders-exited").innerHTML =
-					exitedBlock(split.exited, true);
-				const note = document.getElementById("holders-off-platform");
-				const marked = shown.concat(split.exited).some(function (h) { return h.offPlatformP2P; });
-				note.hidden = !marked;
-				note.textContent = marked ? t("holders.offPlatformP2P") : "";
-			}
-			summary.appendChild(holdersLimitControl(limit, function (next) {
-				limit = next;
-				paint();
-			}));
-			paint();
+		const summary = document.getElementById("global-holders-block").querySelector("summary");
+		const split = splitHolders(allHolders);
+		summary.appendChild(holdersCount(split.active.length));
+		let limit = projectHoldersDefault;
+		function paint() {
+			const shown = shownHolders(split.active, limit);
+			document.getElementById("holders-meta").textContent =
+				t("holders.showing", { shown: shown.length, total: split.active.length });
+			document.getElementById("holders-body").innerHTML = shown.map(function (h, i) {
+				return holderRow(h, i, true);
+			}).join("");
+			document.getElementById("holders-exited").innerHTML =
+				exitedBlock(split.exited, true);
+			const note = document.getElementById("holders-off-platform");
+			const marked = shown.concat(split.exited).some(function (h) { return h.offPlatformP2P; });
+			note.hidden = !marked;
+			note.textContent = marked ? t("holders.offPlatformP2P") : "";
 		}
+		document.getElementById("holders-toolbar").appendChild(holdersLimitControl(limit, function (next) {
+			limit = next;
+			paint();
+		}));
+		paint();
 
-		renderTierCharts();
+		renderTierCharts(
+			document.getElementById("tier-holders-chart"),
+			document.getElementById("tier-supply-chart"),
+			allHolders,
+			tierStats
+		);
 	}
 
 	const tierPalette = ["#94a3b8", "#fb923c", "#38bdf8", "#6366f1", "#10b981", "#1e40af"];
@@ -1189,9 +1270,9 @@ td.trend.flat { color: #888; }
 		return n.toFixed(2);
 	}
 
-	function tierTokenTotals() {
+	function tierTokenTotals(holders) {
 		const totals = {};
-		allHolders.forEach(function (h) {
+		holders.forEach(function (h) {
 			const n = Number(h.balance);
 			if (!isFinite(n) || n === 0) return;
 			totals[h.tier] = (totals[h.tier] || 0) + n;
@@ -1199,10 +1280,10 @@ td.trend.flat { color: #888; }
 		return totals;
 	}
 
-	function tierSlices(include) {
-		const tokens = tierTokenTotals();
+	function tierSlices(holders, stats, include) {
+		const tokens = tierTokenTotals(holders);
 		const slices = [];
-		tierStats.forEach(function (s, i) {
+		stats.forEach(function (s, i) {
 			if (!include(s)) return;
 			slices.push({
 				stat: s,
@@ -1217,20 +1298,22 @@ td.trend.flat { color: #888; }
 		return {
 			callbacks: {
 				label: function (ctx) {
-					const slice = slices[ctx.dataIndex];
-					const s = slice.stat;
-					return [
-						" " + t("tier.tokens", { v: formatTokens(slice.tokens) }),
-						" " + t("tier.supplyPct", { v: s.supplyPct.toFixed(2) }),
-						" " + t("tier.holdersPct", { v: s.holdersPct.toFixed(1) })
-					];
+					return tierDetails(slices[ctx.dataIndex]).map(function (line) { return " " + line; });
 				}
 			}
 		};
 	}
 
-	function mountTierPie(canvasId, title, values, slices) {
-		const canvas = document.getElementById(canvasId);
+	function tierDetails(slice) {
+		const s = slice.stat;
+		return [
+			t("tier.tokens", { v: formatTokens(slice.tokens) }),
+			t("tier.supplyPct", { v: s.supplyPct.toFixed(2) }),
+			t("tier.holdersPct", { v: s.holdersPct.toFixed(1) })
+		];
+	}
+
+	function mountTierPie(canvas, title, values, slices) {
 		if (slices.length === 0) {
 			canvas.parentElement.innerHTML = "<div class=\"chart-placeholder\">" + escapeHtml(t("tier.noData")) + "</div>";
 			return;
@@ -1266,19 +1349,77 @@ td.trend.flat { color: #888; }
 		chartInstances.push(ch);
 	}
 
-	function renderTierCharts() {
+	function renderTierCharts(holdersCanvas, supplyCanvas, holders, stats) {
 		mountTierPie(
-			"tier-holders-chart",
+			holdersCanvas,
 			t("tier.holdersChart"),
 			function (s) { return s.stat.count; },
-			tierSlices(function (s) { return s.count > 0; })
+			tierSlices(holders, stats, function (s) { return s.count > 0; })
 		);
 		mountTierPie(
-			"tier-supply-chart",
+			supplyCanvas,
 			t("tier.supplyChart"),
 			function (s) { return s.stat.supplyPct; },
-			tierSlices(function (s) { return s.supplyPct > 0; })
+			tierSlices(holders, stats, function (s) { return s.supplyPct > 0; })
 		);
+	}
+
+	// Supply segments are scaled to the held total so both bars fill the track.
+	function tierBar(labelKey, slices, share) {
+		const total = slices.reduce(function (sum, s) { return sum + share(s); }, 0);
+		const row = document.createElement("div");
+		row.className = "tier-row";
+		const label = document.createElement("span");
+		label.className = "tier-row-label";
+		label.textContent = t(labelKey);
+		const bar = document.createElement("div");
+		bar.className = "tier-bar";
+		bar.setAttribute("aria-label", t(labelKey));
+		slices.forEach(function (slice) {
+			const pct = total > 0 ? share(slice) / total * 100 : 0;
+			const seg = document.createElement("span");
+			seg.className = "tier-seg";
+			seg.style.width = pct + "%";
+			seg.style.background = slice.color;
+			seg.title = t("tier." + slice.stat.name) + "\n" + tierDetails(slice).join("\n");
+			if (pct >= 8) seg.textContent = Math.round(pct) + "%";
+			bar.appendChild(seg);
+		});
+		row.appendChild(label);
+		row.appendChild(bar);
+		return row;
+	}
+
+	function tierLegend(slices) {
+		const list = document.createElement("ul");
+		list.className = "tier-legend";
+		slices.forEach(function (slice) {
+			const item = document.createElement("li");
+			const swatch = document.createElement("span");
+			swatch.className = "tier-swatch";
+			swatch.style.background = slice.color;
+			const count = document.createElement("strong");
+			count.textContent = slice.stat.count;
+			item.appendChild(swatch);
+			item.appendChild(document.createTextNode(t("tier." + slice.stat.name) + " "));
+			item.appendChild(count);
+			list.appendChild(item);
+		});
+		return list;
+	}
+
+	function renderPropertyTiersInto(slot, property) {
+		const stats = property && Array.isArray(property.tierStats) ? property.tierStats : [];
+		const slices = tierSlices(property.holders || [], stats, function (s) { return s.count > 0; });
+		if (slices.length === 0) return;
+		const wrap = document.createElement("div");
+		wrap.className = "tier-wrap";
+		wrap.setAttribute("role", "group");
+		wrap.setAttribute("aria-label", t("tier.distribution"));
+		wrap.appendChild(tierBar("tier.holdersChart", slices, function (s) { return s.stat.count; }));
+		wrap.appendChild(tierBar("tier.supplyChart", slices, function (s) { return s.stat.supplyPct; }));
+		wrap.appendChild(tierLegend(slices));
+		slot.appendChild(wrap);
 	}
 
 	function renderCharts() {
@@ -1348,6 +1489,7 @@ td.trend.flat { color: #888; }
 			renderSecondaryInto(slot, property);
 			renderPropertyHoldersInto(holdersWrap, property);
 			slot.appendChild(holdersWrap);
+			renderPropertyTiersInto(slot, property);
 		});
 	}
 

@@ -110,6 +110,7 @@ func (pr *Project) buildSummary() projectSummaryPayload {
 func buildPropertyReportPayload(property *Property) (propertyReportPayload, error) {
 	p2pWeeklyPoints := property.P2PSaleWeeklyPoints
 	initialSaleWeeklyPoints := property.InitialSaleWeeklyPoints
+	holders, tierStats := buildPropertyHoldersPayload(property)
 
 	payload := propertyReportPayload{
 		Name:    property.Name,
@@ -124,8 +125,9 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 			ProjectedValueTier: string(property.ProjectedValueTier),
 			RaisedValueTier:    string(property.RaisedValueTier),
 		},
-		Rental:  buildRentalPayload(property, time.Now().UTC()),
-		Holders: buildPropertyHoldersPayload(property),
+		Rental:    buildRentalPayload(property, time.Now().UTC()),
+		Holders:   holders,
+		TierStats: tierStats,
 		Initial: propertyInitialSalesPayload{
 			Labels:     make([]string, 0, len(initialSaleWeeklyPoints)),
 			Weekly:     make([]float64, 0, len(initialSaleWeeklyPoints)),
@@ -211,13 +213,15 @@ func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProf
 	return profit
 }
 
-func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
+func buildPropertyHoldersPayload(property *Property) ([]propertyHolderRow, []tierStatPayload) {
 	holders := make([]propertyHolderRow, 0, len(property.Holders))
+	pcts := make([]float64, 0, len(property.Holders))
 	for _, h := range property.Holders {
 		pct := PercentFloat(h.Balance, property.TotalSupplyRaw)
 		tier := ""
 		if h.Balance.Sign() > 0 {
 			tier = holderTier(pct)
+			pcts = append(pcts, pct)
 		}
 		holders = append(holders, propertyHolderRow{
 			Address:          h.Address,
@@ -237,7 +241,7 @@ func buildPropertyHoldersPayload(property *Property) []propertyHolderRow {
 			Exited:           formatDate(h.Exited),
 		})
 	}
-	return holders
+	return holders, buildTierStatsPayload(pcts)
 }
 
 type projectEnvelope struct {
@@ -263,6 +267,7 @@ type propertyReportPayload struct {
 	Price     propertyPricePayload        `json:"price"`
 	Rental    *propertyRentalPayload      `json:"rental,omitempty"`
 	Holders   []propertyHolderRow         `json:"holders"`
+	TierStats []tierStatPayload           `json:"tierStats"`
 	Initial   propertyInitialSalesPayload `json:"initial_sales"`
 	Secondary propertyP2PSalesPayload     `json:"p2p_sales"`
 }
