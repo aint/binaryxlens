@@ -34,18 +34,6 @@
     .lede { color: #444; margin: 0 0 16px; font-size: 0.95rem; }
     .lede a, .report-problem a, .back a { color: #0b57d0; }
     .back { margin: 0 0 8px; font-size: 0.85rem; }
-    .mock {
-      display: inline-block;
-      margin: 0 0 16px;
-      font-size: 0.72rem;
-      font-weight: 650;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #7a5b2e;
-      background: #f4efe4;
-      border-radius: 999px;
-      padding: 2px 8px;
-    }
     .tools { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
     .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; flex: 1; max-width: 24rem; }
     .search input {
@@ -64,6 +52,26 @@
       outline-offset: 2px;
     }
     #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
+    .holders-meta { display: flex; align-items: center; gap: 12px; }
+    .holders-limit {
+      display: inline-flex;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .holders-limit button {
+      border: 0;
+      background: #fff;
+      padding: 3px 10px;
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      text-transform: capitalize;
+    }
+    .holders-limit button + button { border-left: 1px solid #d1d5db; }
+    .holders-limit button[aria-pressed="true"] { background: #1f2937; color: #fff; }
     .empty {
       margin: 0;
       padding: 12px 14px;
@@ -100,13 +108,15 @@
       </div>
     </header>
     <p class="lede" data-i18n="holders.lede">Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.</p>
-    <p class="mock" data-i18n="holders.mock">Mock data</p>
     <div class="tools">
       <label class="search">
         <span data-i18n="holders.search">Search</span>
         <input id="holder-search" type="search" autocomplete="off">
       </label>
-      <p id="holder-count" aria-live="polite"></p>
+      <div class="holders-meta">
+        <p id="holder-count" aria-live="polite"></p>
+        <div id="holder-limit" class="holders-limit" role="group"></div>
+      </div>
     </div>
     <p id="holder-empty" class="empty" hidden data-i18n="holders.empty">No holders match.</p>
     <div class="holders-scroll">
@@ -114,7 +124,7 @@
         <thead>
           <tr>
             <th data-i18n="col.address">Address</th>
-            <th data-i18n="col.properties">Property names</th>
+            <th data-i18n="col.properties">Properties</th>
             <th class="num" data-i18n="col.count">Count</th>
             <th class="num" data-i18n="col.totalUsdt">Total, USDT</th>
           </tr>
@@ -134,15 +144,16 @@ __HOLDERS_ROWS__
           "holders.back": "Projects",
           "holders.platform": "Holders",
           "holders.lede": "Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.",
-          "holders.mock": "Mock data",
           "holders.search": "Search",
           "holders.searchPlaceholder": "Address or property",
           "holders.showing": "Showing {shown} of {total}",
+          "holders.limit": "Number of holders",
+          "holders.all": "all",
           "holders.empty": "No holders match.",
           "holders.offPlatformP2P": "* Includes P2P outside the platform. Total USDT is not accurate.",
           "index.reportProblem": "Report a problem",
           "col.address": "Address",
-          "col.properties": "Property names",
+          "col.properties": "Properties",
           "col.count": "Count",
           "col.initUsdt": "Initial sale, USDT",
           "col.p2pUsdt": "P2P, USDT",
@@ -156,10 +167,11 @@ __HOLDERS_ROWS__
           "holders.back": "Проєкти",
           "holders.platform": "Власники",
           "holders.lede": "Гаманці, які ще тримають токени, за сумою USDT на первинному продажі та P2P на платформі.",
-          "holders.mock": "Макет",
           "holders.search": "Пошук",
           "holders.searchPlaceholder": "Адреса або об'єкт",
           "holders.showing": "Показано {shown} з {total}",
+          "holders.limit": "Кількість власників",
+          "holders.all": "усі",
           "holders.empty": "Немає збігів.",
           "holders.offPlatformP2P": "* Є P2P поза платформою. Сума USDT неточна.",
           "index.reportProblem": "Повідомити про проблему",
@@ -215,12 +227,34 @@ __HOLDERS_ROWS__
       const empty = document.getElementById("holder-empty");
       const table = document.querySelector(".holders-scroll");
       search.placeholder = t("holders.searchPlaceholder");
+      document.querySelectorAll("#holders-body .usdt").forEach(function (el) {
+        el.textContent = Number(el.textContent).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      });
+
+      const limitChoices = [10, 25, 50, 0];
+      const limitGroup = document.getElementById("holder-limit");
+      let limit = 25;
+      limitGroup.setAttribute("aria-label", t("holders.limit"));
+      limitChoices.forEach(function (n) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = n ? String(n) : t("holders.all");
+        button.setAttribute("aria-pressed", String(n === limit));
+        button.addEventListener("click", function () {
+          limitGroup.querySelectorAll("button").forEach(function (b) {
+            b.setAttribute("aria-pressed", String(b === button));
+          });
+          limit = n;
+          apply();
+        });
+        limitGroup.appendChild(button);
+      });
 
       function apply() {
         const query = search.value.trim().toLowerCase();
         let shown = 0;
         rows.forEach(function (row) {
-          const match = row.textContent.toLowerCase().indexOf(query) !== -1;
+          const match = row.textContent.toLowerCase().indexOf(query) !== -1 && (!limit || shown < limit);
           row.hidden = !match;
           if (match) shown += 1;
         });
