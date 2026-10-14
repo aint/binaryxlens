@@ -356,8 +356,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_800,
 			MarketHighValue:       3_800,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.2025 - 01.01.2026
-
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4},
 		},
 		{
 			Name:                  "AWWA Hotel by Ribas B22",
@@ -368,8 +367,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_800,
 			MarketHighValue:       3_800,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.2025 - 01.01.2026
-
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4},
 		},
 		{
 			Name:                  "AWWA Hotel by Ribas A16",
@@ -380,8 +378,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_800,
 			MarketHighValue:       3_800,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.2025 - 01.01.2026
-
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4},
 		},
 	},
 	"Aurora Villas (Bali Balance Ocean Villas)": {
@@ -428,7 +425,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_100,
 			MarketHighValue:       2_700,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4}, // first rent 01.10.25 - 31.10.25
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4},
 		},
 	},
 	"CASCADE Villas": {
@@ -516,7 +513,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        1_000,
 			MarketHighValue:       1_300,
 			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 3},
-			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 3}, // first rent 17.08.2024 - 16.09.2024
+			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 3},
 		},
 	},
 	"Kammara Loft": {
@@ -529,7 +526,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_200,
 			MarketHighValue:       3_000,
 			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 4},
-			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 4}, // first rent 10.12.2023 - 11.01.2024
+			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 4},
 		},
 	},
 	"Kammora Living": {
@@ -542,7 +539,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_200,
 			MarketHighValue:       3_000,
 			RentalStartExpected:   YearQuarter{Year: 2024, Quarter: 3},
-			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 3}, // first rent 01.07.2024 - 08.07.2024
+			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 3},
 		},
 	},
 	"Karra Loft": {
@@ -555,7 +552,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_200,
 			MarketHighValue:       3_000,
 			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 3},
-			RentalStartActual:     &YearQuarter{Year: 2023, Quarter: 3}, // first rent 14.08.2023 - 14.09.2023
+			RentalStartActual:     &YearQuarter{Year: 2023, Quarter: 3},
 		},
 		{
 			Name:                  "Karra Loft 5",
@@ -566,7 +563,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        2_200,
 			MarketHighValue:       3_000,
 			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 3},
-			RentalStartActual:     &YearQuarter{Year: 2023, Quarter: 3}, // first rent 18.09.2023 - 18.10.2023
+			RentalStartActual:     &YearQuarter{Year: 2023, Quarter: 3},
 		},
 	},
 	"La Casa Española Villas": {
@@ -643,7 +640,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        1_800,
 			MarketHighValue:       2_600,
 			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2023, Quarter: 2}, // first rent 01.04.2023 - 01.05.2023
+			RentalStartActual:     &YearQuarter{Year: 2023, Quarter: 2},
 		},
 	},
 	"Roots Villas": {
@@ -710,7 +707,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        1_850,
 			MarketHighValue:       2_300,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 1},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 1}, // first rent 28.03.25 - 28.04.25
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 1},
 		},
 		{
 			Name:                  "Tropical Loft Villa 3",
@@ -721,7 +718,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        1_850,
 			MarketHighValue:       2_300,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 2}, // first rent 01.05.25 - 01.06.25
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 2},
 		},
 		{
 			Name:                  "Tropical Loft Villa 4",
@@ -732,7 +729,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        1_850,
 			MarketHighValue:       2_300,
 			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 2}, // first rent 20.06.25 - 20.07.25
+			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 2},
 		},
 	},
 	"Vesna Townhouse": {
@@ -745,7 +742,7 @@ var AllProperties = map[string][]*Property{
 			MarketLowValue:        1_900,
 			MarketHighValue:       2_500,
 			RentalStartExpected:   YearQuarter{Year: 2024, Quarter: 2},
-			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 2}, // first rent 05.04.24 - 27.04.24
+			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 2},
 		},
 	},
 }

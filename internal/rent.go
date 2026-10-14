@@ -14,6 +14,8 @@ const (
 	// rewardsDistributor is the Binaryx claim contract on Polygon.
 	// CoreManager posts rent here; holders pull USDT with claim.
 	rewardsDistributor = "0x326fdcca0f5b9f5905f6bfdb914b1f6eddc45061"
+	// legacyRewardsDistributor emitted the same PaidRent event through 2024.
+	legacyRewardsDistributor = "0x0cd8f3fe85780e620f80cdb884807174d9a1d805"
 	// paidRentTopic is PaidRent(address,address,uint256,uint128,uint128,uint256).
 	// The log names the property token and the rent window.
 	paidRentTopic = "0x015e7e41d528ca1976bac28c93fbbef520250f9e4837b66a42f879ec545ca9f4"
@@ -31,20 +33,22 @@ type rentSlice struct {
 	End    time.Time
 }
 
-// FetchRentalProfit returns PaidRent slices from the claim contract, keyed by
+// FetchRentalProfit returns PaidRent slices from both distributors, keyed by
 // property token. Each slice is booked to the UTC month its window starts.
 func FetchRentalProfit(client *polygonscan.Client, scanPause time.Duration) (map[string][]rentalProfitMonth, error) {
-	logs, err := client.FetchLogs(rewardsDistributor, paidRentTopic, scanPause)
-	if err != nil {
-		return nil, fmt.Errorf("fetch rental profit: %w", err)
-	}
 	byToken := make(map[string][]rentSlice)
-	for _, l := range logs {
-		slice, ok := parsePaidRent(l)
-		if !ok {
-			continue
+	for _, distributor := range []string{legacyRewardsDistributor, rewardsDistributor} {
+		logs, err := client.FetchLogs(distributor, paidRentTopic, scanPause)
+		if err != nil {
+			return nil, fmt.Errorf("fetch rental profit: %w", err)
 		}
-		byToken[slice.Token] = append(byToken[slice.Token], slice)
+		for _, l := range logs {
+			slice, ok := parsePaidRent(l)
+			if !ok {
+				continue
+			}
+			byToken[slice.Token] = append(byToken[slice.Token], slice)
+		}
 	}
 	out := make(map[string][]rentalProfitMonth, len(byToken))
 	for token, slices := range byToken {
