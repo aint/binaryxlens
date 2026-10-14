@@ -41,6 +41,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to write index: %v\n", err)
 		os.Exit(1)
 	}
+	if err := internal.WriteHolders("holders.html"); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to write holders: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*internal.Project {

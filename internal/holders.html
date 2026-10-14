@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holders — Binaryx Lens</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      padding: 32px 16px 48px;
+      line-height: 1.5;
+    }
+    main { max-width: 72rem; margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
+    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; flex: 1; min-width: 0; }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
+    .lang-switch button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    .lede { color: #444; margin: 0 0 16px; font-size: 0.95rem; }
+    .lede a, .report-problem a, .back a { color: #0b57d0; }
+    .back { margin: 0 0 8px; font-size: 0.85rem; }
+    .mock {
+      display: inline-block;
+      margin: 0 0 16px;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #7a5b2e;
+      background: #f4efe4;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .tools { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; flex: 1; max-width: 24rem; }
+    .search input {
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 400;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: inherit;
+    }
+    .search input:focus-visible, .lang-switch button:focus-visible {
+      outline: 2px solid #0b57d0;
+      outline-offset: 2px;
+    }
+    #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
+    .empty {
+      margin: 0;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      color: #444;
+    }
+    .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; }
+    table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #f7f8fa; white-space: nowrap; font-size: 0.72rem; }
+    tr:last-child td { border-bottom: none; }
+    tr[hidden] { display: none; }
+    td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; white-space: nowrap; }
+    td.properties { min-width: 180px; }
+    td.properties a { display: block; color: #0b57d0; text-decoration: none; }
+    td.properties a:hover { text-decoration: underline; }
+    td.trend.up { color: #1a7f37; }
+    td.trend.down { color: #cf222e; }
+    td.trend.flat { color: #888; }
+    .off-platform-note { color: #666; font-size: 0.8rem; margin: 8px 0 0; }
+    .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="back"><a href="index.html" data-i18n="holders.back">Projects</a></p>
+    <header>
+      <h1 data-i18n="holders.platform">Holders</h1>
+      <div class="header-actions">
+        <div id="lang-switch" class="lang-switch" role="group"></div>
+      </div>
+    </header>
+    <p class="lede" data-i18n="holders.lede">Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.</p>
+    <p class="mock" data-i18n="holders.mock">Mock data</p>
+    <div class="tools">
+      <label class="search">
+        <span data-i18n="holders.search">Search</span>
+        <input id="holder-search" type="search" autocomplete="off">
+      </label>
+      <p id="holder-count" aria-live="polite"></p>
+    </div>
+    <p id="holder-empty" class="empty" hidden data-i18n="holders.empty">No holders match.</p>
+    <div class="holders-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="col.address">Address</th>
+            <th data-i18n="col.properties">Property names</th>
+            <th class="num" data-i18n="col.count">Count</th>
+            <th class="num" data-i18n="col.totalUsdt">Total, USDT</th>
+          </tr>
+        </thead>
+        <tbody id="holders-body">
+__HOLDERS_ROWS__
+        </tbody>
+      </table>
+    </div>
+    <p class="off-platform-note" data-i18n="holders.offPlatformP2P">* Includes P2P outside the platform. Total USDT is not accurate.</p>
+    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="index.reportProblem">Report a problem</a></p>
+  </main>
+  <script>
+    (function () {
+      const I18N = {
+        en: {
+          "holders.back": "Projects",
+          "holders.platform": "Holders",
+          "holders.lede": "Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.",
+          "holders.mock": "Mock data",
+          "holders.search": "Search",
+          "holders.searchPlaceholder": "Address or property",
+          "holders.showing": "Showing {shown} of {total}",
+          "holders.empty": "No holders match.",
+          "holders.offPlatformP2P": "* Includes P2P outside the platform. Total USDT is not accurate.",
+          "index.reportProblem": "Report a problem",
+          "col.address": "Address",
+          "col.properties": "Property names",
+          "col.count": "Count",
+          "col.initUsdt": "Initial sale, USDT",
+          "col.p2pUsdt": "P2P, USDT",
+          "col.totalUsdt": "Total, USDT",
+          "col.week": "Week Δ",
+          "col.month": "Month Δ",
+          "col.dateIn": "Date in",
+          "lang.label": "Language"
+        },
+        uk: {
+          "holders.back": "Проєкти",
+          "holders.platform": "Власники",
+          "holders.lede": "Гаманці, які ще тримають токени, за сумою USDT на первинному продажі та P2P на платформі.",
+          "holders.mock": "Макет",
+          "holders.search": "Пошук",
+          "holders.searchPlaceholder": "Адреса або об'єкт",
+          "holders.showing": "Показано {shown} з {total}",
+          "holders.empty": "Немає збігів.",
+          "holders.offPlatformP2P": "* Є P2P поза платформою. Сума USDT неточна.",
+          "index.reportProblem": "Повідомити про проблему",
+          "col.address": "Адреса",
+          "col.properties": "Об'єкти",
+          "col.count": "Кількість",
+          "col.initUsdt": "Первинний продаж, USDT",
+          "col.p2pUsdt": "P2P, USDT",
+          "col.totalUsdt": "Разом, USDT",
+          "col.week": "Тиждень Δ",
+          "col.month": "Місяць Δ",
+          "col.dateIn": "Дата входу",
+          "lang.label": "Мова"
+        }
+      };
+
+      const params = new URLSearchParams(location.search);
+      let lang = params.get("lang") || "en";
+      if (!I18N[lang]) lang = "en";
+      document.documentElement.lang = lang;
+
+      function t(key, vars) {
+        let msg = I18N[lang][key] || I18N.en[key] || key;
+        if (!vars) return msg;
+        return msg.replace(/\{(\w+)\}/g, function (_, name) {
+          return vars[name] != null ? String(vars[name]) : _;
+        });
+      }
+
+      document.querySelectorAll("[data-i18n]").forEach(function (el) {
+        el.textContent = t(el.dataset.i18n);
+      });
+
+      const slot = document.getElementById("lang-switch");
+      slot.setAttribute("aria-label", t("lang.label"));
+      Object.keys(I18N).forEach(function (code) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = code.toUpperCase();
+        button.setAttribute("aria-pressed", String(code === lang));
+        button.addEventListener("click", function () {
+          if (code === lang) return;
+          const url = new URL(location.href);
+          url.searchParams.set("lang", code);
+          location.href = url.toString();
+        });
+        slot.appendChild(button);
+      });
+
+      const search = document.getElementById("holder-search");
+      const rows = Array.from(document.querySelectorAll("#holders-body tr"));
+      const countEl = document.getElementById("holder-count");
+      const empty = document.getElementById("holder-empty");
+      const table = document.querySelector(".holders-scroll");
+      search.placeholder = t("holders.searchPlaceholder");
+
+      function apply() {
+        const query = search.value.trim().toLowerCase();
+        let shown = 0;
+        rows.forEach(function (row) {
+          const match = row.textContent.toLowerCase().indexOf(query) !== -1;
+          row.hidden = !match;
+          if (match) shown += 1;
+        });
+        table.hidden = shown === 0;
+        empty.hidden = shown !== 0;
+        countEl.textContent = t("holders.showing", { shown: shown, total: rows.length });
+      }
+
+      search.addEventListener("input", apply);
+      apply();
+    })();
+  </script>
+</body>
+</html>

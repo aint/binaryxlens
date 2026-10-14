@@ -63,7 +63,53 @@
       border-radius: 999px;
       padding: 2px 10px;
     }
-    .lede a, .report-problem a { color: #0b57d0; }
+    .lede a, .report-problem a, td.properties a { color: #0b57d0; }
+    .views { display: flex; gap: 4px; margin: 0 0 16px; }
+    .views button {
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .views button[aria-selected="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    .views button:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
+    #projects-panel[hidden], #holders-panel[hidden] { display: none; }
+    .panel-lede { color: #444; margin: 0 0 12px; font-size: 0.95rem; }
+    .mock {
+      display: inline-block;
+      margin: 0 0 12px;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #7a5b2e;
+      background: #f4efe4;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .tools-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+    .tools-row .search { flex: 1; max-width: 24rem; }
+    .holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; }
+    .holders-scroll table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+    .holders-scroll th, .holders-scroll td { border-bottom: 1px solid #eee; padding: 8px 10px; text-align: left; vertical-align: top; }
+    .holders-scroll th { background: #f7f8fa; white-space: nowrap; font-size: 0.72rem; }
+    .holders-scroll th.num { text-align: right; }
+    .holders-scroll tr:last-child td { border-bottom: none; }
+    .holders-scroll tr[hidden] { display: none; }
+    .holders-scroll td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .holders-scroll td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; white-space: nowrap; }
+    .holders-scroll td.properties { min-width: 0; }
+    .holders-scroll td.properties a { display: block; text-decoration: none; }
+    .holders-scroll td.properties a:hover { text-decoration: underline; }
+    td.trend.up { color: #1a7f37; }
+    td.trend.down { color: #cf222e; }
+    td.trend.flat { color: #888; }
+    .off-platform-note { color: #666; font-size: 0.8rem; margin: 8px 0 0; }
     .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
     .tools { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
     .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; }
@@ -102,7 +148,7 @@
       cursor: pointer;
     }
     #type-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-    #project-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
+    #project-count, #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
     .empty {
       margin: 0;
       padding: 12px 14px;
@@ -176,6 +222,11 @@
       <span data-i18n="index.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
     </p>
+    <div id="view-switch" class="views" role="tablist" data-i18n-aria="index.view">
+      <button type="button" id="show-projects" role="tab" data-view="projects" aria-selected="true" aria-controls="projects-panel" data-i18n="index.viewProjects">Projects</button>
+      <button type="button" id="show-holders" role="tab" data-view="holders" aria-selected="false" aria-controls="holders-panel" data-i18n="holders.title">Holders</button>
+    </div>
+    <div id="projects-panel">
     <div class="tools">
       <label class="search">
         <span data-i18n="index.search">Search</span>
@@ -194,6 +245,35 @@
     <p id="project-empty" class="empty" hidden data-i18n="index.empty">No projects match. Clear the search or choose All.</p>
     <nav>
 __INDEX_NAV__    </nav>
+    </div>
+    <div id="holders-panel" hidden>
+      <p class="mock" data-i18n="index.holdersMock">Mock data</p>
+      <p class="panel-lede" data-i18n="index.holdersLede">Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.</p>
+      <div class="tools-row">
+        <label class="search">
+          <span data-i18n="index.search">Search</span>
+          <input id="holder-search" type="search" autocomplete="off">
+        </label>
+        <p id="holder-count" aria-live="polite"></p>
+      </div>
+      <p id="holder-empty" class="empty" hidden data-i18n="index.holdersEmpty">No holders match.</p>
+      <div class="holders-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="col.address">Address</th>
+              <th data-i18n="col.propertyNames">Property names</th>
+              <th class="num" data-i18n="col.count">Count</th>
+              <th class="num" data-i18n="col.totalUsdt">Total, USDT</th>
+            </tr>
+          </thead>
+          <tbody id="holders-body">
+__HOLDERS_ROWS__
+          </tbody>
+        </table>
+      </div>
+      <p class="off-platform-note" data-i18n="holders.offPlatformP2P">* Includes P2P outside the platform. Total USDT is not accurate.</p>
+    </div>
     <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="index.reportProblem">Report a problem</a></p>
   </main>
   <script>__I18N_SCRIPT__</script>
@@ -244,6 +324,53 @@ __INDEX_NAV__    </nav>
         apply();
       });
       apply();
+
+      const holderSearch = document.getElementById("holder-search");
+      const holderRows = Array.from(document.querySelectorAll("#holders-body tr"));
+      const holderCount = document.getElementById("holder-count");
+      const holderEmpty = document.getElementById("holder-empty");
+      const holderTable = document.querySelector(".holders-scroll");
+      holderSearch.placeholder = t("index.holdersSearchPlaceholder");
+
+      function applyHolders() {
+        const query = holderSearch.value.trim().toLowerCase();
+        let shown = 0;
+        holderRows.forEach(function (row) {
+          const match = row.textContent.toLowerCase().indexOf(query) !== -1;
+          row.hidden = !match;
+          if (match) shown += 1;
+        });
+        holderTable.hidden = shown === 0;
+        holderEmpty.hidden = shown !== 0;
+        holderCount.textContent = t("index.holdersShowing", { shown: shown, total: holderRows.length });
+      }
+
+      holderSearch.addEventListener("input", applyHolders);
+      applyHolders();
+
+      const viewButtons = Array.from(document.querySelectorAll("#view-switch [data-view]"));
+      const projectsPanel = document.getElementById("projects-panel");
+      const holdersPanel = document.getElementById("holders-panel");
+
+      function showView(name) {
+        viewButtons.forEach(function (button) {
+          const on = button.dataset.view === name;
+          button.setAttribute("aria-selected", String(on));
+        });
+        projectsPanel.hidden = name !== "projects";
+        holdersPanel.hidden = name !== "holders";
+        const url = new URL(location.href);
+        if (name === "holders") url.searchParams.set("view", "holders");
+        else url.searchParams.delete("view");
+        history.replaceState(null, "", url);
+      }
+
+      document.getElementById("view-switch").addEventListener("click", function (event) {
+        const button = event.target.closest("[data-view]");
+        if (!button) return;
+        showView(button.dataset.view);
+      });
+      showView(new URLSearchParams(location.search).get("view") === "holders" ? "holders" : "projects");
     })();
   </script>
 </body>
