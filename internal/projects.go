@@ -121,7 +121,8 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 			Projected:          property.BinaryxProjectedValue,
 			MarketLow:          property.MarketLowValue,
 			MarketHigh:         property.MarketHighValue,
-			EstimatedValueTier: string(property.EstimatedValueTier),
+			ProjectedValueTier: string(property.ProjectedValueTier),
+			RaisedValueTier:    string(property.RaisedValueTier),
 		},
 		Rental:  buildRentalPayload(property, time.Now().UTC()),
 		Holders: buildPropertyHoldersPayload(property),
@@ -272,7 +273,8 @@ type propertyPricePayload struct {
 	Projected          uint   `json:"projected"`
 	MarketLow          uint   `json:"marketLow"`
 	MarketHigh         uint   `json:"marketHigh"`
-	EstimatedValueTier string `json:"estimatedValueTier"`
+	ProjectedValueTier string `json:"projectedValueTier"`
+	RaisedValueTier    string `json:"raisedValueTier"`
 }
 
 type propertyRentalPayload struct {

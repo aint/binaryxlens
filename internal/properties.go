@@ -60,7 +60,8 @@ type Property struct {
 	BinaryxRaisedValue      uint
 	MarketLowValue          uint
 	MarketHighValue         uint
-	EstimatedValueTier      ValueTier
+	ProjectedValueTier      ValueTier
+	RaisedValueTier         ValueTier
 	transfers               []transfer
 	issuanceModel           IssuanceModel
 	InitialSaleWeeklyPoints []WeeklyPoint
@@ -183,23 +184,28 @@ func (p *Property) calculateBinaryxRaisedValue() {
 }
 
 func (p *Property) estimateValueTier() {
-	if p.AreaM2 == 0 {
-		return
+	p.ProjectedValueTier = p.valueTier(p.BinaryxProjectedValue)
+	p.RaisedValueTier = p.valueTier(p.BinaryxRaisedValue)
+}
+
+func (p *Property) valueTier(amount uint) ValueTier {
+	if amount == 0 || p.AreaM2 == 0 {
+		return ""
 	}
 	avg := float64(p.MarketLowValue+p.MarketHighValue) / 2
 	if avg == 0 {
-		return
+		return ""
 	}
-	delta := (float64(p.BinaryxProjectedValue)/float64(p.AreaM2) - avg) / avg
+	delta := (float64(amount)/float64(p.AreaM2) - avg) / avg
 	switch {
 	case delta < -0.10:
-		p.EstimatedValueTier = ValueTierUnderpriced
+		return ValueTierUnderpriced
 	case delta <= 0.10:
-		p.EstimatedValueTier = ValueTierFair
+		return ValueTierFair
 	case delta <= 0.20:
-		p.EstimatedValueTier = ValueTierRich
+		return ValueTierRich
 	default:
-		p.EstimatedValueTier = ValueTierOverpriced
+		return ValueTierOverpriced
 	}
 }
 
