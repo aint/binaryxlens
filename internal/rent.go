@@ -135,9 +135,7 @@ func netRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float
 		basis = 12
 	} else {
 		for _, month := range months {
-			if month.USDT != nil && month.USDT.Sign() > 0 {
-				window = append(window, month)
-			}
+			window = append(window, month)
 		}
 		basis = len(window)
 	}
