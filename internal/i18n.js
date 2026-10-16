@@ -45,8 +45,8 @@
 			"rent.title": "Posted rent",
 			"rent.caption": "Raw profit, on the month each window starts.",
 			"rent.monthly": "USDT",
-			"rent.yield": "Net rental yield",
-			"rent.yieldBasis": { one: "from {n} month", other: "from {n} months" },
+			"rent.yield": { one: "{n} month net rental yield", other: "{n} months net rental yield" },
+			"rent.yieldAllTime": "All time net rental yield",
 
 			"price.area": "Area, m²",
 			"price.raised": "Raised, Binaryx",
@@ -167,8 +167,8 @@
 			"rent.title": "Нарахована оренда",
 			"rent.caption": "Сирий прибуток у місяці початку періоду.",
 			"rent.monthly": "USDT",
-			"rent.yield": "Чиста орендна дохідність",
-			"rent.yieldBasis": { one: "за {n} місяць", few: "за {n} місяці", many: "за {n} місяців", other: "за {n} місяця" },
+			"rent.yield": { one: "Чиста орендна дохідність за {n} місяць", few: "Чиста орендна дохідність за {n} місяці", many: "Чиста орендна дохідність за {n} місяців", other: "Чиста орендна дохідність за {n} місяця" },
+			"rent.yieldAllTime": "Чиста орендна дохідність за весь час",
 
 			"price.area": "Площа, м²",
 			"price.raised": "Зібрано, Binaryx",

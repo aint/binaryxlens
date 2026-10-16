@@ -197,9 +197,12 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 
 func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProfit {
 	profit := rentalProfit{}
-	if percent, basis, ok := netRentalYield(months, raisedValue); ok {
-		profit.NetYield = &percent
-		profit.YieldMonths = basis
+	if percent, basis, ok := trailingYearNetRentalYield(months, raisedValue); ok {
+		profit.TrailingNetYield = &percent
+		profit.TrailingNetYieldMonths = basis
+	}
+	if percent, ok := allTimeNetRentalYield(months, raisedValue); ok {
+		profit.AllNetTimeYield = &percent
 	}
 	if len(months) == 0 {
 		return profit
@@ -292,10 +295,11 @@ type propertyRentalPayload struct {
 }
 
 type rentalProfit struct {
-	Labels      []string `json:"labels,omitempty"`
-	Monthly     []string `json:"monthly,omitempty"`
-	NetYield    *float64 `json:"netYield,omitempty"`
-	YieldMonths int      `json:"yieldMonths,omitempty"`
+	Labels                 []string `json:"labels,omitempty"`
+	Monthly                []string `json:"monthly,omitempty"`
+	TrailingNetYield       *float64 `json:"trailingNetYield,omitempty"`
+	TrailingNetYieldMonths int      `json:"trailingNetYieldMonths,omitempty"`
+	AllNetTimeYield        *float64 `json:"allNetTimeYield,omitempty"`
 }
 
 type propertyInitialSalesPayload struct {

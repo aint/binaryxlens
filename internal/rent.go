@@ -125,20 +125,23 @@ func monthStart(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 }
 
-// netRentalYield is (annualized rent profit / amount collected) × 100.
-// The window is the last 12 months. A shorter history uses every month
-// that paid rent, scaled to a year.
-func netRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float64, basis int, ok bool) {
-	var window []rentalProfitMonth
+func trailingYearNetRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float64, basis int, ok bool) {
+	window := months
 	if len(months) >= 12 {
 		window = months[len(months)-12:]
-		basis = 12
-	} else {
-		for _, month := range months {
-			window = append(window, month)
-		}
-		basis = len(window)
 	}
+	return netRentalYield(window, raisedValue)
+}
+
+func allTimeNetRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float64, ok bool) {
+	percent, _, ok = netRentalYield(months, raisedValue)
+	return percent, ok
+}
+
+// netRentalYield is (annualized net rent profit / amount raised) × 100.
+// The total in window is scaled to a year by 12 / len(window).
+func netRentalYield(window []rentalProfitMonth, raisedValue uint) (percent float64, basis int, ok bool) {
+	basis = len(window)
 	if basis == 0 || raisedValue == 0 {
 		return 0, 0, false
 	}

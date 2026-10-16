@@ -361,12 +361,12 @@ td.trend.flat { color: #888; }
 		return el;
 	}
 
-	function appendMetric(block, labelKey, valueEl, pill) {
+	function appendMetric(block, labelKey, valueEl, pill, labelText) {
 		const cell = document.createElement("div");
 		cell.className = "metric";
 		const label = document.createElement("span");
 		label.className = "metric-label";
-		label.textContent = t(labelKey);
+		label.textContent = labelText != null ? labelText : t(labelKey);
 		cell.appendChild(label);
 		if (pill) {
 			const figure = document.createElement("div");
@@ -380,13 +380,11 @@ td.trend.flat { color: #888; }
 		block.appendChild(cell);
 	}
 
-	function rentalYieldText(rental) {
-		const pct = Number(rental.netYield).toLocaleString(window.i18n.lang, {
+	function yieldPercent(percent) {
+		return Number(percent).toLocaleString(window.i18n.lang, {
 			minimumFractionDigits: 2,
 			maximumFractionDigits: 2
 		}) + "%";
-		if (!rental.yieldMonths) return pct;
-		return pct + " · " + t("rent.yieldBasis", { n: rental.yieldMonths });
 	}
 
 	function rentalAgeText(years) {
@@ -417,7 +415,8 @@ td.trend.flat { color: #888; }
 			appendMetric(block, "rental.status", score);
 		}
 		if (rental.ageYears != null) appendMetric(block, "rental.age", strong(rentalAgeText(rental.ageYears)));
-		if (rental.netYield != null) appendMetric(block, "rent.yield", strong(rentalYieldText(rental)));
+		if (rental.trailingNetYield != null) appendMetric(block, "rent.yield", strong(yieldPercent(rental.trailingNetYield)), null, t("rent.yield", { n: rental.trailingNetYieldMonths }));
+		if (rental.allNetTimeYield != null) appendMetric(block, "rent.yieldAllTime", strong(yieldPercent(rental.allNetTimeYield)));
 		slot.appendChild(block);
 	}
 
