@@ -50,9 +50,10 @@ func FetchRentalProfit(client *polygonscan.Client, scanPause time.Duration) (map
 			byToken[slice.Token] = append(byToken[slice.Token], slice)
 		}
 	}
+	through := monthStart(time.Now().UTC())
 	out := make(map[string][]rentalProfitMonth, len(byToken))
 	for token, slices := range byToken {
-		out[token] = rentMonths(slices)
+		out[token] = rentMonths(slices, through)
 	}
 	return out, nil
 }
@@ -96,7 +97,7 @@ func sumRentUSDT(months []rentalProfitMonth) *big.Int {
 	return sum
 }
 
-func rentMonths(slices []rentSlice) []rentalProfitMonth {
+func rentMonths(slices []rentSlice, through time.Time) []rentalProfitMonth {
 	byMonth := make(map[time.Time]*big.Int)
 	var first, last time.Time
 	for _, slice := range slices {
@@ -119,8 +120,13 @@ func rentMonths(slices []rentSlice) []rentalProfitMonth {
 	if first.IsZero() {
 		return nil
 	}
+	// Extend through the current month with zero rent so yields count missed months.
+	end := last
+	if t := monthStart(through); t.After(end) {
+		end = t
+	}
 	var out []rentalProfitMonth
-	for month := first; !month.After(last); month = month.AddDate(0, 1, 0) {
+	for month := first; !month.After(end); month = month.AddDate(0, 1, 0) {
 		usdt := byMonth[month]
 		if usdt == nil {
 			usdt = big.NewInt(0)
