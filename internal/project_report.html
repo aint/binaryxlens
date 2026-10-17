@@ -60,8 +60,7 @@ details[open] > summary::before { content: "▾ "; }
 	font-weight: 600;
 	color: #1e4a7a;
 }
-.price-facts,
-.rental-facts {
+.price-facts {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -70,7 +69,27 @@ details[open] > summary::before { content: "▾ "; }
 	padding-bottom: 12px;
 	border-bottom: 1px solid #e8e8e8;
 }
-.rental-facts { align-items: flex-end; }
+.rent-section {
+	margin: 0 0 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e8e8e8;
+}
+.rent-section-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	margin: 0 0 12px;
+}
+.rental-facts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 14px 28px;
+	margin: 0 0 16px;
+}
+.rent-section > .rental-facts:last-child { margin-bottom: 0; }
 .metric { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
 .price-figure { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .metric-label { font-size: 0.68rem; font-weight: 500; color: #777; }
@@ -137,12 +156,8 @@ details[open] > summary::before { content: "▾ "; }
 .score-red { background: #fde8e8; color: #b42318; }
 .metric .score { font-size: 0.75rem; padding: 3px 8px; }
 .rental-pending { font-size: 0.95rem; font-weight: 500; color: #888; }
-.rent-wrap {
-	margin: 0 0 14px;
-	padding-bottom: 12px;
-	border-bottom: 1px solid #e8e8e8;
-}
-.rent-wrap h4 { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; }
+.rent-wrap { margin: 0; }
+.rent-wrap h5 { font-size: 0.85rem; font-weight: 600; margin: 0 0 4px; }
 .rent-caption { margin: 0 0 8px; font-size: 0.75rem; line-height: 1.35; color: #666; }
 .chart-wrap.rent-chart { height: 220px; }
 .slot .buys-wrap > summary {
@@ -393,60 +408,73 @@ td.trend.flat { color: #888; }
 		return label.replace(String(years), shown);
 	}
 
-	function renderRentalInto(slot, property) {
+	function renderRentInto(slot, property) {
 		const rental = property.rental;
 		if (!rental || !rental.expected) return;
-		const block = document.createElement("div");
-		block.className = "rental-facts";
 
-		appendMetric(block, "rental.expected", strong(rental.expected));
+		const section = document.createElement("section");
+		section.className = "rent-section";
+		const title = document.createElement("h4");
+		title.className = "rent-section-title";
+		title.textContent = t("rent.section");
+		section.appendChild(title);
+
+		const facts = document.createElement("div");
+		facts.className = "rental-facts";
+		appendMetric(facts, "rental.expected", strong(rental.expected));
 		if (rental.actual) {
-			appendMetric(block, "rental.actual", strong(rental.actual));
+			appendMetric(facts, "rental.actual", strong(rental.actual));
 		} else {
 			const pending = document.createElement("span");
 			pending.className = "rental-pending";
 			pending.textContent = t("rental.notStarted");
-			appendMetric(block, "rental.actual", pending);
+			appendMetric(facts, "rental.actual", pending);
 		}
 		if (rental.score) {
 			const score = document.createElement("span");
 			score.className = "score score-" + rental.score;
 			score.textContent = rental.delayQuarters > 0 ? t("rental.delay", { n: rental.delayQuarters }) : t("rental.onTime");
-			appendMetric(block, "rental.status", score);
+			appendMetric(facts, "rental.status", score);
 		}
-		if (rental.ageYears != null) appendMetric(block, "rental.age", strong(rentalAgeText(rental.ageYears)));
-		if (rental.trailingNetYield != null) appendMetric(block, "rent.yield", strong(yieldPercent(rental.trailingNetYield)), null, t("rent.yield", { n: rental.trailingNetYieldMonths }));
-		if (rental.allNetTimeYield != null) appendMetric(block, "rent.yieldAllTime", strong(yieldPercent(rental.allNetTimeYield)));
-		slot.appendChild(block);
-	}
+		if (rental.ageYears != null) appendMetric(facts, "rental.age", strong(rentalAgeText(rental.ageYears)));
+		section.appendChild(facts);
 
-	function renderRentInto(slot, property) {
-		const rent = property.rental;
-		if (!rent || !rent.labels || rent.labels.length === 0) return;
+		if (rental.trailingNetYield != null || rental.allNetTimeYield != null) {
+			const yields = document.createElement("div");
+			yields.className = "rental-facts";
+			if (rental.trailingNetYield != null) appendMetric(yields, "rent.yield", strong(yieldPercent(rental.trailingNetYield)), null, t("rent.yield", { n: rental.trailingNetYieldMonths }));
+			if (rental.allNetTimeYield != null) appendMetric(yields, "rent.yieldAllTime", strong(yieldPercent(rental.allNetTimeYield)));
+			section.appendChild(yields);
+		}
 
-		const wrap = document.createElement("div");
-		wrap.className = "rent-wrap";
-		const heading = document.createElement("h4");
-		heading.textContent = t("rent.title");
-		const caption = document.createElement("p");
-		caption.className = "rent-caption";
-		caption.textContent = t("rent.caption");
-		const chartWrap = document.createElement("div");
-		chartWrap.className = "chart-wrap rent-chart";
-		const canvas = document.createElement("canvas");
-		chartWrap.appendChild(canvas);
-		wrap.appendChild(heading);
-		wrap.appendChild(caption);
-		wrap.appendChild(chartWrap);
-		slot.appendChild(wrap);
+		let canvas = null;
+		if (rental.labels && rental.labels.length > 0) {
+			const wrap = document.createElement("div");
+			wrap.className = "rent-wrap";
+			const heading = document.createElement("h5");
+			heading.textContent = t("rent.title");
+			const caption = document.createElement("p");
+			caption.className = "rent-caption";
+			caption.textContent = t("rent.caption");
+			const chartWrap = document.createElement("div");
+			chartWrap.className = "chart-wrap rent-chart";
+			canvas = document.createElement("canvas");
+			chartWrap.appendChild(canvas);
+			wrap.appendChild(heading);
+			wrap.appendChild(caption);
+			wrap.appendChild(chartWrap);
+			section.appendChild(wrap);
+		}
+		slot.appendChild(section);
+		if (!canvas) return;
 
 		new Chart(canvas, {
 			type: "bar",
 			data: {
-				labels: rent.labels,
+				labels: rental.labels,
 				datasets: [{
 					label: t("rent.monthly"),
-					data: rent.monthly.map(function (s) { return Number(s); }),
+					data: rental.monthly.map(function (s) { return Number(s); }),
 					backgroundColor: "rgba(29, 107, 58, 0.45)",
 					borderColor: "rgb(29, 107, 58)",
 					borderWidth: 1
@@ -460,7 +488,7 @@ td.trend.flat { color: #888; }
 					tooltip: {
 						callbacks: {
 							label: function (ctx) {
-								return rent.monthly[ctx.dataIndex] + " USDT";
+								return rental.monthly[ctx.dataIndex] + " USDT";
 							}
 						}
 					}
@@ -1306,7 +1334,6 @@ td.trend.flat { color: #888; }
 			slot.className = "slot";
 			renderPropertyHead(slot, property);
 			renderPriceInto(slot, property);
-			renderRentalInto(slot, property);
 			renderRentInto(slot, property);
 			const title = document.createElement(collapseBuys ? "summary" : "h3");
 			title.textContent = t("initialSales");
