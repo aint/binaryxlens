@@ -88,6 +88,7 @@
     tr[hidden] { display: none; }
     td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
     td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; white-space: nowrap; }
+    tr.is-target td { background: #eef4ff; }
     td.properties { min-width: 180px; }
     td.properties a { display: block; color: #0b57d0; text-decoration: none; }
     td.properties a:hover { text-decoration: underline; }
@@ -227,6 +228,8 @@ __HOLDERS_ROWS__
       const empty = document.getElementById("holder-empty");
       const table = document.querySelector(".holders-scroll");
       search.placeholder = t("holders.searchPlaceholder");
+      const queryParam = params.get("q");
+      if (queryParam) search.value = queryParam;
       document.querySelectorAll("#holders-body .usdt").forEach(function (el) {
         el.textContent = Number(el.textContent).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       });
@@ -254,8 +257,10 @@ __HOLDERS_ROWS__
         const query = search.value.trim().toLowerCase();
         let shown = 0;
         rows.forEach(function (row) {
+          const address = row.querySelector(".address").textContent.trim().toLowerCase();
           const match = row.textContent.toLowerCase().indexOf(query) !== -1 && (!limit || shown < limit);
           row.hidden = !match;
+          row.classList.toggle("is-target", match && query !== "" && address === query);
           if (match) shown += 1;
         });
         table.hidden = shown === 0;
@@ -265,6 +270,8 @@ __HOLDERS_ROWS__
 
       search.addEventListener("input", apply);
       apply();
+      const targetRow = document.querySelector("#holders-body tr.is-target");
+      if (targetRow) targetRow.scrollIntoView({ block: "center" });
     })();
   </script>
 </body>

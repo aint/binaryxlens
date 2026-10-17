@@ -261,6 +261,10 @@ details[open] > summary::before { content: "▾ "; }
 .slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
 .slot .holders-wrap td.pair .usdt { display: block; color: #666; font-size: 0.92em; }
 .slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
+.slot .holders-wrap td.address a,
+.holders-section td.address a { color: #0b57d0; text-decoration: none; }
+.slot .holders-wrap td.address a:hover,
+.holders-section td.address a:hover { text-decoration: underline; }
 .slot .holders-wrap td.tier { white-space: nowrap; }
 .slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 0 0 8px; }
 .slot > .secondary-meta { margin: 12px 0 6px; }
@@ -900,13 +904,20 @@ td.trend.flat { color: #888; }
 		return "<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>";
 	}
 
+	function addressCell(address) {
+		const params = new URLSearchParams();
+		params.set("q", address);
+		params.set("lang", window.i18n.lang);
+		return "<td class=\"address\"><a href=\"../holders.html?" + escapeHtml(params.toString()) + "\">" + escapeHtml(address) + "</a></td>";
+	}
+
 	function holderRow(h, i, withProperties) {
 		const names = withProperties
 			? "<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>"
 			: "";
 		return "<tr>" +
 			"<td class=\"num\">" + (i + 1) + "</td>" +
-			"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+			addressCell(h.address) +
 			names +
 			amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
 			amountPairOrDash(h.initialBought, h.initSaleUSDT) +
@@ -937,7 +948,7 @@ td.trend.flat { color: #888; }
 			: "";
 		return "<tr>" +
 			"<td class=\"num\">" + (i + 1) + "</td>" +
-			"<td class=\"address\">" + escapeHtml(h.address) + "</td>" +
+			addressCell(h.address) +
 			names +
 			amountPair(addUSDT(h.initialBought, h.p2pBought), addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
 			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
