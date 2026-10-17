@@ -125,10 +125,15 @@ func monthStart(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 }
 
-func trailingYearNetRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float64, basis int, ok bool) {
+// trailingNetRentalYield annualizes the last n months. When allowShort is set
+// and the history is shorter than n, the whole history is used and basis is that length.
+func trailingNetRentalYield(months []rentalProfitMonth, raisedValue uint, n int, allowShort bool) (percent float64, basis int, ok bool) {
+	if n <= 0 || len(months) == 0 || (!allowShort && len(months) < n) {
+		return 0, 0, false
+	}
 	window := months
-	if len(months) >= 12 {
-		window = months[len(months)-12:]
+	if len(months) > n {
+		window = months[len(months)-n:]
 	}
 	return netRentalYield(window, raisedValue)
 }

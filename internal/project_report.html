@@ -90,10 +90,15 @@ details[open] > summary::before { content: "▾ "; }
 	margin: 0 0 16px;
 }
 .rent-section > .rental-facts:last-child { margin-bottom: 0; }
+.rental-facts.yields { align-items: flex-start; }
 .metric { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
 .price-figure { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .metric-label { font-size: 0.68rem; font-weight: 500; color: #777; }
 .metric strong { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.yield-trend { font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.yield-trend.up { color: #1a7f37; }
+.yield-trend.down { color: #cf222e; }
+.yield-trend.flat { color: #888; }
 .price-ai-note {
 	flex-basis: 100%;
 	margin: 0;
@@ -402,6 +407,22 @@ td.trend.flat { color: #888; }
 		}) + "%";
 	}
 
+	function yieldTrend(delta, title) {
+		const n = Number(delta);
+		const el = document.createElement("span");
+		const dir = n > 0 ? "up" : n < 0 ? "down" : "flat";
+		el.className = "yield-trend " + dir;
+		const arrow = n > 0 ? "↑ " : n < 0 ? "↓ " : "";
+		const points = n.toLocaleString(window.i18n.lang, {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+			signDisplay: "exceptZero"
+		});
+		el.textContent = arrow + points;
+		el.title = title;
+		return el;
+	}
+
 	function rentalAgeText(years) {
 		const label = t("rental.years", { n: years });
 		const shown = years.toLocaleString(window.i18n.lang, { maximumFractionDigits: 2 });
@@ -439,11 +460,18 @@ td.trend.flat { color: #888; }
 		if (rental.ageYears != null) appendMetric(facts, "rental.age", strong(rentalAgeText(rental.ageYears)));
 		section.appendChild(facts);
 
-		if (rental.trailingNetYield != null || rental.allNetTimeYield != null) {
+		if (rental.netYieldQuarter != null || rental.netYieldYear != null || rental.netYieldAllTime != null) {
 			const yields = document.createElement("div");
-			yields.className = "rental-facts";
-			if (rental.trailingNetYield != null) appendMetric(yields, "rent.yield", strong(yieldPercent(rental.trailingNetYield)), null, t("rent.yield", { n: rental.trailingNetYieldMonths }));
-			if (rental.allNetTimeYield != null) appendMetric(yields, "rent.yieldAllTime", strong(yieldPercent(rental.allNetTimeYield)));
+			yields.className = "rental-facts yields";
+			if (rental.netYieldAllTime != null) appendMetric(yields, "rent.yieldAllTime", strong(yieldPercent(rental.netYieldAllTime)));
+			if (rental.netYieldYear != null) {
+				const trend = rental.netYieldYearTrend != null ? yieldTrend(rental.netYieldYearTrend, t("rent.yieldTrendAllTime")) : null;
+				appendMetric(yields, "rent.yield", strong(yieldPercent(rental.netYieldYear)), trend, t("rent.yield", { n: rental.netYieldYearMonths }));
+			}
+			if (rental.netYieldQuarter != null) {
+				const trend = rental.netYieldQuarterTrend != null ? yieldTrend(rental.netYieldQuarterTrend, t("rent.yieldTrendMonths", { n: rental.netYieldYearMonths })) : null;
+				appendMetric(yields, "rent.yield", strong(yieldPercent(rental.netYieldQuarter)), trend, t("rent.yield", { n: 3 }));
+			}
 			section.appendChild(yields);
 		}
 

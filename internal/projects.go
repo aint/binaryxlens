@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -197,12 +198,23 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 
 func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProfit {
 	profit := rentalProfit{}
-	if percent, basis, ok := trailingYearNetRentalYield(months, raisedValue); ok {
-		profit.TrailingNetYield = &percent
-		profit.TrailingNetYieldMonths = basis
+	if percent, _, ok := trailingNetRentalYield(months, raisedValue, 4, false); ok {
+		profit.NetYieldQuarter = &percent
+	}
+	if percent, basis, ok := trailingNetRentalYield(months, raisedValue, 12, true); ok {
+		profit.NetYieldYear = &percent
+		profit.NetYieldYearMonths = basis
 	}
 	if percent, ok := allTimeNetRentalYield(months, raisedValue); ok {
-		profit.AllNetTimeYield = &percent
+		profit.NetYieldAllTime = &percent
+	}
+	if profit.NetYieldYear != nil && profit.NetYieldAllTime != nil {
+		delta := math.Round((*profit.NetYieldYear-*profit.NetYieldAllTime)*100) / 100
+		profit.NetYieldYearTrend = &delta
+	}
+	if profit.NetYieldQuarter != nil && profit.NetYieldYear != nil {
+		delta := math.Round((*profit.NetYieldQuarter-*profit.NetYieldYear)*100) / 100
+		profit.NetYieldQuarterTrend = &delta
 	}
 	if len(months) == 0 {
 		return profit
@@ -295,11 +307,14 @@ type propertyRentalPayload struct {
 }
 
 type rentalProfit struct {
-	Labels                 []string `json:"labels,omitempty"`
-	Monthly                []string `json:"monthly,omitempty"`
-	TrailingNetYield       *float64 `json:"trailingNetYield,omitempty"`
-	TrailingNetYieldMonths int      `json:"trailingNetYieldMonths,omitempty"`
-	AllNetTimeYield        *float64 `json:"allNetTimeYield,omitempty"`
+	Labels               []string `json:"labels,omitempty"`
+	Monthly              []string `json:"monthly,omitempty"`
+	NetYieldQuarter      *float64 `json:"netYieldQuarter,omitempty"`
+	NetYieldQuarterTrend *float64 `json:"netYieldQuarterTrend,omitempty"`
+	NetYieldYear         *float64 `json:"netYieldYear,omitempty"`
+	NetYieldYearMonths   int      `json:"netYieldYearMonths,omitempty"`
+	NetYieldYearTrend    *float64 `json:"netYieldYearTrend,omitempty"`
+	NetYieldAllTime      *float64 `json:"netYieldAllTime,omitempty"`
 }
 
 type propertyInitialSalesPayload struct {
