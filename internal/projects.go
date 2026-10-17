@@ -219,6 +219,13 @@ func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProf
 	if len(months) == 0 {
 		return profit
 	}
+	profit.ProfitAllTime = FormatBigInt(sumRentUSDT(months), polygonscan.USDTDecimal)
+	window := months
+	if len(months) > 12 {
+		window = months[len(months)-12:]
+	}
+	profit.ProfitYear = FormatBigInt(sumRentUSDT(window), polygonscan.USDTDecimal)
+	profit.ProfitYearMonths = len(window)
 	profit.Labels = make([]string, 0, len(months))
 	profit.Monthly = make([]string, 0, len(months))
 	for _, month := range months {
@@ -315,6 +322,9 @@ type rentalProfit struct {
 	NetYieldYearMonths   int      `json:"netYieldYearMonths,omitempty"`
 	NetYieldYearTrend    *float64 `json:"netYieldYearTrend,omitempty"`
 	NetYieldAllTime      *float64 `json:"netYieldAllTime,omitempty"`
+	ProfitAllTime        string   `json:"profitAllTime,omitempty"`
+	ProfitYear           string   `json:"profitYear,omitempty"`
+	ProfitYearMonths     int      `json:"profitYearMonths,omitempty"`
 }
 
 type propertyInitialSalesPayload struct {

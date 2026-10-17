@@ -164,6 +164,27 @@ details[open] > summary::before { content: "▾ "; }
 .rent-wrap { margin: 0; }
 .rent-wrap h5 { font-size: 0.85rem; font-weight: 600; margin: 0 0 4px; }
 .rent-caption { margin: 0 0 8px; font-size: 0.75rem; line-height: 1.35; color: #666; }
+.rent-legend {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: baseline;
+	gap: 4px 16px;
+	margin: 0 0 6px;
+	font-size: 0.75rem;
+	line-height: 1.35;
+	color: #666;
+}
+.rent-legend-swatch {
+	display: inline-block;
+	width: 28px;
+	height: 10px;
+	margin-right: 6px;
+	vertical-align: -1px;
+	background: rgba(29, 107, 58, 0.45);
+	border: 1px solid rgb(29, 107, 58);
+}
+.rent-legend strong { font-weight: 600; font-variant-numeric: tabular-nums; color: #222; }
 .chart-wrap.rent-chart { height: 220px; }
 .slot .buys-wrap > summary {
 	display: flex;
@@ -484,12 +505,31 @@ td.trend.flat { color: #888; }
 			const caption = document.createElement("p");
 			caption.className = "rent-caption";
 			caption.textContent = t("rent.caption");
+			wrap.appendChild(heading);
+			wrap.appendChild(caption);
+			const legend = document.createElement("div");
+			legend.className = "rent-legend";
+			const series = document.createElement("span");
+			const swatch = document.createElement("span");
+			swatch.className = "rent-legend-swatch";
+			series.appendChild(swatch);
+			series.appendChild(document.createTextNode(t("rent.monthly")));
+			legend.appendChild(series);
+			function profitLegend(label, amount) {
+				const item = document.createElement("span");
+				item.appendChild(document.createTextNode(label + " "));
+				const value = document.createElement("strong");
+				value.textContent = formatUSDT(amount) + " USDT";
+				item.appendChild(value);
+				legend.appendChild(item);
+			}
+			if (rental.profitAllTime) profitLegend(t("rent.profitAllTime"), rental.profitAllTime);
+			if (rental.profitYear) profitLegend(t("rent.profit", { n: rental.profitYearMonths }), rental.profitYear);
+			wrap.appendChild(legend);
 			const chartWrap = document.createElement("div");
 			chartWrap.className = "chart-wrap rent-chart";
 			canvas = document.createElement("canvas");
 			chartWrap.appendChild(canvas);
-			wrap.appendChild(heading);
-			wrap.appendChild(caption);
 			wrap.appendChild(chartWrap);
 			section.appendChild(wrap);
 		}
@@ -513,6 +553,7 @@ td.trend.flat { color: #888; }
 				maintainAspectRatio: false,
 				interaction: { mode: "index", intersect: false },
 				plugins: {
+					legend: { display: false },
 					tooltip: {
 						callbacks: {
 							label: function (ctx) {

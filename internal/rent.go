@@ -86,6 +86,16 @@ func parsePaidRent(l polygonscan.EventLog) (rentSlice, bool) {
 	}, true
 }
 
+func sumRentUSDT(months []rentalProfitMonth) *big.Int {
+	sum := big.NewInt(0)
+	for _, month := range months {
+		if month.USDT != nil {
+			sum.Add(sum, month.USDT)
+		}
+	}
+	return sum
+}
+
 func rentMonths(slices []rentSlice) []rentalProfitMonth {
 	byMonth := make(map[time.Time]*big.Int)
 	var first, last time.Time
