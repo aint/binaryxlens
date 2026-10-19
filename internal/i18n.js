@@ -28,6 +28,9 @@
 			"summary.totalSupply": "Total supply",
 			"summary.bought": "Bought (cumulative)",
 			"summary.tokens": { one: "{n} token", other: "{n} tokens" },
+			"score.label": "Score",
+			"score.value": "{n}/10",
+			"score.note": "Based on initial sale price versus the market band, trailing net yield, and lease age.",
 
 			"type.construction": "construction",
 			"type.rental": "rental",
@@ -155,6 +158,9 @@
 			"summary.totalSupply": "Загальна емісія",
 			"summary.bought": "Куплено (усього)",
 			"summary.tokens": { one: "{n} токен", few: "{n} токени", many: "{n} токенів", other: "{n} токена" },
+			"score.label": "Оцінка",
+			"score.value": "{n}/10",
+			"score.note": "На основі ціни первинного продажу відносно ринкового діапазону, чистої дохідності та віку оренди.",
 
 			"type.construction": "будівництво",
 			"type.rental": "оренда",
@@ -305,6 +311,9 @@
 		});
 		document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
 			el.setAttribute("aria-label", t(el.dataset.i18nAria));
+		});
+		document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+			el.title = t(el.dataset.i18nTitle);
 		});
 	}
 

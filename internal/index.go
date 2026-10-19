@@ -22,10 +22,12 @@ var (
 const reportsUpdatedLayout = "2006-01-02 15:04"
 
 type projectRow struct {
-	Href   string
-	Name   string
-	Props  string
-	Labels []string
+	Href      string
+	Name      string
+	Props     string
+	Labels    []string
+	Score     int
+	ScoreTier string
 }
 
 func WriteIndex(path string, updated time.Time, projects []*Project) error {
@@ -34,7 +36,7 @@ func WriteIndex(path string, updated time.Time, projects []*Project) error {
 		return fmt.Errorf("index template missing placeholder")
 	}
 	out := bytes.ReplaceAll(withI18n(indexTemplateSrc), indexUpdatedPlaceholder, []byte(stamp))
-	out = bytes.ReplaceAll(out, indexNavPlaceholder, []byte(projectLinksHTML(projectRows())))
+	out = bytes.ReplaceAll(out, indexNavPlaceholder, []byte(projectLinksHTML(projectRows(projects))))
 	out = bytes.ReplaceAll(out, holdersRowsPlaceholder, []byte(holderRowsHTML(globalHolders(projects))))
 	if err := os.WriteFile(path, out, 0o644); err != nil {
 		return fmt.Errorf("write index: %w", err)
@@ -50,24 +52,37 @@ func projectLinksHTML(projects []projectRow) string {
 		for _, label := range project.Labels {
 			fmt.Fprintf(&labels, `<span class="tag tag-%[1]s" data-i18n="type.%[1]s">%[1]s</span>`, html.EscapeString(label))
 		}
+		rating := ""
+		if project.Score != -1 {
+			rating = fmt.Sprintf(`<span class="rating rating-%s" data-i18n-title="score.note">%d/10</span>`,
+				html.EscapeString(project.ScoreTier),
+				project.Score,
+			)
+		}
 		const projectLinkHTML = `
 			<a href="%s">
         		<span class="item"><span class="name">%s</span><span class="props">%s</span></span>
-        		<span class="tags">%s</span>
+        		<span class="tags">%s%s</span>
     		</a>`
 		fmt.Fprintf(&b, projectLinkHTML,
 			html.EscapeString(project.Href),
 			html.EscapeString(project.Name),
 			html.EscapeString(project.Props),
+			rating,
 			labels.String(),
 		)
 	}
 	return b.String()
 }
 
-func projectRows() []projectRow {
-	names := make([]string, 0, len(AllProperties))
-	for name := range AllProperties {
+func projectRows(projects []*Project) []projectRow {
+	projectByName := make(map[string]*Project, len(projects))
+	for _, project := range projects {
+		projectByName[project.Name] = project
+	}
+
+	names := make([]string, 0, len(projectByName))
+	for name := range projectByName {
 		names = append(names, name)
 	}
 	sort.Slice(names, func(i, j int) bool {
@@ -78,17 +93,22 @@ func projectRows() []projectRow {
 		return li < lj
 	})
 
-	projects := make([]projectRow, 0, len(names))
+	projectRows := make([]projectRow, 0, len(names))
 	for _, name := range names {
-		properties := AllProperties[name]
-		projects = append(projects, projectRow{
-			Href:   "reports/" + projectReportFile(name),
-			Name:   name,
-			Props:  propertyNames(name, properties),
-			Labels: propertyTypeLabels(properties),
-		})
+		project := projectByName[name]
+		properties := project.Properties
+		score := project.score()
+		projectRow := projectRow{
+			Name:      name,
+			Href:      "reports/" + projectReportFile(name),
+			Props:     propertyNames(name, properties),
+			Labels:    propertyTypeLabels(properties),
+			Score:     score,
+			ScoreTier: scoreTier(score),
+		}
+		projectRows = append(projectRows, projectRow)
 	}
-	return projects
+	return projectRows
 }
 
 func projectReportFile(name string) string {

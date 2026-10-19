@@ -100,11 +100,14 @@ func (pr *Project) GenerateReport() error {
 }
 
 func (pr *Project) buildSummary() projectSummaryPayload {
+	score := pr.score()
 	return projectSummaryPayload{
 		PropertyCount: len(pr.Properties),
 		TotalSupply:   FormatBigInt(pr.TotalSupplyRaw, pr.Decimal),
 		Bought:        FormatBigInt(pr.BoughtRaw, pr.Decimal),
 		BoughtPct:     PercentFloat(pr.BoughtRaw, pr.TotalSupplyRaw),
+		Score:         score,
+		ScoreTier:     scoreTier(score),
 	}
 }
 
@@ -112,11 +115,17 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 	p2pWeeklyPoints := property.P2PSaleWeeklyPoints
 	initialSaleWeeklyPoints := property.InitialSaleWeeklyPoints
 	holders, tierStats := buildPropertyHoldersPayload(property)
+	score := property.score()
 
 	payload := propertyReportPayload{
-		Name:    property.Name,
-		Address: property.Address,
-		Type:    property.Type.Label(),
+		Name:      property.Name,
+		Address:   property.Address,
+		Type:      property.Type.Label(),
+		Score:     score,
+		ScoreTier: scoreTier(score),
+		Holders:   holders,
+		TierStats: tierStats,
+		Rental:    buildRentalPayload(property, time.Now().UTC()),
 		Price: propertyPricePayload{
 			AreaM2:             property.AreaM2,
 			Raised:             property.BinaryxRaisedValue,
@@ -126,9 +135,6 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 			ProjectedValueTier: string(property.ProjectedValueTier),
 			RaisedValueTier:    string(property.RaisedValueTier),
 		},
-		Rental:    buildRentalPayload(property, time.Now().UTC()),
-		Holders:   holders,
-		TierStats: tierStats,
 		Initial: propertyInitialSalesPayload{
 			Labels:     make([]string, 0, len(initialSaleWeeklyPoints)),
 			Weekly:     make([]float64, 0, len(initialSaleWeeklyPoints)),
@@ -142,6 +148,7 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 			Cumulative: make([]float64, 0, len(p2pWeeklyPoints)),
 		},
 	}
+
 	for _, p := range initialSaleWeeklyPoints {
 		payload.Initial.Labels = append(payload.Initial.Labels, p.Week.UTC().Format(timeDateOnly))
 		payload.Initial.Weekly = append(payload.Initial.Weekly, bigIntToFloat(p.Value, property.Decimal))
@@ -280,12 +287,16 @@ type projectSummaryPayload struct {
 	TotalSupply   string  `json:"totalSupply"`
 	Bought        string  `json:"bought"`
 	BoughtPct     float64 `json:"boughtPct"`
+	Score         int     `json:"score"`
+	ScoreTier     string  `json:"scoreTier"`
 }
 
 type propertyReportPayload struct {
 	Name      string                      `json:"name"`
 	Address   string                      `json:"address"`
 	Type      string                      `json:"type"`
+	Score     int                         `json:"score"`
+	ScoreTier string                      `json:"scoreTier"`
 	Price     propertyPricePayload        `json:"price"`
 	Rental    *propertyRentalPayload      `json:"rental,omitempty"`
 	Holders   []propertyHolderRow         `json:"holders"`

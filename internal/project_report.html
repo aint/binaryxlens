@@ -132,6 +132,25 @@ details[open] > summary::before { content: "▾ "; }
 	justify-content: space-between;
 	gap: 12px;
 }
+.slot-marks {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+.rating {
+	font-size: 0.72rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+	padding: 2px 7px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+.rating-high { background: #e7f2ea; color: #1d6b3a; }
+.rating-mid { background: #fff4d6; color: #8a5a00; }
+.rating-low { background: #fde8e8; color: #b42318; }
+.score-note { color: #777; font-size: 0.8rem; }
 .tag {
 	flex-shrink: 0;
 	font-size: 0.68rem;
@@ -591,12 +610,35 @@ td.trend.flat { color: #888; }
 		document.getElementById("project-title").textContent = projectData.name;
 	}
 
+	function ratingEl(score, scoreTier) {
+		const el = document.createElement("span");
+		el.className = "rating rating-" + scoreTier;
+		el.textContent = t("score.value", { n: score });
+		el.title = t("score.note");
+		return el;
+	}
+
 	if (projectData.summary) {
 		const s = projectData.summary;
-		document.getElementById("project-summary").innerHTML =
+		const summary = document.getElementById("project-summary");
+		summary.innerHTML =
 			"<p>" + escapeHtml(t("summary.properties")) + ": <strong>" + s.propertyCount + "</strong></p>" +
 			"<p>" + escapeHtml(t("summary.totalSupply")) + ": <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
 			"<p>" + escapeHtml(t("summary.bought")) + ": <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(t("summary.tokens", { n: s.bought })) + ")</p>";
+		if (s.score !== -1) {
+			const line = document.createElement("p");
+			line.appendChild(document.createTextNode(t("score.label") + ": "));
+			const value = document.createElement("strong");
+			value.className = "rating rating-" + s.scoreTier;
+			value.textContent = t("score.value", { n: s.score });
+			line.appendChild(value);
+			line.appendChild(document.createTextNode(" "));
+			const note = document.createElement("span");
+			note.className = "score-note";
+			note.textContent = t("score.note");
+			line.appendChild(note);
+			summary.appendChild(line);
+		}
 	}
 
 	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
@@ -709,8 +751,12 @@ td.trend.flat { color: #888; }
 		const tag = document.createElement("span");
 		tag.className = "tag tag-" + property.type;
 		tag.textContent = t("type." + property.type);
+		const marks = document.createElement("span");
+		marks.className = "slot-marks";
+		if (property.score !== -1) marks.appendChild(ratingEl(property.score, property.scoreTier));
+		marks.appendChild(tag);
 		titleRow.appendChild(name);
-		titleRow.appendChild(tag);
+		titleRow.appendChild(marks);
 		head.appendChild(titleRow);
 		if (property.address) {
 			const links = document.createElement("span");
