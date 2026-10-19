@@ -37,5 +37,5 @@ jobs:
       - name: Commit reports
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: Refresh daily reports (${{ steps.stamp.outputs.ts }})
-          file_pattern: "reports/*.html index.html"
+          commit_message: Daily data refresh (${{ steps.stamp.outputs.ts }})
+          file_pattern: "reports/*.html holders.html index.html"
