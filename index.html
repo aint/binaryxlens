@@ -207,6 +207,19 @@
     .tag-construction { background: #f4efe4; color: #7a5b2e; }
     .tag-rental { background: #e7f2ea; color: #1d6b3a; }
     .tag-redeemed { background: #e8eef6; color: #1e4a7a; }
+    .tags { align-items: center; }
+    .rating {
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .rating-high { background: #e7f2ea; color: #1d6b3a; }
+    .rating-mid { background: #fff4d6; color: #8a5a00; }
+    .rating-low { background: #fde8e8; color: #b42318; }
   </style>
 </head>
 <body>
@@ -225,7 +238,7 @@
         <div id="lang-switch" class="lang-switch"></div>
       </div>
     </header>
-    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">2026-10-19 01:59 UTC</time></p>
+    <p class="updated"><span data-i18n="index.reportsUpdated">Reports updated</span> <time id="reports-updated">2026-10-19 13:48 UTC</time></p>
     <p class="lede">
       <span data-i18n="index.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
@@ -259,7 +272,7 @@
     		</a>
 			<a href="reports/awwa_hotel_by_ribas_report.html">
         		<span class="item"><span class="name">AWWA Hotel by Ribas</span><span class="props">AWWA Hotel by Ribas B14 · AWWA Hotel by Ribas B22 · AWWA Hotel by Ribas A16</span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">5/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/bingin_magic_story_villas_report.html">
         		<span class="item"><span class="name">Bingin Magic Story Villas</span><span class="props">Bingin Magic Story Villa 3</span></span>
@@ -267,7 +280,7 @@
     		</a>
 			<a href="reports/bubbles_boutique_complex_report.html">
         		<span class="item"><span class="name">Bubbles Boutique Complex</span><span class="props"></span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">5/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/cascade_villas_report.html">
         		<span class="item"><span class="name">CASCADE Villas</span><span class="props">CASCADE Villa 2 · CASCADE Villa 3</span></span>
@@ -287,19 +300,19 @@
     		</a>
 			<a href="reports/hayat_green_tower_report.html">
         		<span class="item"><span class="name">Hayat Green Tower</span><span class="props"></span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">4/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/kammara_loft_report.html">
         		<span class="item"><span class="name">Kammara Loft</span><span class="props"></span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">4/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/kammora_living_report.html">
         		<span class="item"><span class="name">Kammora Living</span><span class="props"></span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">4/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/karra_loft_report.html">
         		<span class="item"><span class="name">Karra Loft</span><span class="props">Karra Loft 3A · Karra Loft 5</span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-low" data-i18n-title="score.note">3/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/la_casa_española_villas_report.html">
         		<span class="item"><span class="name">La Casa Española Villas</span><span class="props">La Casa Española Villa 4 · La Casa Española Villa 6 · La Casa Española Villa 8 · La Casa Española Villa 9</span></span>
@@ -311,7 +324,7 @@
     		</a>
 			<a href="reports/onyx_parq_resort_61_report.html">
         		<span class="item"><span class="name">Onyx PARQ Resort 61</span><span class="props"></span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">5/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/roots_villas_report.html">
         		<span class="item"><span class="name">Roots Villas</span><span class="props">Roots Villa 1 · Roots Villa 3 · Roots Villa 4 · Roots Villa 5</span></span>
@@ -323,11 +336,11 @@
     		</a>
 			<a href="reports/tropical_loft_villas_report.html">
         		<span class="item"><span class="name">Tropical Loft Villas</span><span class="props">Tropical Loft Villa 2 · Tropical Loft Villa 3 · Tropical Loft Villa 4</span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">8/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>
 			<a href="reports/vesna_townhouse_report.html">
         		<span class="item"><span class="name">Vesna Townhouse</span><span class="props"></span></span>
-        		<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+        		<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">9/10</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
     		</a>    </nav>
     </div>
     <div id="holders-panel" hidden>
@@ -392,7 +405,7 @@
               <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 1 (Ocean Villa 3)</a>
             </td>
             <td class="num">10</td>
-            <td class="num"><span class="usdt">406154.82</span></td>
+            <td class="num"><span class="usdt">406671.27</span></td>
           </tr>
 <tr>
             <td class="address">0xa94462d128c453b2afb13c3a1f493028f2a0364b</td>
@@ -746,7 +759,7 @@
               <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 2 (Ocean Villa 4)</a>
             </td>
             <td class="num">30</td>
-            <td class="num"><span class="usdt">59952.08</span>*</td>
+            <td class="num"><span class="usdt">60074.78</span>*</td>
           </tr>
 <tr>
             <td class="address">0x1b8c839aac6b89965e4a4f87d57aacac3be90099</td>
@@ -4774,15 +4787,6 @@
             <td class="num"><span class="usdt">5092.65</span></td>
           </tr>
 <tr>
-            <td class="address">0x0877e1bb8f3220f622769e82c3e40332c4293ec3</td>
-            <td class="properties">
-              <a href="reports/cascade_villas_report.html">CASCADE Villa 3</a>
-              <a href="reports/taryan_dragon_jungle_view_report.html">Taryan Dragon Jungle View</a>
-            </td>
-            <td class="num">2</td>
-            <td class="num"><span class="usdt">5064.95</span></td>
-          </tr>
-<tr>
             <td class="address">0x209bc17bb65a5e1e93b67ba52186e98a1c5a6bcb</td>
             <td class="properties">
               <a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a>
@@ -5032,6 +5036,14 @@
             </td>
             <td class="num">2</td>
             <td class="num"><span class="usdt">4780.97</span></td>
+          </tr>
+<tr>
+            <td class="address">0x0877e1bb8f3220f622769e82c3e40332c4293ec3</td>
+            <td class="properties">
+              <a href="reports/taryan_dragon_jungle_view_report.html">Taryan Dragon Jungle View</a>
+            </td>
+            <td class="num">1</td>
+            <td class="num"><span class="usdt">4779.57</span></td>
           </tr>
 <tr>
             <td class="address">0xed34bbf9c8a01b7578961edbea92c37a190ab193</td>
@@ -6999,6 +7011,20 @@
             <td class="num"><span class="usdt">2702.30</span></td>
           </tr>
 <tr>
+            <td class="address">0x7bcccb96499168375091c2c4257a79c64426d1a0</td>
+            <td class="properties">
+              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas B14</a>
+              <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villa 3</a>
+              <a href="reports/cascade_villas_report.html">CASCADE Villa 3</a>
+              <a href="reports/cemagi_units_report.html">CEMAGI Unit 3.44</a>
+              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
+              <a href="reports/taryan_dragon_jungle_view_report.html">Taryan Dragon Jungle View</a>
+              <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 1 (Ocean Villa 3)</a>
+            </td>
+            <td class="num">7</td>
+            <td class="num"><span class="usdt">2668.92</span></td>
+          </tr>
+<tr>
             <td class="address">0xd4026a90ca010539fe2f72a2a2f44db56b707565</td>
             <td class="properties">
               <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a>
@@ -7052,19 +7078,6 @@
             </td>
             <td class="num">5</td>
             <td class="num"><span class="usdt">2656.75</span>*</td>
-          </tr>
-<tr>
-            <td class="address">0x7bcccb96499168375091c2c4257a79c64426d1a0</td>
-            <td class="properties">
-              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas B14</a>
-              <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villa 3</a>
-              <a href="reports/cascade_villas_report.html">CASCADE Villa 3</a>
-              <a href="reports/cemagi_units_report.html">CEMAGI Unit 3.44</a>
-              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
-              <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 1 (Ocean Villa 3)</a>
-            </td>
-            <td class="num">6</td>
-            <td class="num"><span class="usdt">2654.64</span></td>
           </tr>
 <tr>
             <td class="address">0xdb7c4a658ec425ceebd9e1a0f2503e232491796b</td>
@@ -12857,16 +12870,6 @@
             <td class="num"><span class="usdt">604.48</span></td>
           </tr>
 <tr>
-            <td class="address">0x36dc3ca5deee9cd214eef8d0a36a03c2b7b5bb6c</td>
-            <td class="properties">
-              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a>
-              <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villa 3</a>
-              <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
-            </td>
-            <td class="num">3</td>
-            <td class="num"><span class="usdt">601.68</span>*</td>
-          </tr>
-<tr>
             <td class="address">0x4198569a9e67629557d44d0287655db0ee647259</td>
             <td class="properties">
               <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a>
@@ -13104,6 +13107,30 @@
             <td class="num"><span class="usdt">578.56</span></td>
           </tr>
 <tr>
+            <td class="address">0x432f226e1b5e1f12da460733fb035684eb974942</td>
+            <td class="properties">
+              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a>
+              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas B14</a>
+              <a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a>
+              <a href="reports/cascade_villas_report.html">CASCADE Villa 2</a>
+              <a href="reports/cascade_villas_report.html">CASCADE Villa 3</a>
+              <a href="reports/ecoverse_suites_report.html">Ecoverse Suite</a>
+              <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
+              <a href="reports/kammara_loft_report.html">Kammara Loft</a>
+              <a href="reports/karra_loft_report.html">Karra Loft 3A</a>
+              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
+              <a href="reports/onyx_parq_resort_61_report.html">Onyx PARQ Resort 61</a>
+              <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villa 2</a>
+              <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villa 3</a>
+              <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villa 4</a>
+              <a href="reports/vesna_townhouse_report.html">Vesna Townhouse</a>
+              <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 1 (Ocean Villa 3)</a>
+              <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 2 (Ocean Villa 4)</a>
+            </td>
+            <td class="num">17</td>
+            <td class="num"><span class="usdt">577.55</span>*</td>
+          </tr>
+<tr>
             <td class="address">0x5e63903d9ace9a8bbc2c439323bcd960d8f6622d</td>
             <td class="properties">
               <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villa 3</a>
@@ -13234,30 +13261,6 @@
             </td>
             <td class="num">3</td>
             <td class="num"><span class="usdt">559.89</span></td>
-          </tr>
-<tr>
-            <td class="address">0x432f226e1b5e1f12da460733fb035684eb974942</td>
-            <td class="properties">
-              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a>
-              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas B14</a>
-              <a href="reports/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a>
-              <a href="reports/cascade_villas_report.html">CASCADE Villa 2</a>
-              <a href="reports/cascade_villas_report.html">CASCADE Villa 3</a>
-              <a href="reports/ecoverse_suites_report.html">Ecoverse Suite</a>
-              <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
-              <a href="reports/kammara_loft_report.html">Kammara Loft</a>
-              <a href="reports/karra_loft_report.html">Karra Loft 3A</a>
-              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
-              <a href="reports/onyx_parq_resort_61_report.html">Onyx PARQ Resort 61</a>
-              <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villa 2</a>
-              <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villa 3</a>
-              <a href="reports/tropical_loft_villas_report.html">Tropical Loft Villa 4</a>
-              <a href="reports/vesna_townhouse_report.html">Vesna Townhouse</a>
-              <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 1 (Ocean Villa 3)</a>
-              <a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 2 (Ocean Villa 4)</a>
-            </td>
-            <td class="num">17</td>
-            <td class="num"><span class="usdt">555.55</span>*</td>
           </tr>
 <tr>
             <td class="address">0x244d94a5d3e3fcc445a8079fdf9455ff16d85635</td>
@@ -13831,6 +13834,15 @@
             </td>
             <td class="num">1</td>
             <td class="num"><span class="usdt">500.00</span></td>
+          </tr>
+<tr>
+            <td class="address">0x36dc3ca5deee9cd214eef8d0a36a03c2b7b5bb6c</td>
+            <td class="properties">
+              <a href="reports/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a>
+              <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
+            </td>
+            <td class="num">2</td>
+            <td class="num"><span class="usdt">500.00</span>*</td>
           </tr>
 <tr>
             <td class="address">0x474eee79ec5071ff428b34511a6fe8b5cf951f2f</td>
@@ -15967,6 +15979,19 @@
             <td class="num"><span class="usdt">256.56</span></td>
           </tr>
 <tr>
+            <td class="address">0x095c26b30cce5965b6d66ced415ba4b8090c0d6e</td>
+            <td class="properties">
+              <a href="reports/cemagi_units_report.html">CEMAGI Unit 3.44</a>
+              <a href="reports/cemagi_units_report.html">CEMAGI Unit 3.46</a>
+              <a href="reports/ecoverse_suites_report.html">Ecoverse Suite</a>
+              <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
+              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
+              <a href="reports/taryan_dragon_jungle_view_report.html">Taryan Dragon Jungle View</a>
+            </td>
+            <td class="num">6</td>
+            <td class="num"><span class="usdt">255.26</span></td>
+          </tr>
+<tr>
             <td class="address">0x01a36d218ac76e915fc8749ba62b4da3cbf9d690</td>
             <td class="properties">
               <a href="reports/kammora_living_report.html">Kammora Living</a>
@@ -16192,27 +16217,6 @@
             </td>
             <td class="num">3</td>
             <td class="num"><span class="usdt">229.72</span>*</td>
-          </tr>
-<tr>
-            <td class="address">0x095c26b30cce5965b6d66ced415ba4b8090c0d6e</td>
-            <td class="properties">
-              <a href="reports/cemagi_units_report.html">CEMAGI Unit 3.44</a>
-              <a href="reports/cemagi_units_report.html">CEMAGI Unit 3.46</a>
-              <a href="reports/ecoverse_suites_report.html">Ecoverse Suite</a>
-              <a href="reports/hayat_green_tower_report.html">Hayat Green Tower</a>
-              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
-            </td>
-            <td class="num">5</td>
-            <td class="num"><span class="usdt">229.67</span></td>
-          </tr>
-<tr>
-            <td class="address">0x61c061e21ada18ef959deb4d46d7fa568e3e3a84</td>
-            <td class="properties">
-              <a href="reports/bingin_magic_story_villas_report.html">Bingin Magic Story Villa 3</a>
-              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
-            </td>
-            <td class="num">2</td>
-            <td class="num"><span class="usdt">226.54</span></td>
           </tr>
 <tr>
             <td class="address">0x67b0ab0d765a86a2c9d50b8e6ca1c0034bdf6a43</td>
@@ -19006,6 +19010,14 @@
             <td class="num"><span class="usdt">96.84</span></td>
           </tr>
 <tr>
+            <td class="address">0x61c061e21ada18ef959deb4d46d7fa568e3e3a84</td>
+            <td class="properties">
+              <a href="reports/oasis_royal_collection_report.html">Oasis Royal Collection 11a</a>
+            </td>
+            <td class="num">1</td>
+            <td class="num"><span class="usdt">96.73</span></td>
+          </tr>
+<tr>
             <td class="address">0xd66581d9eaa3846e7c68f89c943d87a62a9bec90</td>
             <td class="properties">
               <a href="reports/taryan_dragon_jungle_view_report.html">Taryan Dragon Jungle View</a>
@@ -19586,14 +19598,6 @@
             </td>
             <td class="num">1</td>
             <td class="num"><span class="usdt">51.57</span></td>
-          </tr>
-<tr>
-            <td class="address">0x51df2afe38aee0d3786f57213d0467bd7912353f</td>
-            <td class="properties">
-              <a href="reports/cascade_villas_report.html">CASCADE Villa 2</a>
-            </td>
-            <td class="num">1</td>
-            <td class="num"><span class="usdt">51.52</span></td>
           </tr>
 <tr>
             <td class="address">0xe31d7950ca78fd4934e6a47555a7436e50a52846</td>
@@ -23360,6 +23364,9 @@
 			"summary.totalSupply": "Total supply",
 			"summary.bought": "Bought (cumulative)",
 			"summary.tokens": { one: "{n} token", other: "{n} tokens" },
+			"score.label": "Score",
+			"score.value": "{n}/10",
+			"score.note": "Based on initial sale price versus the market band, trailing net yield, and lease age.",
 
 			"type.construction": "construction",
 			"type.rental": "rental",
@@ -23487,6 +23494,9 @@
 			"summary.totalSupply": "Загальна емісія",
 			"summary.bought": "Куплено (усього)",
 			"summary.tokens": { one: "{n} токен", few: "{n} токени", many: "{n} токенів", other: "{n} токена" },
+			"score.label": "Оцінка",
+			"score.value": "{n}/10",
+			"score.note": "На основі ціни первинного продажу відносно ринкового діапазону, чистої дохідності та віку оренди.",
 
 			"type.construction": "будівництво",
 			"type.rental": "оренда",
@@ -23637,6 +23647,9 @@
 		});
 		document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
 			el.setAttribute("aria-label", t(el.dataset.i18nAria));
+		});
+		document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+			el.title = t(el.dataset.i18nTitle);
 		});
 	}
 
