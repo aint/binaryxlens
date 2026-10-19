@@ -205,7 +205,7 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 
 func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProfit {
 	profit := rentalProfit{}
-	if percent, _, ok := trailingNetRentalYield(months, raisedValue, 4, false); ok {
+	if percent, _, ok := trailingNetRentalYield(months, raisedValue, 3, false); ok {
 		profit.NetYieldQuarter = &percent
 	}
 	if percent, basis, ok := trailingNetRentalYield(months, raisedValue, 12, true); ok {
