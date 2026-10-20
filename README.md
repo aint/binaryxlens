@@ -90,6 +90,100 @@ Open `index.html` in a browser.
 - [ ] Tier pie charts — count per tier (e.g. crabs), short tier legend, clearer colors.
 - [ ] Screenshots — refresh `docs/screenshots/` (see comment under **Screenshots** above).
 
+## Rental Property Score
+
+Each rental property can receive a score from **1 to 10**. The score combines three inputs: the price buyers paid on the initial sale, the trailing net rental yield, and how much of the lease has already run. A 10 means a price well under the market band, a high yield with a full year of history, and a lease that is still in its early years.
+
+The number is a summary of those inputs. The market band is an estimate and can be wrong. The score is not a forecast and it is not financial advice. Rent timing (on time, one quarter late, or later) stays a separate badge and is not part of this number.
+
+<details>
+<summary>How the score is calculated</summary>
+
+### When a score is shown
+
+The composite score is shown only when both the price part and the yield part can be computed. Each part is itself a number from 0 to 10. They are combined with fixed weights, rounded to the nearest integer, and clamped to 1–10.
+
+| Situation | What is shown |
+| --- | --- |
+| Price and yield both known, age known | Composite score. Weights 40% price, 40% yield, 20% age. |
+| Price known, no yield yet (construction, or rent has not started) | No score. |
+| Yield posted, but fewer than 3 months of it | No composite score. The yield part needs at least 3 months. |
+
+### Shared step: linear interpolation
+
+Every part maps a raw input onto 0–10 through a list of knots. Between two knots `(x0, s0)` and `(x1, s1)`:
+
+```
+part = s0 + (s1 − s0) × (x − x0) / (x1 − x0)
+```
+
+At or beyond the first knot, the part is the first score. At or beyond the last knot, the part is the last score.
+
+### 1. Initial sale price (weight 40%)
+
+`raised` is the price input is the USDT collected on the initial sale.
+
+Compare that value with the middle of the market band, per square metre:
+
+```
+marketMid = (marketLow + marketHigh) / 2
+delta     = (raised / area − marketMid) / marketMid
+```
+
+`delta` is negative when buyers paid under the band and positive when they paid over it. The same comparison produces the underpriced / fair / rich / overpriced tier; the score keeps the continuous value instead of the four labels.
+
+| `delta` | Price score |
+| --- | --- |
+| −25% or below | 10 |
+| −10% | 8 |
+| 0 (at the middle of the band) | 6 |
+| +10% | 4 |
+| +20% | 2 |
+| +40% or above | 0 |
+
+### 2. Net rental yield (weight 40%)
+
+The yield input is the trailing net rental yield already shown on the report: posted rent profit, annualized, divided by the USDT raised. Use the 12-month figure. All-time yield is not used, because a strong early run can hide a weak recent year.
+
+A history shorter than 12 months is annualized, then pulled toward 8% so a few strong months cannot look as established as a full year:
+
+```
+yieldUsed = 8% + (yield − 8%) × min(1, months / 12)
+```
+
+At 12 months or more, `yieldUsed` equals `yield`. Under 3 months, the yield part is unavailable.
+
+| `yieldUsed` | Yield score |
+| --- | --- |
+| 0% or below | 0 |
+| 3% | 2 |
+| 5% | 4 |
+| 8% | 6 |
+| 12% | 8 |
+| 16% or above | 10 |
+
+### 3. Lease age (weight 20%)
+
+Every property is a 30-year leasehold. Age is the number of years since rent actually started (`RentalStartActual`), the same figure the report shows as age. The first 8 years still have 22 or more years left on the lease, so they all score 10. The score then falls slowly while a long term remains, and faster in the last decade, when a short lease is hard to sell.
+
+| Years since rent started | Years left | Age score |
+| --- | --- | --- |
+| 0 to 8 | 22 to 30 | 10 |
+| 15 | 15 | 8 |
+| 22 | 8 | 5 |
+| 27 | 3 | 2 |
+| 30 or more | 0 | 0 |
+
+### Combining the parts
+
+```
+score = round(0.40 × price + 0.40 × yield + 0.20 × age)
+```
+
+Clamp the result to 1–10. With the 50/50 case, the coefficients are 0.50 and 0.50 and the age term is omitted.
+
+</details>
+
 ## Disclaimer
 
 Not affiliated with Binaryx. Data comes from public blockchain records and the Binaryx website. Not financial advice.

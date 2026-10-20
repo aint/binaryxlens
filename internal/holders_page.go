@@ -24,10 +24,11 @@ type holderProperty struct {
 }
 
 type globalHolder struct {
-	Address     string
-	Properties  []holderProperty
-	TotalUSDT   *big.Int
-	OffPlatform bool
+	Address        string
+	Properties     []holderProperty
+	TotalUSDT      *big.Int
+	MonthDeltaUSDT *big.Int
+	OffPlatform    bool
 }
 
 func WriteHolders(path string, projects []*Project) error {
@@ -48,13 +49,14 @@ func globalHolders(projects []*Project) []globalHolder {
 	byAddress := make(map[string]*globalHolder)
 	for _, pr := range projects {
 		for _, h := range pr.Holders {
-			if h.TotalBalance.Sign() <= 0 {
-				continue
-			}
 			g := byAddress[h.Address]
 			if g == nil {
-				g = &globalHolder{Address: h.Address, TotalUSDT: big.NewInt(0)}
+				g = &globalHolder{Address: h.Address, TotalUSDT: big.NewInt(0), MonthDeltaUSDT: big.NewInt(0)}
 				byAddress[h.Address] = g
+			}
+			g.MonthDeltaUSDT.Add(g.MonthDeltaUSDT, h.MonthDeltaUSDT)
+			if h.TotalBalance.Sign() <= 0 {
+				continue
 			}
 			for name, bal := range h.PropertyBalances {
 				if bal.Sign() <= 0 {
@@ -69,7 +71,12 @@ func globalHolders(projects []*Project) []globalHolder {
 	}
 
 	holders := make([]globalHolder, 0, len(byAddress))
-	for _, g := range byAddress {
+	for address, g := range byAddress {
+		if len(g.Properties) == 0 {
+			// The wallet holds nothing anywhere, it is not a holder.
+			delete(byAddress, address)
+			continue
+		}
 		slices.SortFunc(g.Properties, func(a, b holderProperty) int {
 			if c := strings.Compare(a.Name, b.Name); c != 0 {
 				return c
@@ -99,6 +106,7 @@ func holderRowsHTML(holders []globalHolder) string {
             <td class="properties">%s</td>
             <td class="num">%d</td>
             <td class="num"><span class="usdt">%s</span>%s</td>
+            %s
           </tr>
 `,
 			html.EscapeString(h.Address),
@@ -106,9 +114,28 @@ func holderRowsHTML(holders []globalHolder) string {
 			len(h.Properties),
 			FormatBigInt(h.TotalUSDT, polygonscan.USDTDecimal),
 			mark,
+			holderMonthDeltaHTML(h.MonthDeltaUSDT),
 		)
 	}
 	return b.String()
+}
+
+// holderMonthDeltaHTML renders the last 30 days USDT change of a holder.
+// The sign stays outside the .usdt span: the page script reformats .usdt
+// numbers with toLocaleString, which would drop a leading plus.
+func holderMonthDeltaHTML(delta *big.Int) string {
+	if delta == nil || delta.Sign() == 0 {
+		return `<td class="num trend flat">—</td>`
+	}
+	sign, class := "+", "up"
+	if delta.Sign() < 0 {
+		sign, class = "-", "down"
+	}
+	return fmt.Sprintf(`<td class="num trend %s">%s<span class="usdt">%s</span> USDT</td>`,
+		class,
+		sign,
+		FormatBigInt(new(big.Int).Abs(delta), polygonscan.USDTDecimal),
+	)
 }
 
 func propertyLinksHTML(properties []holderProperty) string {
