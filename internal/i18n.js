@@ -57,6 +57,7 @@
 			"rent.yieldTrendMonths": { one: "Compared with {n} month", other: "Compared with {n} months" },
 
 			"price.area": "Area, m²",
+			"price.current": "Current, Binaryx",
 			"price.raised": "Raised, Binaryx",
 			"price.projected": "Projected, Binaryx",
 			"price.market": "Market, USD/m²",
@@ -187,6 +188,7 @@
 			"rent.yieldTrendMonths": { one: "Порівняно з {n} місяцем", few: "Порівняно з {n} місяцями", many: "Порівняно з {n} місяцями", other: "Порівняно з {n} місяцями" },
 
 			"price.area": "Площа, м²",
+			"price.current": "Поточна, Binaryx",
 			"price.raised": "Зібрано, Binaryx",
 			"price.projected": "Прогноз, Binaryx",
 			"price.market": "Ринок, USD/м²",

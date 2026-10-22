@@ -56,12 +56,14 @@ type Property struct {
 	RentalStartExpected     YearQuarter
 	RentalStartActual       *YearQuarter
 	AreaM2                  uint
+	BinaryxCurrentValue     uint
 	BinaryxProjectedValue   uint
 	BinaryxRaisedValue      uint
 	MarketLowValue          uint
 	MarketHighValue         uint
 	ProjectedValueTier      ValueTier
 	RaisedValueTier         ValueTier
+	CurrentValueTier        ValueTier
 	transfers               []transfer
 	issuanceModel           IssuanceModel
 	InitialSaleWeeklyPoints []WeeklyPoint
@@ -145,6 +147,8 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 
 	p.calculateBoughtRaw()
 	p.RemainingRaw = new(big.Int).Sub(p.TotalSupplyRaw, p.BoughtRaw)
+
+	p.calcualteCurrentValue()
 	p.calculateBinaryxRaisedValue()
 	p.estimateValueTier()
 
@@ -160,6 +164,26 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 	fmt.Printf("Property %q initialized\n", p.Name)
 
 	return nil
+}
+
+func (p *Property) calcualteCurrentValue() {
+	if p.RemainingRaw.Sign() > 0 {
+		return
+	}
+
+	var usdt, tokens *big.Int
+	for _, t := range p.transfers {
+		if !p.isP2PTransfer(t.From, t.To) || t.USDT == nil {
+			continue
+		}
+		usdt = t.USDT
+		tokens = t.Value
+	}
+	if usdt == nil || tokens == nil {
+		return
+	}
+	value := bigIntToFloat(usdt, polygonscan.USDTDecimal) / bigIntToFloat(tokens, p.Decimal) * bigIntToFloat(p.TotalSupplyRaw, p.Decimal)
+	p.BinaryxCurrentValue = uint(value)
 }
 
 func (p *Property) calculateBinaryxRaisedValue() {
@@ -186,6 +210,7 @@ func (p *Property) calculateBinaryxRaisedValue() {
 func (p *Property) estimateValueTier() {
 	p.ProjectedValueTier = p.valueTier(p.BinaryxProjectedValue)
 	p.RaisedValueTier = p.valueTier(p.BinaryxRaisedValue)
+	p.CurrentValueTier = p.valueTier(p.BinaryxCurrentValue)
 }
 
 func (p *Property) valueTier(amount uint) ValueTier {

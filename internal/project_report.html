@@ -803,10 +803,11 @@ td.trend.flat { color: #888; }
 			return el;
 		}
 		appendMetric(block, "price.area", strong(amount(price.areaM2)));
+		appendMetric(block, "price.current", strong(amount(price.current)), tierPill(price.currentValueTier));
 		appendMetric(block, "price.raised", strong(amount(price.raised)), tierPill(price.raisedValueTier));
 		appendMetric(block, "price.projected", strong(amount(price.projected)), tierPill(price.projectedValueTier));
 		appendMetric(block, "price.market", strong(marketRange()));
-		if (price.marketLow || price.marketHigh || price.raisedValueTier || price.projectedValueTier) {
+		if (price.marketLow || price.marketHigh || price.currentValueTier || price.raisedValueTier || price.projectedValueTier) {
 			const note = document.createElement("p");
 			note.className = "price-ai-note";
 			const parts = new Intl.DateTimeFormat(window.i18n.lang, { month: "long", year: "numeric", timeZone: "UTC" }).formatToParts(new Date(Date.UTC(2026, 9, 1)));
