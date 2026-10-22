@@ -103,7 +103,7 @@ func (yq YearQuarter) quartersSince(start YearQuarter) int {
 // P2P trades of all properties, keyed by token address.
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade, monthlyRentalProfit []rentalProfitMonth) error {
 	p.Address = strings.ToLower(p.Address)
-	p.RentalProfitMonths = monthlyRentalProfit
+	p.RentalProfitMonths = append(p.RentalProfitMonths, monthlyRentalProfit...)
 
 	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
 	if err != nil {
@@ -448,15 +448,25 @@ var AllProperties = map[string][]*Property{
 	},
 	"Bubbles Boutique Complex": {
 		{
-			Name:                  "Bubbles Boutique Complex",
-			Address:               strings.ToLower("0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1"),
-			Type:                  PropertyTypeRental,
-			AreaM2:                420,
-			BinaryxProjectedValue: 1_220_000,
-			MarketLowValue:        2_100,
-			MarketHighValue:       2_700,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-			RentalStartActual:     &YearQuarter{Year: 2025, Quarter: 4},
+			Name:                "Bubbles Boutique Complex",
+			Address:             strings.ToLower("0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1"),
+			Type:                PropertyTypeRental,
+			AreaM2:              555,
+			BinaryxRaisedValue:  1_250_000,
+			MarketLowValue:      2_100,
+			MarketHighValue:     2_700,
+			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
+			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
+			RentalProfitMonths: []rentalProfitMonth{
+				{Month: time.Date(2024, time.August, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(1828000000)},
+				{Month: time.Date(2024, time.September, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2968000000)},
+				{Month: time.Date(2024, time.October, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2290000000)},
+				{Month: time.Date(2024, time.November, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2882000000)},
+				{Month: time.Date(2024, time.December, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(6870000000)},
+				{Month: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(6870000000)},
+				{Month: time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(8319000000)},
+				{Month: time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(11298000000)},
+			},
 		},
 	},
 	"CASCADE Villas": {
