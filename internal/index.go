@@ -54,7 +54,7 @@ func projectLinksHTML(projects []projectRow) string {
 		}
 		rating := ""
 		if project.Score != -1 {
-			rating = fmt.Sprintf(`<span class="rating rating-%s" data-i18n-title="score.note">%d/10</span>`,
+			rating = fmt.Sprintf(`<span class="rating rating-%s" data-i18n-title="score.note">%d/100</span>`,
 				html.EscapeString(project.ScoreTier),
 				project.Score,
 			)

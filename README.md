@@ -92,7 +92,7 @@ Open `index.html` in a browser.
 
 ## Rental Property Score
 
-Each rental property can receive a score from **1 to 10**. The score combines three inputs: the price buyers paid on the initial sale, the trailing net rental yield, and how much of the lease has already run. A 10 means a price well under the market band, a high yield with a full year of history, and a lease that is still in its early years.
+Each rental property can receive a score from **1 to 100**. The score combines three inputs: the price buyers paid on the initial sale, the trailing net rental yield, and how much of the lease has already run. A 100 means a price well under the market band, a high yield with a full year of history, and a lease that is still in its early years.
 
 The number is a summary of those inputs. The market band is an estimate and can be wrong. The score is not a forecast and it is not financial advice. Rent timing (on time, one quarter late, or later) stays a separate badge and is not part of this number.
 
@@ -101,7 +101,7 @@ The number is a summary of those inputs. The market band is an estimate and can 
 
 ### When a score is shown
 
-The composite score is shown only when both the price part and the yield part can be computed. Each part is itself a number from 0 to 10. They are combined with fixed weights, rounded to the nearest integer, and clamped to 1–10.
+The composite score is shown only when both the price part and the yield part can be computed. Each part is itself a number from 1 to 100. They are combined with fixed weights, rounded to the nearest integer, and clamped to 1–100.
 
 | Situation | What is shown |
 | --- | --- |
@@ -111,7 +111,7 @@ The composite score is shown only when both the price part and the yield part ca
 
 ### Shared step: linear interpolation
 
-Every part maps a raw input onto 0–10 through a list of knots. Between two knots `(x0, s0)` and `(x1, s1)`:
+Every part maps a raw input onto 1–100 through a list of knots. Between two knots `(x0, s0)` and `(x1, s1)`:
 
 ```
 part = s0 + (s1 − s0) × (x − x0) / (x1 − x0)
@@ -134,12 +134,15 @@ delta     = (raised / area − marketMid) / marketMid
 
 | `delta` | Price score |
 | --- | --- |
-| −25% or below | 10 |
-| −10% | 8 |
-| 0 (at the middle of the band) | 6 |
-| +10% | 4 |
-| +20% | 2 |
-| +40% or above | 0 |
+| −35% or below | 100 |
+| −30% | 90 |
+| −20% | 80 |
+| −10% | 60 |
+| 0 (at the middle of the band) | 50 |
+| +10% | 40 |
+| +20% | 20 |
+| +30% | 10 |
+| +35% or above | 0 |
 
 ### 2. Net rental yield (weight 40%)
 
@@ -156,22 +159,22 @@ At 12 months or more, `yieldUsed` equals `yield`. Under 3 months, the yield part
 | `yieldUsed` | Yield score |
 | --- | --- |
 | 0% or below | 0 |
-| 3% | 2 |
-| 5% | 4 |
-| 8% | 6 |
-| 12% | 8 |
-| 16% or above | 10 |
+| 3% | 20 |
+| 5% | 40 |
+| 8% | 60 |
+| 12% | 80 |
+| 16% or above | 100 |
 
 ### 3. Lease age (weight 20%)
 
-Every property is a 30-year leasehold. Age is the number of years since rent actually started (`RentalStartActual`), the same figure the report shows as age. The first 8 years still have 22 or more years left on the lease, so they all score 10. The score then falls slowly while a long term remains, and faster in the last decade, when a short lease is hard to sell.
+Every property is a 30-year leasehold. Age is the number of years since rent actually started (`RentalStartActual`), the same figure the report shows as age. The first 8 years still have 22 or more years left on the lease, so they all score 100. The score then falls slowly while a long term remains, and faster in the last decade, when a short lease is hard to sell. Anything past year 30 is capped at 30.
 
 | Years since rent started | Years left | Age score |
 | --- | --- | --- |
-| 0 to 8 | 22 to 30 | 10 |
-| 15 | 15 | 8 |
-| 22 | 8 | 5 |
-| 27 | 3 | 2 |
+| 0 to 8 | 22 to 30 | 100 |
+| 15 | 15 | 80 |
+| 22 | 8 | 40 |
+| 27 | 3 | 20 |
 | 30 or more | 0 | 0 |
 
 ### Combining the parts
@@ -180,7 +183,17 @@ Every property is a 30-year leasehold. Age is the number of years since rent act
 score = round(0.40 × price + 0.40 × yield + 0.20 × age)
 ```
 
-Clamp the result to 1–10. With the 50/50 case, the coefficients are 0.50 and 0.50 and the age term is omitted.
+When age is unknown (no actual rent start date), only price and yield are averaged equally:
+
+```
+score = round(0.50 × price + 0.50 × yield)
+```
+
+Clamp the result to **1–100**. Tiers on the report: ≥70 is *high*, ≥40 is *mid*, ≥10 is *low*.
+
+### Missing score conditions
+
+The composite score is not shown when any of these are true: `BinaryxRaisedValue` or `AreaM2` is zero, market band midpoint is zero, or `RentalStartActual` is unset. Additionally the yield part needs at least 3 months of trailing rent profit.
 
 </details>
 

@@ -11,26 +11,29 @@ type scoreKnot struct {
 
 var (
 	priceScoreKnots = []scoreKnot{
-		{-0.25, 10},
-		{-0.10, 8},
-		{0, 6},
-		{0.10, 4},
-		{0.20, 2},
-		{0.40, 0},
+		{-0.35, 100},
+		{-0.3, 90},
+		{-0.2, 80},
+		{-0.1, 60},
+		{0, 50},
+		{0.1, 40},
+		{0.2, 20},
+		{0.3, 10},
+		{0.35, 0},
 	}
 	yieldScoreKnots = []scoreKnot{
 		{0, 0},
-		{3, 2},
-		{5, 4},
-		{8, 6},
-		{12, 8},
-		{16, 10},
+		{3, 20},
+		{5, 40},
+		{8, 60},
+		{12, 80},
+		{16, 100},
 	}
 	ageScoreKnots = []scoreKnot{
-		{8, 10},
-		{15, 8},
-		{22, 5},
-		{27, 2},
+		{8, 100},
+		{15, 80},
+		{22, 40},
+		{27, 20},
 		{30, 0},
 	}
 )
@@ -64,7 +67,7 @@ func (pr *Project) score() int {
 
 // non-rental properties return 0 instead of -1
 
-// score is the 1–10 rental property score. It is present only when
+// score is the 1–100 rental property score. It is present only when
 // both the price part and the yield part can be computed.
 func (p *Property) score() int {
 	price, okPrice := p.priceScore()
@@ -82,8 +85,8 @@ func (p *Property) score() int {
 	if n < 1 {
 		return 1
 	}
-	if n > 10 {
-		return 10
+	if n > 100 {
+		return 100
 	}
 	return n
 }
@@ -128,7 +131,7 @@ func (p *Property) ageScore(now time.Time) (float64, bool) {
 	return interpolatePart(years, ageScoreKnots), true
 }
 
-// interpolatePart maps x onto 0–10 through knots. Below the first x the
+// interpolatePart maps x onto 0–100 through knots. Below the first x the
 // part is the first score; above the last x it is the last score.
 func interpolatePart(x float64, knots []scoreKnot) float64 {
 	if len(knots) == 0 {
@@ -153,9 +156,9 @@ func interpolatePart(x float64, knots []scoreKnot) float64 {
 
 func scoreTier(score int) string {
 	switch {
-	case score >= 7:
+	case score >= 70:
 		return "high"
-	case score >= 4:
+	case score >= 40:
 		return "mid"
 	case score >= 1:
 		return "low"
