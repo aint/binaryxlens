@@ -158,7 +158,7 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 	p.RemainingRaw = new(big.Int).Sub(p.TotalSupplyRaw, p.BoughtRaw)
 
 	p.calcualteCurrentValue()
-	p.calculateBinaryxRaisedValue()
+	p.calculateRaisedValue()
 	p.estimateValueTier()
 
 	p.buildHolders()
@@ -195,7 +195,10 @@ func (p *Property) calcualteCurrentValue() {
 	p.BinaryxCurrentValue = uint(value)
 }
 
-func (p *Property) calculateBinaryxRaisedValue() {
+func (p *Property) calculateRaisedValue() {
+	if p.Type != PropertyTypeConstruction {
+		return
+	}
 	raised := new(big.Int)
 	for _, t := range p.transfers {
 		if !p.isInitialSale(t.From) || t.USDT == nil || t.USDT.Sign() <= 0 {
