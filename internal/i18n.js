@@ -37,6 +37,10 @@
 			"type.redeemed": "redeemed",
 			"type.unknown": "unknown",
 
+			"location.bali": "Bali, Indonesia",
+			"location.montenegro": "Montenegro",
+			"location.turkey": "Turkey",
+
 			"rental.expected": "Expected start",
 			"rental.actual": "Actual start",
 			"rental.status": "Status",
@@ -167,6 +171,10 @@
 			"type.rental": "оренда",
 			"type.redeemed": "викуплено",
 			"type.unknown": "невідомо",
+
+			"location.bali": "Індонезія, Балі",
+			"location.montenegro": "Чорногорія",
+			"location.turkey": "Туреччина",
 
 			"rental.expected": "Очікуваний старт",
 			"rental.actual": "Фактичний старт",

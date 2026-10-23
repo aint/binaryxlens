@@ -121,6 +121,7 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		Name:      property.Name,
 		Address:   property.Address,
 		Type:      property.Type.Label(),
+		Location:  string(property.Location),
 		Score:     score,
 		ScoreTier: scoreTier(score),
 		Holders:   holders,
@@ -297,6 +298,7 @@ type propertyReportPayload struct {
 	Name      string                      `json:"name"`
 	Address   string                      `json:"address"`
 	Type      string                      `json:"type"`
+	Location  string                      `json:"location"`
 	Score     int                         `json:"score"`
 	ScoreTier string                      `json:"scoreTier"`
 	Price     propertyPricePayload        `json:"price"`

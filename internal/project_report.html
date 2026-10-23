@@ -49,6 +49,11 @@ details[open] > summary::before { content: "▾ "; }
 	margin: 0 0 12px;
 }
 .property-head h3 { margin: 0; font-size: 1.05rem; }
+.property-location {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #888;
+}
 .property-links {
 	display: flex;
 	flex-wrap: wrap;
@@ -758,6 +763,10 @@ td.trend.flat { color: #888; }
 		titleRow.appendChild(name);
 		titleRow.appendChild(marks);
 		head.appendChild(titleRow);
+		const location = document.createElement("span");
+		location.className = "property-location";
+		location.textContent = t("location." + property.location);
+		head.appendChild(location);
 		if (property.address) {
 			const links = document.createElement("span");
 			links.className = "property-links";
