@@ -13,9 +13,9 @@ Binaryx sells fractional shares of rental and development properties as ERC-20 t
 The index lists every project, with search and filters for construction, rental, and redeemed. Each project is a static report page:
 
 - **Summary** — properties, total supply, tokens bought.
-- **Price** — area, Binaryx list price, USDT raised on the initial sale (on-chain), market USD/m² band, and an estimated value tier (underpriced, fair, rich, overpriced). Market ranges and the tier are estimates and can be wrong.
+- **Price** — area, Binaryx list price, USDT raised on the initial sale, market USD/m² band, and an estimated value tier (underpriced, fair, rich, overpriced). Market ranges and the tier are estimates and can be wrong.
 - **Rental status** — expected vs actual start quarter. On time, one quarter late, or later.
-- **Posted rent** — monthly USDT from on-chain rent windows, plus **net rental yield** (annualized profit vs raised USDT) for the last quarter, the last 12 months, and the full history. A 12-month history shorter than a year is scaled to a year, and the window is shown. The 12-month yield also shows its change versus the full history, and the quarter yield shows its change versus the 12-month yield. Claims and wallet pushes are not included.
+- **Posted rent** — monthly USDT from on-chain rent windows, net profit for all time and the trailing 12 months, plus **net rental yield** (annualized profit vs current USDT value) for the last quarter, the last 12 months, and the full history. A history shorter than a year uses that shorter window: the yield is scaled to a year, and both the yield and the profit total show the month count. The 12-month yield also shows its change versus the full history, and the quarter yield shows its change versus the 12-month yield. Claims and wallet pushes are not included.
 - **Initial sales** — weekly buys and the cumulative curve, with drag-to-zoom.
 - **Sell-out ETA** — projected completion from the last week, the last four weeks, and full history. A sold-out property shows the sale period and average buy rate instead.
 - **Secondary market** — weekly wallet-to-wallet volume, cumulative volume, and transaction count.
