@@ -202,20 +202,20 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 			payload.AgeYears = &ageYears
 		}
 	}
-	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.BinaryxRaisedValue)
+	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.BinaryxCurrentValue)
 	return payload
 }
 
-func rentalProfitSeries(months []rentalProfitMonth, raisedValue uint) rentalProfit {
+func rentalProfitSeries(months []rentalProfitMonth, value uint) rentalProfit {
 	profit := rentalProfit{}
-	if percent, _, ok := trailingNetRentalYield(months, raisedValue, 3, false); ok {
+	if percent, _, ok := trailingNetRentalYield(months, value, 3, false); ok {
 		profit.NetYieldQuarter = &percent
 	}
-	if percent, basis, ok := trailingNetRentalYield(months, raisedValue, 12, true); ok {
+	if percent, basis, ok := trailingNetRentalYield(months, value, 12, true); ok {
 		profit.NetYieldYear = &percent
 		profit.NetYieldYearMonths = basis
 	}
-	if percent, ok := allTimeNetRentalYield(months, raisedValue); ok {
+	if percent, ok := allTimeNetRentalYield(months, value); ok {
 		profit.NetYieldAllTime = &percent
 	}
 	if profit.NetYieldYear != nil && profit.NetYieldAllTime != nil {

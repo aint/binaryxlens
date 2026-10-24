@@ -143,7 +143,7 @@ func monthStart(t time.Time) time.Time {
 
 // trailingNetRentalYield annualizes the last n months. When allowShort is set
 // and the history is shorter than n, the whole history is used and basis is that length.
-func trailingNetRentalYield(months []rentalProfitMonth, raisedValue uint, n int, allowShort bool) (percent float64, basis int, ok bool) {
+func trailingNetRentalYield(months []rentalProfitMonth, value uint, n int, allowShort bool) (percent float64, basis int, ok bool) {
 	if n <= 0 || len(months) == 0 || (!allowShort && len(months) < n) {
 		return 0, 0, false
 	}
@@ -151,19 +151,19 @@ func trailingNetRentalYield(months []rentalProfitMonth, raisedValue uint, n int,
 	if len(months) > n {
 		window = months[len(months)-n:]
 	}
-	return netRentalYield(window, raisedValue)
+	return netRentalYield(window, value)
 }
 
-func allTimeNetRentalYield(months []rentalProfitMonth, raisedValue uint) (percent float64, ok bool) {
-	percent, _, ok = netRentalYield(months, raisedValue)
+func allTimeNetRentalYield(months []rentalProfitMonth, value uint) (percent float64, ok bool) {
+	percent, _, ok = netRentalYield(months, value)
 	return percent, ok
 }
 
-// netRentalYield is (annualized net rent profit / amount raised) × 100.
+// netRentalYield is (annualized net rent profit / current value) × 100.
 // The total in window is scaled to a year by 12 / len(window).
-func netRentalYield(window []rentalProfitMonth, raisedValue uint) (percent float64, basis int, ok bool) {
+func netRentalYield(window []rentalProfitMonth, value uint) (percent float64, basis int, ok bool) {
 	basis = len(window)
-	if basis == 0 || raisedValue == 0 {
+	if basis == 0 || value == 0 {
 		return 0, 0, false
 	}
 	sum := big.NewInt(0)
@@ -175,7 +175,7 @@ func netRentalYield(window []rentalProfitMonth, raisedValue uint) (percent float
 	scale := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(polygonscan.USDTDecimal)), nil)
 	annual := new(big.Rat).SetInt(sum)
 	annual.Mul(annual, big.NewRat(12, int64(basis)))
-	price := new(big.Int).Mul(scale, new(big.Int).SetUint64(uint64(raisedValue)))
+	price := new(big.Int).Mul(scale, new(big.Int).SetUint64(uint64(value)))
 	annual.Quo(annual, new(big.Rat).SetInt(price))
 	annual.Mul(annual, big.NewRat(100, 1))
 	f, _ := annual.Float64()

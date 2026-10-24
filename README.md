@@ -92,9 +92,9 @@ Open `index.html` in a browser.
 
 ## Rental Property Score
 
-Each rental property can receive a score from **1 to 100**. The score combines three inputs: the price buyers paid on the initial sale, the trailing net rental yield, and how much of the lease has already run. A 100 means a price well under the market band, a high yield with a full year of history, and a lease that is still in its early years.
+Each rental property can receive a score from **1 to 100**. The score combines three inputs: the current value, the trailing net rental yield, and how much of the lease has already run. A 100 means a price well under the market band, a high yield with a full year of history, and a lease that is still in its early years.
 
-The number is a summary of those inputs. The market band is an estimate and can be wrong. The score is not a forecast and it is not financial advice. Rent timing (on time, one quarter late, or later) stays a separate badge and is not part of this number.
+The number is a summary of those inputs. The market band is an estimate and can be wrong. The score is not a forecast and it is not financial advice.
 
 <details>
 <summary>How the score is calculated</summary>
@@ -103,11 +103,7 @@ The number is a summary of those inputs. The market band is an estimate and can 
 
 The composite score is shown only when both the price part and the yield part can be computed. Each part is itself a number from 1 to 100. They are combined with fixed weights, rounded to the nearest integer, and clamped to 1–100.
 
-| Situation | What is shown |
-| --- | --- |
-| Price and yield both known, age known | Composite score. Weights 40% price, 40% yield, 20% age. |
-| Price known, no yield yet (construction, or rent has not started) | No score. |
-| Yield posted, but fewer than 3 months of it | No composite score. The yield part needs at least 3 months. |
+The composite score is not shown when there is no yield yet or yield posted, but fewer than 3 months of it.
 
 ### Shared step: linear interpolation
 
@@ -121,13 +117,11 @@ At or beyond the first knot, the part is the first score. At or beyond the last 
 
 ### 1. Initial sale price (weight 40%)
 
-`raised` is the price input is the USDT collected on the initial sale.
-
-Compare that value with the middle of the market band, per square metre:
+`current` is the current price in USDT compared with the middle of the market band, per square metre:
 
 ```
 marketMid = (marketLow + marketHigh) / 2
-delta     = (raised / area − marketMid) / marketMid
+delta     = (current / area − marketMid) / marketMid
 ```
 
 `delta` is negative when buyers paid under the band and positive when they paid over it. The same comparison produces the underpriced / fair / rich / overpriced tier; the score keeps the continuous value instead of the four labels.
@@ -146,7 +140,7 @@ delta     = (raised / area − marketMid) / marketMid
 
 ### 2. Net rental yield (weight 40%)
 
-The yield input is the trailing net rental yield already shown on the report: posted rent profit, annualized, divided by the USDT raised. Use the 12-month figure. All-time yield is not used, because a strong early run can hide a weak recent year.
+The yield input is the trailing net rental yield already shown on the report: posted rent profit, annualized, divided by the current USDT value. Use the 12-month figure. All-time yield is not used, because a strong early run can hide a weak recent year.
 
 A history shorter than 12 months is annualized, then pulled toward 8% so a few strong months cannot look as established as a full year:
 
@@ -190,10 +184,6 @@ score = round(0.50 × price + 0.50 × yield)
 ```
 
 Clamp the result to **1–100**. Tiers on the report: ≥70 is *high*, ≥40 is *mid*, ≥10 is *low*.
-
-### Missing score conditions
-
-The composite score is not shown when any of these are true: `BinaryxRaisedValue` or `AreaM2` is zero, market band midpoint is zero, or `RentalStartActual` is unset. Additionally the yield part needs at least 3 months of trailing rent profit.
 
 </details>
 

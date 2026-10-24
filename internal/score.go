@@ -92,19 +92,19 @@ func (p *Property) score() int {
 }
 
 func (p *Property) priceScore() (float64, bool) {
-	if p.BinaryxRaisedValue == 0 || p.AreaM2 == 0 {
+	if p.BinaryxCurrentValue == 0 || p.AreaM2 == 0 {
 		return 0, false
 	}
 	mid := float64(p.MarketLowValue+p.MarketHighValue) / 2
 	if mid == 0 {
 		return 0, false
 	}
-	delta := (float64(p.BinaryxRaisedValue)/float64(p.AreaM2) - mid) / mid
+	delta := (float64(p.BinaryxCurrentValue)/float64(p.AreaM2) - mid) / mid
 	return interpolatePart(delta, priceScoreKnots), true
 }
 
 func (p *Property) yieldScore() (float64, bool) {
-	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.BinaryxRaisedValue, fullYieldMonths, true)
+	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.BinaryxCurrentValue, fullYieldMonths, true)
 	if !ok || months < minYieldMonths {
 		return 0, false
 	}
