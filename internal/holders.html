@@ -267,6 +267,35 @@
       apply();
       const targetRow = document.querySelector("#holders-body tr.is-target");
       if (targetRow) targetRow.scrollIntoView({ block: "center" });
+
+      // Move asset links beyond the first N into a collapsible extra div
+      rows.forEach(function (row) {
+        const propsCell = row.querySelector('td.properties');
+        if (!propsCell) return;
+        const links = Array.from(propsCell.querySelectorAll('a'));
+        const visibleCount = 2;
+        if (links.length <= visibleCount) return;
+        const extra = document.createElement('div');
+        extra.className = 'extra-properties';
+        extra.hidden = true;
+        links.slice(visibleCount).forEach(link => extra.appendChild(link));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = t("col.properties.showMore");
+        btn.className = 'toggle-properties';
+        btn.addEventListener('click', function () {
+          const expanded = extra.hidden;
+          extra.hidden = !expanded;
+          btn.textContent = expanded ? t("col.properties.collapse") : t("col.properties.showMore");
+          if (expanded) {
+            extra.appendChild(btn);
+          } else {
+            propsCell.appendChild(btn);
+          }
+        });
+        propsCell.appendChild(extra);
+        propsCell.appendChild(btn);
+      });
     })();
   </script>
 </body>
