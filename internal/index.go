@@ -24,6 +24,7 @@ const reportsUpdatedLayout = "2006-01-02 15:04"
 type projectRow struct {
 	Href      string
 	Name      string
+	Flag      string
 	Props     string
 	Labels    []string
 	Score     int
@@ -60,11 +61,12 @@ func projectLinksHTML(projects []projectRow) string {
 		}
 		const projectLinkHTML = `
 			<a href="%s">
-        		<span class="item"><span class="name">%s</span><span class="props">%s</span></span>
-        		<span class="tags">%s%s</span>
-    		</a>`
+				<span class="item"><span class="name">%s %s</span><span class="props">%s</span></span>
+				<span class="tags">%s%s</span>
+			</a>`
 		fmt.Fprintf(&b, projectLinkHTML,
 			html.EscapeString(project.Href),
+			html.EscapeString(project.Flag),
 			html.EscapeString(project.Name),
 			html.EscapeString(project.Props),
 			rating,
@@ -100,6 +102,7 @@ func projectRows(projects []*Project) []projectRow {
 		projectRow := projectRow{
 			Name:      name,
 			Href:      "reports/" + projectReportFile(name),
+			Flag:      projectCountryFlag(properties),
 			Props:     propertyNames(name, properties),
 			Labels:    propertyTypeLabels(properties),
 			Score:     score,
@@ -113,6 +116,13 @@ func projectRows(projects []*Project) []projectRow {
 func projectReportFile(name string) string {
 	slug := strings.ReplaceAll(strings.ToLower(name), " ", "_")
 	return slug + "_report.html"
+}
+
+func projectCountryFlag(properties []*Property) string {
+	if len(properties) == 0 {
+		return ""
+	}
+	return properties[0].Location.Flag()
 }
 
 func propertyNames(projectName string, properties []*Property) string {

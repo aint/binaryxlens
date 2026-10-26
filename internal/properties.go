@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aint/binaryxlens/internal/polygonscan"
+	"github.com/aint/binaryxlens/internal/binaryx"
 )
 
 type PropertyType int
@@ -49,14 +50,6 @@ const (
 	ValueTierUnderpriced ValueTier = "underpriced"
 )
 
-type location string
-
-const (
-	Bali       location = "bali"
-	Turkey     location = "turkey"
-	Montenegro location = "montenegro"
-)
-
 type Property struct {
 	Name                    string
 	Address                 string
@@ -72,7 +65,7 @@ type Property struct {
 	ProjectedValueTier      ValueTier
 	RaisedValueTier         ValueTier
 	CurrentValueTier        ValueTier
-	Location                location
+	Location                binaryx.Location
 	transfers               []transfer
 	issuanceModel           IssuanceModel
 	InitialSaleWeeklyPoints []WeeklyPoint
@@ -394,7 +387,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "AWWA Hotel by Ribas B14",
 			Address:             strings.ToLower("0x216301b87404a5839bf7b8b94c646c4eb96fec79"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              33,
 			BinaryxRaisedValue:  157_500,
 			MarketLowValue:      2_800,
@@ -406,7 +399,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "AWWA Hotel by Ribas B22",
 			Address:             strings.ToLower("0xe725a80f426a7d7f5734ba69ccec507251109d09"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              33,
 			BinaryxRaisedValue:  157_500,
 			MarketLowValue:      2_800,
@@ -418,7 +411,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "AWWA Hotel by Ribas A16",
 			Address:             strings.ToLower("0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              33,
 			BinaryxRaisedValue:  157_500,
 			MarketLowValue:      2_800,
@@ -432,7 +425,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Villa Aurora 1 (Ocean Villa 3)",
 			Address:               strings.ToLower("0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, // Uluwatu
+			Location:              binaryx.Bali, // Uluwatu
 			AreaM2:                165,
 			BinaryxRaisedValue:    380_000,
 			BinaryxProjectedValue: 428_500,
@@ -444,7 +437,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Villa Aurora 2 (Ocean Villa 4)",
 			Address:               strings.ToLower("0x17236ed296fbd00d3dfa016879833776dd207fd6"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, // Uluwatu
+			Location:              binaryx.Bali, // Uluwatu
 			AreaM2:                165,
 			BinaryxRaisedValue:    380_000,
 			BinaryxProjectedValue: 428_500,
@@ -458,7 +451,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Bingin Magic Story Villa 3",
 			Address:               strings.ToLower("0xe5f846592a58bcfce912bc6fc594649397b6f519"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                115,
 			BinaryxRaisedValue:    249_000,
 			BinaryxProjectedValue: 280_000,
@@ -472,7 +465,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Bubbles Boutique Complex",
 			Address:             strings.ToLower("0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, //Canggu
+			Location:            binaryx.Bali, //Canggu
 			AreaM2:              555,
 			BinaryxRaisedValue:  1_250_000,
 			MarketLowValue:      2_100,
@@ -496,7 +489,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "CASCADE Villa 2",
 			Address:               strings.ToLower("0x5e55b3e941f42732f1b941f2f673dc8811355e5e"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                176,
 			BinaryxRaisedValue:    265_000,
 			BinaryxProjectedValue: 300_000,
@@ -508,7 +501,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "CASCADE Villa 3",
 			Address:               strings.ToLower("0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                176,
 			BinaryxRaisedValue:    265_000,
 			BinaryxProjectedValue: 300_000,
@@ -522,7 +515,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "CEMAGI Unit 3.44",
 			Address:               strings.ToLower("0x852b6995628b760c84bdd02bc143b48288d4dd3a"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                26,
 			BinaryxRaisedValue:    112_000,
 			BinaryxProjectedValue: 130_000,
@@ -534,7 +527,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "CEMAGI Unit 3.46",
 			Address:               strings.ToLower("0x2b7dca2c2bafdb1dac0e01068091590fbe09e478"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                26,
 			BinaryxRaisedValue:    112_000,
 			BinaryxProjectedValue: 130_000,
@@ -548,7 +541,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Mountain Retreat by Dukley",
 			Address:               strings.ToLower("0x51343ee93059cbb11c4bf969a643e09117b3af6b"),
 			Type:                  PropertyTypeRedeemed,
-			Location:              Montenegro, // Kolasin
+			Location:              binaryx.Montenegro, // Kolasin
 			AreaM2:                73,
 			BinaryxRaisedValue:    385_000,
 			BinaryxProjectedValue: 440_000,
@@ -558,7 +551,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Dukley Glamping 1",
 			Address:               strings.ToLower("0xad4f81d0f2f626a6ea29864f488604e6b5360e2a"),
 			Type:                  PropertyTypeRental,
-			Location:              Montenegro, // Kolasin
+			Location:              binaryx.Montenegro, // Kolasin
 			AreaM2:                240,
 			BinaryxRaisedValue:    940_000,
 			BinaryxProjectedValue: 1_050_000,
@@ -572,7 +565,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Ecoverse Suite",
 			Address:               strings.ToLower("0x30ed65e470be4f351abf5311769505e3f977deca"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                41,
 			BinaryxRaisedValue:    178_500,
 			BinaryxProjectedValue: 214_200,
@@ -586,10 +579,9 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Hayat Green Tower",
 			Address:               strings.ToLower("0xF9d43a9F7Fc7ee7ac47fE96De20e545243450b27"),
 			Type:                  PropertyTypeRental,
-			Location:              Turkey, // Avsallar, Alanya
+			Location:              binaryx.Turkey, // Avsallar, Alanya
 			AreaM2:                105,
 			BinaryxRaisedValue:    305_000,
-			BinaryxProjectedValue: 213_439,
 			MarketLowValue:        1_000,
 			MarketHighValue:       1_300,
 			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 3},
@@ -601,7 +593,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Kammara Loft",
 			Address:             strings.ToLower("0xB1B987FF1F317A47876185dE4dE9C430823Ad8c5"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              70,
 			BinaryxRaisedValue:  200_000,
 			MarketLowValue:      2_200,
@@ -615,7 +607,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Kammora Living",
 			Address:             strings.ToLower("0x8389AcD0e05990eF0e087A3BCed3E9C5443d0455"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              49,
 			BinaryxRaisedValue:  150_000,
 			MarketLowValue:      2_200,
@@ -629,7 +621,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Karra Loft 3A",
 			Address:             strings.ToLower("0x27Ceb34AC7545F78A97C0500465aCE9fA10570af"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              68,
 			BinaryxRaisedValue:  220_000,
 			MarketLowValue:      2_200,
@@ -641,7 +633,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Karra Loft 5",
 			Address:             strings.ToLower("0x2d02E704174635F5E88E17995C3a5E29f283C033"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Canggu
+			Location:            binaryx.Bali, // Canggu
 			AreaM2:              70,
 			BinaryxRaisedValue:  220_000,
 			MarketLowValue:      2_200,
@@ -655,7 +647,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "La Casa Española Villa 4",
 			Address:               strings.ToLower("0x7b592d8bb722324f75af834c23e6ad2058b168e1"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Bingin, Uluwatu
+			Location:              binaryx.Bali, // Bingin, Uluwatu
 			AreaM2:                166,  // binaryx website: 230
 			BinaryxRaisedValue:    385_000,
 			BinaryxProjectedValue: 460_000,
@@ -667,7 +659,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "La Casa Española Villa 6",
 			Address:               strings.ToLower("0xdd36b686a5ff910b5074e3f5483135f19e49f02c"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Bingin, Uluwatu
+			Location:              binaryx.Bali, // Bingin, Uluwatu
 			AreaM2:                161,  // binaryx: 186
 			BinaryxRaisedValue:    350_000,
 			BinaryxProjectedValue: 425_000,
@@ -679,7 +671,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "La Casa Española Villa 8",
 			Address:               strings.ToLower("0x223270bbbe4f6dac0dc3e57d985116bdc50616ee"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Bingin, Uluwatu
+			Location:              binaryx.Bali, // Bingin, Uluwatu
 			AreaM2:                171,  // binaryx: 211
 			BinaryxRaisedValue:    350_000,
 			BinaryxProjectedValue: 425_000,
@@ -691,7 +683,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "La Casa Española Villa 9",
 			Address:               strings.ToLower("0x89ebdfaf79308871a24c6992232984b3c84af9a8"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Bingin, Uluwatu
+			Location:              binaryx.Bali, // Bingin, Uluwatu
 			AreaM2:                200,  // binaryx: 241
 			BinaryxRaisedValue:    385_000,
 			BinaryxProjectedValue: 460_000,
@@ -705,7 +697,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Oasis Royal Collection 11a",
 			Address:               strings.ToLower("0xa26f11748ed29b3fd62e1d8e231d277a0980fb12"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, //Pererenan, north of Canggu
+			Location:              binaryx.Bali, //Pererenan, north of Canggu
 			AreaM2:                40,
 			BinaryxRaisedValue:    120_000,
 			BinaryxProjectedValue: 144_000,
@@ -717,7 +709,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Oasis Royal Collection 18b",
 			Address:               strings.ToLower("0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed"),
 			Type:                  PropertyTypeRental,
-			Location:              Bali, //Pererenan, north of Canggu
+			Location:              binaryx.Bali, //Pererenan, north of Canggu
 			AreaM2:                40,
 			BinaryxRaisedValue:    120_000,
 			BinaryxProjectedValue: 144_000,
@@ -731,7 +723,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Onyx PARQ Resort 61",
 			Address:             strings.ToLower("0xA07DB641FC95067a2Fe68b6224a9dD39564bFd57"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Parq, Ubud
+			Location:            binaryx.Bali, // Parq, Ubud
 			AreaM2:              64,
 			BinaryxRaisedValue:  171_612,
 			MarketLowValue:      1_800,
@@ -745,7 +737,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Roots Villa 1",
 			Address:               strings.ToLower("0xbde380b4cc582d440255ebd89ff1839dcfad5d7b"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Ubud
+			Location:              binaryx.Bali, // Ubud
 			AreaM2:                161,
 			BinaryxRaisedValue:    303_000,
 			BinaryxProjectedValue: 353_000,
@@ -757,7 +749,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Roots Villa 3",
 			Address:               strings.ToLower("0xc0a4b2e29bd44d3b798a02edc039711f03572739"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Ubud
+			Location:              binaryx.Bali, // Ubud
 			AreaM2:                188,
 			BinaryxRaisedValue:    350_000,
 			BinaryxProjectedValue: 405_000,
@@ -769,7 +761,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Roots Villa 4",
 			Address:               strings.ToLower("0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Ubud
+			Location:              binaryx.Bali, // Ubud
 			AreaM2:                188,
 			BinaryxRaisedValue:    350_000,
 			BinaryxProjectedValue: 405_000,
@@ -781,7 +773,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Roots Villa 5",
 			Address:               strings.ToLower("0x0ef68e86c3c9bc6187c69770053919e6b35991f6"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Ubud
+			Location:              binaryx.Bali, // Ubud
 			AreaM2:                188,
 			BinaryxRaisedValue:    350_000,
 			BinaryxProjectedValue: 405_000,
@@ -795,7 +787,7 @@ var AllProperties = map[string][]*Property{
 			Name:                  "Taryan Dragon Jungle View",
 			Address:               strings.ToLower("0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5"),
 			Type:                  PropertyTypeConstruction,
-			Location:              Bali, // Canggu
+			Location:              binaryx.Bali, // Canggu
 			AreaM2:                55,
 			BinaryxProjectedValue: 340_000,
 			MarketLowValue:        3_500,
@@ -808,7 +800,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Tropical Loft Villa 2",
 			Address:             strings.ToLower("0x4b17845F255cC19dB2612ab8577Ea1e0852BBBd7"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, //Padonan, Canggu
+			Location:            binaryx.Bali, //Padonan, Canggu
 			AreaM2:              126,
 			BinaryxRaisedValue:  225_750,
 			MarketLowValue:      1_850,
@@ -820,7 +812,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Tropical Loft Villa 3",
 			Address:             strings.ToLower("0x56467B7E0cF2116A1C7664eE60db77ED24709293"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, //Padonan, Canggu
+			Location:            binaryx.Bali, //Padonan, Canggu
 			AreaM2:              126,
 			BinaryxRaisedValue:  225_750,
 			MarketLowValue:      1_850,
@@ -832,7 +824,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Tropical Loft Villa 4",
 			Address:             strings.ToLower("0x6a6F5681678Cc599d4d4Ae55270070406561DCa7"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, //Padonan, Canggu
+			Location:            binaryx.Bali, //Padonan, Canggu
 			AreaM2:              126,
 			BinaryxRaisedValue:  225_750,
 			MarketLowValue:      1_850,
@@ -846,7 +838,7 @@ var AllProperties = map[string][]*Property{
 			Name:                "Vesna Townhouse",
 			Address:             strings.ToLower("0x09558935e9cA1c4985F96163b62Fd850616F6e33"),
 			Type:                PropertyTypeRental,
-			Location:            Bali, // Berawa area of Canggu
+			Location:            binaryx.Bali, // Berawa area of Canggu
 			AreaM2:              64,
 			BinaryxRaisedValue:  220_000,
 			MarketLowValue:      1_900,
