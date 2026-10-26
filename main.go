@@ -37,11 +37,12 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	if err := internal.WriteIndex("index.html", time.Now().UTC(), projects); err != nil {
+	stamp := time.Now().UTC()
+	if err := internal.WriteIndex("index.html", stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write index: %v\n", err)
 		os.Exit(1)
 	}
-	if err := internal.WriteHolders("holders.html", projects); err != nil {
+	if err := internal.WriteHolders("holders.html", stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write holders: %v\n", err)
 		os.Exit(1)
 	}
