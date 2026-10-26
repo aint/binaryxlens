@@ -14,10 +14,24 @@
       padding: 32px 16px 48px;
       line-height: 1.5;
     }
-    main { max-width: 72rem; margin: 0 auto; }
+    main { max-width: 45rem; margin: 0 auto; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
     h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; flex: 1; min-width: 0; }
     .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .github-links { display: flex; align-items: center; gap: 6px; }
+    .github-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      color: #444;
+      text-decoration: none;
+    }
+    .github-links a:hover { background: #e8e8e8; color: #1a1a1a; }
+    .github-links a:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
+    .github-links svg { display: block; width: 18px; height: 18px; }
     .lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
     .lang-switch button {
       font: inherit;
@@ -32,10 +46,44 @@
     }
     .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
     .lede { color: #444; margin: 0 0 16px; font-size: 0.95rem; }
-    .lede a, .report-problem a, .back a { color: #0b57d0; }
-    .back { margin: 0 0 8px; font-size: 0.85rem; }
-    .tools { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
-    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; flex: 1; max-width: 24rem; }
+    .lede a, .report-problem a, td.properties a { color: #0b57d0; }
+    .updated {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    .updated time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+      color: #1a1a1a;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+    .navigation { display: flex; gap: 4px; margin: 0 0 16px; }
+    .navigation button {
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .navigation button[aria-selected="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    .navigation button:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
+    .tools { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
+    .tools-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+    .tools-row .search { flex: 1; max-width: 24rem; }
+    .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
+    /* here */
+    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; }
     .search input {
       font: inherit;
       font-size: 0.95rem;
@@ -47,12 +95,17 @@
       background: #fff;
       color: inherit;
     }
-    .search input:focus-visible, .lang-switch button:focus-visible {
+    .search input:focus-visible, #type-filters button:focus-visible {
       outline: 2px solid #0b57d0;
       outline-offset: 2px;
     }
     #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
-    .holders-meta { display: flex; align-items: center; gap: 12px; }
+    .holders-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
     .holders-limit {
       display: inline-flex;
       border: 1px solid #d1d5db;
@@ -96,22 +149,38 @@
     td.trend.down { color: #cf222e; }
     td.trend.flat { color: #888; }
     .off-platform-note { color: #666; font-size: 0.8rem; margin: 8px 0 0; }
-    .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
+    .extra-properties[hidden] { display: none; }
+    .toggle-properties { display: block; margin-top: 4px; cursor: pointer; }
   </style>
 </head>
 <body>
   <main>
-    <p class="back"><a href="index.html" data-i18n="holders.back">Projects</a></p>
     <header>
-      <h1 data-i18n="holders.platform">Holders</h1>
+      <h1>Binaryx Lens</h1>
       <div class="header-actions">
-        <div id="lang-switch" class="lang-switch" role="group"></div>
+        <div class="github-links">
+          <a href="https://github.com/aint/binaryxlens" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.756 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+          </a>
+          <a href="https://github.com/aint/binaryxlens#binaryx-lens" target="_blank" rel="noopener noreferrer" aria-label="Source code">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.18.82a7.49 7.49 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.51-1.04 2.18-.82 2.18-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.06-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          </a>
+        </div>
+        <div id="lang-switch" class="lang-switch"></div>
       </div>
     </header>
-    <p class="lede" data-i18n="holders.lede">Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.</p>
+    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">__UPDATED__ UTC</time></p>
+    <p class="lede">
+      <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
+      <a href="https://binaryx.com">binaryx.com</a>.
+    </p>
+    <div class="navigation" role="tablist">
+      <button type="button" id="show-projects" role="tab" aria-selected="false"  data-i18n="header.projectsButton">Projects</button>
+      <button type="button" id="show-holders"  role="tab" aria-selected="true" data-i18n="header.holdersButton">Holders</button>
+    </div>
     <div class="tools">
       <label class="search">
-        <span data-i18n="holders.search">Search</span>
+        <span data-i18n="search.title">Search</span>
         <input id="holder-search" type="search" autocomplete="off">
       </label>
       <div class="holders-meta">
@@ -131,108 +200,33 @@
             <th class="num" data-i18n="col.month">Month Δ</th>
           </tr>
         </thead>
-        <tbody id="holders-body">
-__HOLDERS_ROWS__
-        </tbody>
+        <tbody id="holders-body">__HOLDERS_ROWS__</tbody>
       </table>
     </div>
     <p class="off-platform-note" data-i18n="holders.offPlatformP2P">* Includes P2P outside the platform. Total USDT is not accurate.</p>
-    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="index.reportProblem">Report a problem</a></p>
+    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="footer.reportProblem">Report a problem</a></p>
   </main>
+  <script>__I18N_SCRIPT__</script>
   <script>
     (function () {
-      const I18N = {
-        en: {
-          "holders.back": "Projects",
-          "holders.platform": "Holders",
-          "holders.lede": "Wallets that still hold tokens, ranked by USDT paid on the initial sale and on-platform P2P.",
-          "holders.search": "Search",
-          "holders.searchPlaceholder": "Address or property",
-          "holders.showing": "Showing {shown} of {total}",
-          "holders.limit": "Number of holders",
-          "holders.all": "all",
-          "holders.empty": "No holders match.",
-          "holders.offPlatformP2P": "* Includes P2P outside the platform. Total USDT is not accurate.",
-          "index.reportProblem": "Report a problem",
-          "col.address": "Address",
-          "col.properties": "Properties",
-          "col.count": "Count",
-          "col.initUsdt": "Initial sale, USDT",
-          "col.p2pUsdt": "P2P, USDT",
-          "col.totalUsdt": "Total, USDT",
-          "col.week": "Week Δ",
-          "col.month": "Month Δ",
-          "col.dateIn": "Date in",
-          "lang.label": "Language"
-        },
-        uk: {
-          "holders.back": "Проєкти",
-          "holders.platform": "Власники",
-          "holders.lede": "Гаманці, які ще тримають токени, за сумою USDT на первинному продажі та P2P на платформі.",
-          "holders.search": "Пошук",
-          "holders.searchPlaceholder": "Адреса або об'єкт",
-          "holders.showing": "Показано {shown} з {total}",
-          "holders.limit": "Кількість власників",
-          "holders.all": "усі",
-          "holders.empty": "Немає збігів.",
-          "holders.offPlatformP2P": "* Є P2P поза платформою. Сума USDT неточна.",
-          "index.reportProblem": "Повідомити про проблему",
-          "col.address": "Адреса",
-          "col.properties": "Об'єкти",
-          "col.count": "Кількість",
-          "col.initUsdt": "Первинний продаж, USDT",
-          "col.p2pUsdt": "P2P, USDT",
-          "col.totalUsdt": "Разом, USDT",
-          "col.week": "Тиждень Δ",
-          "col.month": "Місяць Δ",
-          "col.dateIn": "Дата входу",
-          "lang.label": "Мова"
-        }
-      };
-
-      const params = new URLSearchParams(location.search);
-      let lang = params.get("lang") || "en";
-      if (!I18N[lang]) lang = "en";
-      document.documentElement.lang = lang;
-
-      function t(key, vars) {
-        let msg = I18N[lang][key] || I18N.en[key] || key;
-        if (!vars) return msg;
-        return msg.replace(/\{(\w+)\}/g, function (_, name) {
-          return vars[name] != null ? String(vars[name]) : _;
-        });
-      }
-
-      document.querySelectorAll("[data-i18n]").forEach(function (el) {
-        el.textContent = t(el.dataset.i18n);
+      document.getElementById('show-projects').addEventListener('click', function () {
+        window.location.href = 'index.html';
+      });
+      document.getElementById('show-holders').addEventListener('click', function () {
+        window.location.href = 'holders.html';
       });
 
-      const slot = document.getElementById("lang-switch");
-      slot.setAttribute("aria-label", t("lang.label"));
-      Object.keys(I18N).forEach(function (code) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.textContent = code.toUpperCase();
-        button.setAttribute("aria-pressed", String(code === lang));
-        button.addEventListener("click", function () {
-          if (code === lang) return;
-          const url = new URL(location.href);
-          url.searchParams.set("lang", code);
-          location.href = url.toString();
-        });
-        slot.appendChild(button);
-      });
-
+      const t = window.i18n.t;
       const search = document.getElementById("holder-search");
       const rows = Array.from(document.querySelectorAll("#holders-body tr"));
       const countEl = document.getElementById("holder-count");
       const empty = document.getElementById("holder-empty");
       const table = document.querySelector(".holders-scroll");
-      search.placeholder = t("holders.searchPlaceholder");
-      const queryParam = params.get("q");
+      search.placeholder = t("search.holdersPlaceholder");
+      const queryParam = new URLSearchParams(location.search).get("q");
       if (queryParam) search.value = queryParam;
       document.querySelectorAll("#holders-body .usdt").forEach(function (el) {
-        el.textContent = Number(el.textContent).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        el.textContent = Number(el.textContent).toLocaleString(window.i18n.lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       });
 
       const limitChoices = [10, 25, 50, 0];

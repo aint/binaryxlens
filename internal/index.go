@@ -16,7 +16,7 @@ var indexTemplateSrc []byte
 
 var (
 	indexNavPlaceholder     = []byte("__INDEX_NAV__")
-	indexUpdatedPlaceholder = []byte("__REPORTS_UPDATED__")
+	indexUpdatedPlaceholder = []byte("__UPDATED__")
 )
 
 const reportsUpdatedLayout = "2006-01-02 15:04"
@@ -32,12 +32,11 @@ type projectRow struct {
 
 func WriteIndex(path string, updated time.Time, projects []*Project) error {
 	stamp := updated.UTC().Format(reportsUpdatedLayout)
-	if !bytes.Contains(indexTemplateSrc, indexNavPlaceholder) || !bytes.Contains(indexTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(indexTemplateSrc, holdersRowsPlaceholder) || !bytes.Contains(indexTemplateSrc, i18nPlaceholder) {
+	if !bytes.Contains(indexTemplateSrc, indexNavPlaceholder) || !bytes.Contains(indexTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(indexTemplateSrc, i18nPlaceholder) {
 		return fmt.Errorf("index template missing placeholder")
 	}
 	out := bytes.ReplaceAll(withI18n(indexTemplateSrc), indexUpdatedPlaceholder, []byte(stamp))
 	out = bytes.ReplaceAll(out, indexNavPlaceholder, []byte(projectLinksHTML(projectRows(projects))))
-	out = bytes.ReplaceAll(out, holdersRowsPlaceholder, []byte(holderRowsHTML(globalHolders(projects))))
 	if err := os.WriteFile(path, out, 0o644); err != nil {
 		return fmt.Errorf("write index: %w", err)
 	}

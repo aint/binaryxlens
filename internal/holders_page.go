@@ -9,6 +9,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
@@ -31,11 +32,13 @@ type globalHolder struct {
 	OffPlatform    bool
 }
 
-func WriteHolders(path string, projects []*Project) error {
-	if !bytes.Contains(holdersTemplateSrc, holdersRowsPlaceholder) {
+func WriteHolders(path string, updated time.Time, projects []*Project) error {
+	stamp := updated.UTC().Format(reportsUpdatedLayout)
+	if !bytes.Contains(holdersTemplateSrc, holdersRowsPlaceholder) || !bytes.Contains(holdersTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(holdersTemplateSrc, i18nPlaceholder) {
 		return fmt.Errorf("holders template missing placeholder")
 	}
-	out := bytes.ReplaceAll(holdersTemplateSrc, holdersRowsPlaceholder, []byte(holderRowsHTML(globalHolders(projects))))
+	out := bytes.ReplaceAll(withI18n(holdersTemplateSrc), indexUpdatedPlaceholder, []byte(stamp))
+	out = bytes.ReplaceAll(out, holdersRowsPlaceholder, []byte(holderRowsHTML(globalHolders(projects))))
 	if err := os.WriteFile(path, out, 0o644); err != nil {
 		return fmt.Errorf("write holders: %w", err)
 	}
@@ -107,8 +110,7 @@ func holderRowsHTML(holders []globalHolder) string {
             <td class="num">%d</td>
             <td class="num"><span class="usdt">%s</span>%s</td>
             %s
-          </tr>
-`,
+          </tr>`,
 			html.EscapeString(h.Address),
 			propertyLinksHTML(h.Properties),
 			len(h.Properties),
@@ -119,6 +121,8 @@ func holderRowsHTML(holders []globalHolder) string {
 	}
 	return b.String()
 }
+
+// TODO; review, remove, commit again!
 
 // holderMonthDeltaHTML renders the last 30 days USDT change of a holder.
 // The sign stays outside the .usdt span: the page script reformats .usdt
