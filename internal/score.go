@@ -14,21 +14,16 @@ type scoreKnot struct {
 var (
 	priceScoreKnots = []scoreKnot{
 		{-0.35, 100},
-		{-0.3, 90},
 		{-0.2, 80},
-		{-0.1, 60},
-		{0, 50},
-		{0.1, 40},
+		{0, 40},
 		{0.2, 20},
-		{0.3, 10},
 		{0.35, 0},
 	}
 	yieldScoreKnots = []scoreKnot{
 		{0, 0},
 		{3, 20},
-		{5, 40},
-		{8, 60},
-		{12, 80},
+		{6, 60},
+		{10, 90},
 		{16, 100},
 	}
 	ageScoreKnots = []scoreKnot{
@@ -41,11 +36,10 @@ var (
 )
 
 const (
-	yieldAnchorPct      = 8.0
 	yieldTrailingMonths = 3
-	ageWeight           = 0.20
-	priceWeight         = 0.40
-	yieldWeight         = 0.40
+	ageWeight           = 0.15
+	priceWeight         = 0.35
+	yieldWeight         = 0.50
 	leaseYears          = 30
 )
 
@@ -109,12 +103,7 @@ func (p *Property) yieldScore() (float64, bool) {
 	if !ok || months < yieldTrailingMonths {
 		return 0, false
 	}
-	weight := float64(months) / yieldTrailingMonths
-	if weight > 1 {
-		weight = 1
-	}
-	used := yieldAnchorPct + (percent-yieldAnchorPct)*weight
-	return interpolatePart(used, yieldScoreKnots), true
+	return interpolatePart(percent, yieldScoreKnots), true
 }
 
 func (p *Property) ageScore(now time.Time) (float64, bool) {
