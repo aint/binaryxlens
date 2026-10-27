@@ -41,13 +41,12 @@ var (
 )
 
 const (
-	yieldAnchorPct   = 8.0
-	minYieldMonths   = 3
-	fullYieldMonths  = 12
-	priceYieldWeight = 0.40
-	ageWeight        = 0.20
-	fiftyFiftyWeight = 0.50
-	leaseYears       = 30
+	yieldAnchorPct      = 8.0
+	yieldTrailingMonths = 3
+	ageWeight           = 0.20
+	priceWeight         = 0.40
+	yieldWeight         = 0.40
+	leaseYears          = 30
 )
 
 // score is the rounded mean of each property that has a score.
@@ -79,9 +78,9 @@ func (p *Property) score() int {
 	}
 	var raw float64
 	if age, okAge := p.ageScore(time.Now().UTC()); okAge {
-		raw = priceYieldWeight*price + priceYieldWeight*yield + ageWeight*age
+		raw = priceWeight*price + yieldWeight*yield + ageWeight*age
 	} else {
-		raw = fiftyFiftyWeight*price + fiftyFiftyWeight*yield
+		raw = priceWeight*price + yieldWeight*yield
 	}
 	n := int(math.Round(raw))
 	if n < 1 {
@@ -106,11 +105,11 @@ func (p *Property) priceScore() (float64, bool) {
 }
 
 func (p *Property) yieldScore() (float64, bool) {
-	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, fullYieldMonths, true)
-	if !ok || months < minYieldMonths {
+	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, yieldTrailingMonths, true)
+	if !ok || months < yieldTrailingMonths {
 		return 0, false
 	}
-	weight := float64(months) / fullYieldMonths
+	weight := float64(months) / yieldTrailingMonths
 	if weight > 1 {
 		weight = 1
 	}
