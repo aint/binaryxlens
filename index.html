@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Binaryx Lens</title>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; }
@@ -94,7 +95,7 @@
       background: #fff;
       color: inherit;
     }
-    .search input:focus-visible, #type-filters button:focus-visible {
+    .search input:focus-visible, #state-filters button:focus-visible {
       outline: 2px solid #0b57d0;
       outline-offset: 2px;
     }
@@ -105,8 +106,8 @@
       justify-content: space-between;
       gap: 8px 12px;
     }
-    #type-filters { display: flex; flex-wrap: wrap; gap: 4px; }
-    #type-filters button {
+    #state-filters { display: flex; flex-wrap: wrap; gap: 4px; }
+    #state-filters button {
       font: inherit;
       font-size: 0.72rem;
       font-weight: 600;
@@ -117,7 +118,7 @@
       color: #444;
       cursor: pointer;
     }
-    #type-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    #state-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
     #project-count, #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
     .empty {
       margin: 0;
@@ -200,7 +201,7 @@
         <div id="lang-switch" class="lang-switch"></div>
       </div>
     </header>
-    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-10-27 02:34 UTC</time></p>
+    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-10-27 17:09 UTC</time></p>
     <p class="lede">
       <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
@@ -215,11 +216,11 @@
         <input id="project-search" type="search" placeholder="Project or property" autocomplete="off">
       </label>
       <div class="filters">
-        <div id="type-filters" role="group" data-i18n-aria="index.type">
-          <button type="button" data-type-filter="all" data-i18n="index.all" aria-pressed="true">All</button>
-          <button type="button" data-type-filter="rental" data-i18n="type.rental" aria-pressed="false">rental</button>
-          <button type="button" data-type-filter="construction" data-i18n="type.construction" aria-pressed="false">construction</button>
-          <button type="button" data-type-filter="redeemed" data-i18n="type.redeemed" aria-pressed="false">redeemed</button>
+        <div id="state-filters" role="group" data-i18n-aria="index.state">
+          <button type="button" data-state-filter="all" data-i18n="index.all" aria-pressed="true">All</button>
+          <button type="button" data-state-filter="rental" data-i18n="state.rental" aria-pressed="false">rental</button>
+          <button type="button" data-state-filter="construction" data-i18n="state.construction" aria-pressed="false">construction</button>
+          <button type="button" data-state-filter="redeemed" data-i18n="state.redeemed" aria-pressed="false">redeemed</button>
         </div>
         <p id="project-count" aria-live="polite"></p>
       </div>
@@ -228,79 +229,79 @@
     <nav>
 			<a href="reports/aurora_villas_(bali_balance_ocean_villas)_report.html">
 				<span class="item"><span class="name">🇮🇩 Aurora Villas (Bali Balance Ocean Villas)</span><span class="props">Villa Aurora 1 (Ocean Villa 3) · Villa Aurora 2 (Ocean Villa 4)</span></span>
-				<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/awwa_hotel_by_ribas_report.html">
 				<span class="item"><span class="name">🇮🇩 AWWA Hotel by Ribas</span><span class="props">AWWA Hotel by Ribas B14 · AWWA Hotel by Ribas B22 · AWWA Hotel by Ribas A16</span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">46/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-low" data-i18n-title="score.note">22/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/bingin_magic_story_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 Bingin Magic Story Villas</span><span class="props">Bingin Magic Story Villa 3</span></span>
-				<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/bubbles_boutique_complex_report.html">
 				<span class="item"><span class="name">🇮🇩 Bubbles Boutique Complex</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">68/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">56/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/cascade_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 CASCADE Villas</span><span class="props">CASCADE Villa 2 · CASCADE Villa 3</span></span>
-				<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/cemagi_units_report.html">
 				<span class="item"><span class="name">🇮🇩 CEMAGI Units</span><span class="props">CEMAGI Unit 3.44 · CEMAGI Unit 3.46</span></span>
-				<span class="tags"><span class="tag tag-construction" data-i18n="type.construction">construction</span></span>
+				<span class="tags"><span class="tag tag-construction" data-i18n="state.construction">construction</span></span>
 			</a>
 			<a href="reports/dukley_report.html">
 				<span class="item"><span class="name">🇲🇪 Dukley</span><span class="props">Mountain Retreat by Dukley · Dukley Glamping 1</span></span>
-				<span class="tags"><span class="tag tag-redeemed" data-i18n="type.redeemed">redeemed</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="tag tag-redeemed" data-i18n="state.redeemed">redeemed</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/ecoverse_suites_report.html">
 				<span class="item"><span class="name">🇮🇩 Ecoverse Suites</span><span class="props">Ecoverse Suite</span></span>
-				<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/hayat_green_tower_report.html">
 				<span class="item"><span class="name">🇹🇷 Hayat Green Tower</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">55/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">40/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/kammara_loft_report.html">
 				<span class="item"><span class="name">🇮🇩 Kammara Loft</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">68/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">57/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/kammora_living_report.html">
 				<span class="item"><span class="name">🇮🇩 Kammora Living</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">79/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">55/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/karra_loft_report.html">
 				<span class="item"><span class="name">🇮🇩 Karra Loft</span><span class="props">Karra Loft 3A · Karra Loft 5</span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">68/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">68/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/la_casa_española_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 La Casa Española Villas</span><span class="props">La Casa Española Villa 4 · La Casa Española Villa 6 · La Casa Española Villa 8 · La Casa Española Villa 9</span></span>
-				<span class="tags"><span class="tag tag-construction" data-i18n="type.construction">construction</span></span>
+				<span class="tags"><span class="tag tag-construction" data-i18n="state.construction">construction</span></span>
 			</a>
 			<a href="reports/oasis_royal_collection_report.html">
 				<span class="item"><span class="name">🇮🇩 Oasis Royal Collection</span><span class="props">Oasis Royal Collection 11a · Oasis Royal Collection 18b</span></span>
-				<span class="tags"><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/onyx_parq_resort_61_report.html">
 				<span class="item"><span class="name">🇮🇩 Onyx PARQ Resort 61</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">70/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">60/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/roots_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 Roots Villas</span><span class="props">Roots Villa 1 · Roots Villa 3 · Roots Villa 4 · Roots Villa 5</span></span>
-				<span class="tags"><span class="tag tag-construction" data-i18n="type.construction">construction</span></span>
+				<span class="tags"><span class="tag tag-construction" data-i18n="state.construction">construction</span></span>
 			</a>
 			<a href="reports/taryan_dragon_jungle_view_report.html">
 				<span class="item"><span class="name">🇮🇩 Taryan Dragon Jungle View</span><span class="props"></span></span>
-				<span class="tags"><span class="tag tag-construction" data-i18n="type.construction">construction</span></span>
+				<span class="tags"><span class="tag tag-construction" data-i18n="state.construction">construction</span></span>
 			</a>
 			<a href="reports/tropical_loft_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 Tropical Loft Villas</span><span class="props">Tropical Loft Villa 2 · Tropical Loft Villa 3 · Tropical Loft Villa 4</span></span>
-				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">86/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">82/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/vesna_townhouse_report.html">
 				<span class="item"><span class="name">🇮🇩 Vesna Townhouse</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">48/100</span><span class="tag tag-rental" data-i18n="type.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-low" data-i18n-title="score.note">39/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a></nav>
     <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="footer.reportProblem">Report a problem</a></p>
   </main>
@@ -319,7 +320,7 @@
 			"search.indexPlaceholder": "Project or property",
 			"search.holdersPlaceholder": "Address or property",
 
-			"index.type": "Type",
+			"index.state": "State",
 			"index.all": "All",
 			"index.projects": { one: "{n} project", other: "{n} projects" },
 			"index.empty": "No projects match. Clear the search or choose All.",
@@ -341,10 +342,9 @@
 			"score.value": "{n}/100",
 			"score.note": "Based on the current price versus the market, trailing 3 months of net yield, and asset age.",
 
-			"type.construction": "construction",
-			"type.rental": "rental",
-			"type.redeemed": "redeemed",
-			"type.unknown": "unknown",
+			"state.construction": "construction",
+			"state.rental": "rental",
+			"state.redeemed": "redeemed",
 
 			"location.bali": "Bali, Indonesia",
 			"location.montenegro": "Montenegro",
@@ -462,7 +462,7 @@
 			"search.indexPlaceholder": "Проєкт або об'єкт",
 			"search.holdersPlaceholder": "Адреса або об'єкт",
 
-			"index.type": "Тип",
+			"index.state": "Стан",
 			"index.all": "Усі",
 			"index.projects": { one: "{n} проєкт", few: "{n} проєкти", many: "{n} проєктів", other: "{n} проєкту" },
 			"index.empty": "Немає збігів. Очистіть пошук або оберіть «Усі».",
@@ -484,10 +484,9 @@
 			"score.value": "{n}/100",
 			"score.note": "На основі поточної ціни відносно ринку, чистої дохідності за останні 3 місяці та віку об'єкту.",
 
-			"type.construction": "будівництво",
-			"type.rental": "оренда",
-			"type.redeemed": "викуплено",
-			"type.unknown": "невідомо",
+			"state.construction": "будівництво",
+			"state.rental": "оренда",
+			"state.redeemed": "викуплено",
 
 			"location.bali": "Індонезія, Балі",
 			"location.montenegro": "Чорногорія",
@@ -692,7 +691,7 @@
       });
 
       const search = document.getElementById("project-search");
-      const filters = document.getElementById("type-filters");
+      const filters = document.getElementById("state-filters");
       const list = document.querySelector("nav");
       const rows = Array.from(list.querySelectorAll("a"));
       const countEl = document.getElementById("project-count");
@@ -704,7 +703,7 @@
       function apply() {
         const query = search.value.trim().toLowerCase();
         const pressed = filters.querySelector('[aria-pressed="true"]');
-        const type = pressed ? pressed.dataset.typeFilter : "all";
+        const type = pressed ? pressed.dataset.stateFilter : "all";
         let shown = 0;
         let last = null;
         rows.forEach(function (row) {
@@ -728,9 +727,9 @@
 
       search.addEventListener("input", apply);
       filters.addEventListener("click", function (event) {
-        const button = event.target.closest("[data-type-filter]");
+        const button = event.target.closest("[data-state-filter]");
         if (!button) return;
-        filters.querySelectorAll("[data-type-filter]").forEach(function (el) {
+        filters.querySelectorAll("[data-state-filter]").forEach(function (el) {
           el.setAttribute("aria-pressed", String(el === button));
         });
         apply();
