@@ -13,7 +13,7 @@
 			"search.indexPlaceholder": "Project or property",
 			"search.holdersPlaceholder": "Address or property",
 
-			"index.type": "Type",
+			"index.state": "State",
 			"index.all": "All",
 			"index.projects": { one: "{n} project", other: "{n} projects" },
 			"index.empty": "No projects match. Clear the search or choose All.",
@@ -35,10 +35,9 @@
 			"score.value": "{n}/100",
 			"score.note": "Based on the current price versus the market, trailing 3 months of net yield, and asset age.",
 
-			"type.construction": "construction",
-			"type.rental": "rental",
-			"type.redeemed": "redeemed",
-			"type.unknown": "unknown",
+			"state.construction": "construction",
+			"state.rental": "rental",
+			"state.redeemed": "redeemed",
 
 			"location.bali": "Bali, Indonesia",
 			"location.montenegro": "Montenegro",
@@ -156,7 +155,7 @@
 			"search.indexPlaceholder": "Проєкт або об'єкт",
 			"search.holdersPlaceholder": "Адреса або об'єкт",
 
-			"index.type": "Тип",
+			"index.state": "Стан",
 			"index.all": "Усі",
 			"index.projects": { one: "{n} проєкт", few: "{n} проєкти", many: "{n} проєктів", other: "{n} проєкту" },
 			"index.empty": "Немає збігів. Очистіть пошук або оберіть «Усі».",
@@ -178,10 +177,9 @@
 			"score.value": "{n}/100",
 			"score.note": "На основі поточної ціни відносно ринку, чистої дохідності за останні 3 місяці та віку об'єкту.",
 
-			"type.construction": "будівництво",
-			"type.rental": "оренда",
-			"type.redeemed": "викуплено",
-			"type.unknown": "невідомо",
+			"state.construction": "будівництво",
+			"state.rental": "оренда",
+			"state.redeemed": "викуплено",
 
 			"location.bali": "Індонезія, Балі",
 			"location.montenegro": "Чорногорія",

@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/aint/binaryxlens/internal/binaryx"
 )
 
 //go:embed index.html
@@ -50,7 +52,7 @@ func projectLinksHTML(projects []projectRow) string {
 	for _, project := range projects {
 		var labels strings.Builder
 		for _, label := range project.Labels {
-			fmt.Fprintf(&labels, `<span class="tag tag-%[1]s" data-i18n="type.%[1]s">%[1]s</span>`, html.EscapeString(label))
+			fmt.Fprintf(&labels, `<span class="tag tag-%[1]s" data-i18n="state.%[1]s">%[1]s</span>`, html.EscapeString(label))
 		}
 		rating := ""
 		if project.Score != -1 {
@@ -104,7 +106,7 @@ func projectRows(projects []*Project) []projectRow {
 			Href:      "reports/" + projectReportFile(name),
 			Flag:      projectCountryFlag(properties),
 			Props:     propertyNames(name, properties),
-			Labels:    propertyTypeLabels(properties),
+			Labels:    propertyStateLabels(properties),
 			Score:     score,
 			ScoreTier: scoreTier(score),
 		}
@@ -136,15 +138,15 @@ func propertyNames(projectName string, properties []*Property) string {
 	return strings.Join(names, " · ")
 }
 
-func propertyTypeLabels(properties []*Property) []string {
-	seen := make(map[PropertyType]bool)
+func propertyStateLabels(properties []*Property) []string {
+	seen := make(map[binaryx.RealEstateState]bool)
 	var labels []string
 	for _, property := range properties {
-		if seen[property.Type] {
+		if seen[property.State] {
 			continue
 		}
-		seen[property.Type] = true
-		labels = append(labels, property.Type.Label())
+		seen[property.State] = true
+		labels = append(labels, string(property.State))
 	}
 	return labels
 }

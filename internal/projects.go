@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/aint/binaryxlens/internal/binaryx"
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
@@ -120,7 +121,7 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 	payload := propertyReportPayload{
 		Name:      property.Name,
 		Address:   property.Address,
-		Type:      property.Type.Label(),
+		State:     string(property.State),
 		Location:  string(property.Location),
 		Score:     score,
 		ScoreTier: scoreTier(score),
@@ -129,14 +130,14 @@ func buildPropertyReportPayload(property *Property) (propertyReportPayload, erro
 		Rental:    buildRentalPayload(property, time.Now().UTC()),
 		Price: propertyPricePayload{
 			AreaM2:             property.AreaM2,
-			Current:            property.BinaryxCurrentValue,
-			Raised:             property.BinaryxRaisedValue,
-			Projected:          property.BinaryxProjectedValue,
+			Current:            property.CurrentValue.Price,
+			Raised:             property.RaisedValue.Price,
+			Projected:          property.ProjectedValue.Price,
 			MarketLow:          property.MarketLowValue,
 			MarketHigh:         property.MarketHighValue,
-			CurrentValueTier:   string(property.CurrentValueTier),
-			ProjectedValueTier: string(property.ProjectedValueTier),
-			RaisedValueTier:    string(property.RaisedValueTier),
+			CurrentValueTier:   string(property.CurrentValue.Status),
+			ProjectedValueTier: string(property.ProjectedValue.Status),
+			RaisedValueTier:    string(property.RaisedValue.Status),
 		},
 		Initial: propertyInitialSalesPayload{
 			Labels:     make([]string, 0, len(initialSaleWeeklyPoints)),
@@ -196,13 +197,13 @@ func buildRentalPayload(property *Property, now time.Time) *propertyRentalPayloa
 	}
 	if property.RentalStartActual != nil {
 		payload.Actual = property.RentalStartActual.String()
-		ageQuarters := yearQuarterAt(now).quartersSince(*property.RentalStartActual)
+		ageQuarters := binaryx.NewYearQuarter(now).QuartersSince(*property.RentalStartActual)
 		if ageQuarters >= 0 {
 			ageYears := float64(ageQuarters) / 4
 			payload.AgeYears = &ageYears
 		}
 	}
-	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.BinaryxCurrentValue)
+	payload.rentalProfit = rentalProfitSeries(property.RentalProfitMonths, property.CurrentValue.Price)
 	return payload
 }
 
@@ -297,7 +298,7 @@ type projectSummaryPayload struct {
 type propertyReportPayload struct {
 	Name      string                      `json:"name"`
 	Address   string                      `json:"address"`
-	Type      string                      `json:"type"`
+	State     string                      `json:"state"`
 	Location  string                      `json:"location"`
 	Score     int                         `json:"score"`
 	ScoreTier string                      `json:"scoreTier"`

@@ -3,6 +3,8 @@ package internal
 import (
 	"math"
 	"time"
+
+	"github.com/aint/binaryxlens/internal/binaryx"
 )
 
 type scoreKnot struct {
@@ -92,19 +94,19 @@ func (p *Property) score() int {
 }
 
 func (p *Property) priceScore() (float64, bool) {
-	if p.BinaryxCurrentValue == 0 || p.AreaM2 == 0 {
+	if p.CurrentValue.Price == 0 || p.AreaM2 == 0 {
 		return 0, false
 	}
 	mid := float64(p.MarketLowValue+p.MarketHighValue) / 2
 	if mid == 0 {
 		return 0, false
 	}
-	delta := (float64(p.BinaryxCurrentValue)/float64(p.AreaM2) - mid) / mid
+	delta := (float64(p.CurrentValue.Price)/float64(p.AreaM2) - mid) / mid
 	return interpolatePart(delta, priceScoreKnots), true
 }
 
 func (p *Property) yieldScore() (float64, bool) {
-	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.BinaryxCurrentValue, fullYieldMonths, true)
+	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, fullYieldMonths, true)
 	if !ok || months < minYieldMonths {
 		return 0, false
 	}
@@ -120,7 +122,7 @@ func (p *Property) ageScore(now time.Time) (float64, bool) {
 	if p.RentalStartActual == nil {
 		return 0, false
 	}
-	quarters := yearQuarterAt(now).quartersSince(*p.RentalStartActual)
+	quarters := binaryx.NewYearQuarter(now).QuartersSince(*p.RentalStartActual)
 	if quarters < 0 {
 		quarters = 0
 	}

@@ -8,66 +8,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aint/binaryxlens/internal/polygonscan"
 	"github.com/aint/binaryxlens/internal/binaryx"
-)
-
-type PropertyType int
-
-const (
-	PropertyTypeConstruction PropertyType = iota
-	PropertyTypeRental
-	PropertyTypeRedeemed
-)
-
-func (t PropertyType) Label() string {
-	switch t {
-	case PropertyTypeConstruction:
-		return "construction"
-	case PropertyTypeRental:
-		return "rental"
-	case PropertyTypeRedeemed:
-		return "redeemed"
-	default:
-		return "unknown"
-	}
-}
-
-// IssuanceModel is how initial sales leave issuer control.
-type IssuanceModel int
-
-const (
-	IssuanceMintOnPurchase IssuanceModel = iota // 0x0 → buyer on each sale
-	IssuanceEscrow                              // contract → buyer; 0x0 → contract is inventory
-)
-
-type ValueTier string
-
-const (
-	ValueTierFair        ValueTier = "fair"
-	ValueTierRich        ValueTier = "rich"
-	ValueTierOverpriced  ValueTier = "overpriced"
-	ValueTierUnderpriced ValueTier = "underpriced"
+	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
 type Property struct {
 	Name                    string
 	Address                 string
-	Type                    PropertyType
-	RentalStartExpected     YearQuarter
-	RentalStartActual       *YearQuarter
+	State                   binaryx.RealEstateState
+	RentalStartExpected     binaryx.YearQuarter
+	RentalStartActual       *binaryx.YearQuarter
 	AreaM2                  uint
-	BinaryxCurrentValue     uint
-	BinaryxProjectedValue   uint
-	BinaryxRaisedValue      uint
+	CurrentValue            binaryx.Value
+	RaisedValue             binaryx.Value
+	ProjectedValue          binaryx.Value
 	MarketLowValue          uint
 	MarketHighValue         uint
-	ProjectedValueTier      ValueTier
-	RaisedValueTier         ValueTier
-	CurrentValueTier        ValueTier
 	Location                binaryx.Location
 	transfers               []transfer
-	issuanceModel           IssuanceModel
+	issuanceModel           binaryx.IssuanceModel
 	InitialSaleWeeklyPoints []WeeklyPoint
 	P2PSaleWeeklyPoints     []WeeklyPoint
 	RentalProfitMonths      []rentalProfitMonth
@@ -79,32 +38,43 @@ type Property struct {
 	Decimal                 uint8
 }
 
-type YearQuarter struct {
-	Year    int
-	Quarter int // 1..4
+type propertyParams struct {
+	Name                  string
+	Address               string
+	State                 binaryx.RealEstateState
+	Location              binaryx.Location
+	AreaM2                uint
+	Raised, Projected     uint
+	MarketLow, MarketHigh uint
+	RentalStartExpected   binaryx.YearQuarter
+	RentalStartActual     *binaryx.YearQuarter
+	RentalProfitMonths    []rentalProfitMonth
 }
 
-func (yq YearQuarter) String() string {
-	return fmt.Sprintf("%d Q%d", yq.Year, yq.Quarter)
-}
+func newProperty(params propertyParams) *Property {
 
-func (yq YearQuarter) ordinal() int {
-	return yq.Year*4 + yq.Quarter - 1
-}
+	p := &Property{
+		Name:                params.Name,
+		Address:             strings.ToLower(params.Address),
+		State:               params.State,
+		Location:            params.Location,
+		AreaM2:              params.AreaM2,
+		MarketLowValue:      params.MarketLow,
+		MarketHighValue:     params.MarketHigh,
+		RentalStartExpected: params.RentalStartExpected,
+		RentalStartActual:   params.RentalStartActual,
+		RentalProfitMonths:  params.RentalProfitMonths,
+	}
 
-func yearQuarterAt(t time.Time) YearQuarter {
-	month := int(t.Month())
-	return YearQuarter{Year: t.Year(), Quarter: (month-1)/3 + 1}
-}
+	p.RaisedValue = binaryx.NewValue(params.Raised, p.calculateValueDelta)
+	p.ProjectedValue = binaryx.NewValue(params.Projected, p.calculateValueDelta)
 
-func (yq YearQuarter) quartersSince(start YearQuarter) int {
-	return yq.ordinal() - start.ordinal()
+	return p
 }
 
 // Init fetches the property's transfers and builds its stats. p2pTrades holds
 // P2P trades of all properties, keyed by token address.
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade, monthlyRentalProfit []rentalProfitMonth) error {
-	p.Address = strings.ToLower(p.Address)
 	p.RentalProfitMonths = append(p.RentalProfitMonths, monthlyRentalProfit...)
 
 	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
@@ -140,7 +110,7 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 	if err != nil {
 		return fmt.Errorf("get total supply: %v", err)
 	}
-	if p.Type == PropertyTypeRedeemed {
+	if p.State == binaryx.Redeemed {
 		p.TotalSupplyRaw = calculateIssuedSupply(p.transfers)
 	}
 	if p.TotalSupplyRaw.Sign() == 0 {
@@ -152,7 +122,6 @@ func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2p
 
 	p.calcualteCurrentValue()
 	p.calculateRaisedValue()
-	p.estimateValueTier()
 
 	p.buildHolders()
 	p.buildInitialSaleWeeklySeries()
@@ -184,12 +153,12 @@ func (p *Property) calcualteCurrentValue() {
 	if usdt == nil || tokens == nil {
 		return
 	}
-	value := bigIntToFloat(usdt, polygonscan.USDTDecimal) / bigIntToFloat(tokens, p.Decimal) * bigIntToFloat(p.TotalSupplyRaw, p.Decimal)
-	p.BinaryxCurrentValue = uint(value)
+	price := bigIntToFloat(usdt, polygonscan.USDTDecimal) / bigIntToFloat(tokens, p.Decimal) * bigIntToFloat(p.TotalSupplyRaw, p.Decimal)
+	p.CurrentValue = binaryx.NewValue(uint(price), p.calculateValueDelta)
 }
 
-func (p *Property) calculateRaisedValue() {
-	if p.Type != PropertyTypeConstruction {
+func (p *Property) calculateRaisedValue() { // TODO: calculate raised for construction assets?
+	if p.State != binaryx.Construction {
 		return
 	}
 	raised := new(big.Int)
@@ -209,41 +178,26 @@ func (p *Property) calculateRaisedValue() {
 	if !whole.IsUint64() {
 		return
 	}
-	p.BinaryxRaisedValue = uint(whole.Uint64())
+
+	p.RaisedValue = binaryx.NewValue(uint(whole.Int64()), p.calculateValueDelta)
 }
 
-func (p *Property) estimateValueTier() {
-	p.ProjectedValueTier = p.valueTier(p.BinaryxProjectedValue)
-	p.RaisedValueTier = p.valueTier(p.BinaryxRaisedValue)
-	p.CurrentValueTier = p.valueTier(p.BinaryxCurrentValue)
-}
-
-func (p *Property) valueTier(amount uint) ValueTier {
-	if amount == 0 || p.AreaM2 == 0 {
-		return ""
+func (p *Property) calculateValueDelta(price uint) (float64, bool) {
+	if price == 0 || p.AreaM2 == 0 {
+		return 0, false
 	}
 	avg := float64(p.MarketLowValue+p.MarketHighValue) / 2
 	if avg == 0 {
-		return ""
+		return 0, false
 	}
-	delta := (float64(amount)/float64(p.AreaM2) - avg) / avg
-	switch {
-	case delta < -0.10:
-		return ValueTierUnderpriced
-	case delta <= 0.10:
-		return ValueTierFair
-	case delta <= 0.20:
-		return ValueTierRich
-	default:
-		return ValueTierOverpriced
-	}
+	return (float64(price)/float64(p.AreaM2) - avg) / avg, true
 }
 
 func (p *Property) resolveIssuanceModel() {
-	p.issuanceModel = IssuanceMintOnPurchase
+	p.issuanceModel = binaryx.MintOnPurchase
 	for _, t := range p.transfers {
 		if t.From == p.Address {
-			p.issuanceModel = IssuanceEscrow
+			p.issuanceModel = binaryx.Escrow
 			return
 		}
 	}
@@ -331,7 +285,7 @@ func (p *Property) isInitialSale(from string) bool {
 	if from == p.Address {
 		return true
 	}
-	if from == zeroAddr0x && p.issuanceModel == IssuanceMintOnPurchase {
+	if from == zeroAddr0x && p.issuanceModel == binaryx.MintOnPurchase {
 		return true
 	}
 	return false
@@ -371,480 +325,550 @@ func (p *Property) extractDecimal(tx polygonscan.TokenTransfer) error {
 }
 
 func (p *Property) rentalStartDelay(now time.Time) (int, bool) {
-	if p.Type != PropertyTypeRental || p.RentalStartExpected.Quarter < 1 {
+	if p.State != binaryx.Rental || p.RentalStartExpected.Quarter < 1 {
 		return 0, false
 	}
-	actual := yearQuarterAt(now)
+	actual := binaryx.NewYearQuarter(now)
 	if p.RentalStartActual != nil {
 		actual = *p.RentalStartActual
 	}
-	return actual.quartersSince(p.RentalStartExpected), true
+	return actual.QuartersSince(p.RentalStartExpected), true
 }
 
 var AllProperties = map[string][]*Property{
 	"AWWA Hotel by Ribas": {
-		{
-			Name:                "AWWA Hotel by Ribas B14",
-			Address:             strings.ToLower("0x216301b87404a5839bf7b8b94c646c4eb96fec79"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              33,
-			BinaryxRaisedValue:  157_500,
-			MarketLowValue:      2_800,
-			MarketHighValue:     3_800,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
-		},
-		{
-			Name:                "AWWA Hotel by Ribas B22",
-			Address:             strings.ToLower("0xe725a80f426a7d7f5734ba69ccec507251109d09"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              33,
-			BinaryxRaisedValue:  157_500,
-			MarketLowValue:      2_800,
-			MarketHighValue:     3_800,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
-		},
-		{
-			Name:                "AWWA Hotel by Ribas A16",
-			Address:             strings.ToLower("0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              33,
-			BinaryxRaisedValue:  157_500,
-			MarketLowValue:      2_800,
-			MarketHighValue:     3_800,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "AWWA Hotel by Ribas B14",
+				Address:             "0x216301b87404a5839bf7b8b94c646c4eb96fec79",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              33,
+				Raised:              157_500,
+				MarketLow:           2_800,
+				MarketHigh:          3_800,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "AWWA Hotel by Ribas B22",
+				Address:             "0xe725a80f426a7d7f5734ba69ccec507251109d09",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              33,
+				Raised:              157_500,
+				MarketLow:           2_800,
+				MarketHigh:          3_800,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "AWWA Hotel by Ribas A16",
+				Address:             "0xdb8fc93a993e2ab0d9f7d520fd4e616cfb1d85fd",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              33,
+				Raised:              157_500,
+				MarketLow:           2_800,
+				MarketHigh:          3_800,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
 	},
 	"Aurora Villas (Bali Balance Ocean Villas)": {
-		{
-			Name:                  "Villa Aurora 1 (Ocean Villa 3)",
-			Address:               strings.ToLower("0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, // Uluwatu
-			AreaM2:                165,
-			BinaryxRaisedValue:    380_000,
-			BinaryxProjectedValue: 428_500,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-		},
-		{
-			Name:                  "Villa Aurora 2 (Ocean Villa 4)",
-			Address:               strings.ToLower("0x17236ed296fbd00d3dfa016879833776dd207fd6"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, // Uluwatu
-			AreaM2:                165,
-			BinaryxRaisedValue:    380_000,
-			BinaryxProjectedValue: 428_500,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Villa Aurora 1 (Ocean Villa 3)",
+				Address:             "0x1e3cf2eeaa6d5973e2da6fe03600ba55870dd69b",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Uluwatu
+				AreaM2:              165,
+				Raised:              380_000,
+				Projected:           428_500,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Villa Aurora 2 (Ocean Villa 4)",
+				Address:             "0x17236ed296fbd00d3dfa016879833776dd207fd6",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Uluwatu
+				AreaM2:              165,
+				Raised:              380_000,
+				Projected:           428_500,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
 	},
 	"Bingin Magic Story Villas": {
-		{
-			Name:                  "Bingin Magic Story Villa 3",
-			Address:               strings.ToLower("0xe5f846592a58bcfce912bc6fc594649397b6f519"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                115,
-			BinaryxRaisedValue:    249_000,
-			BinaryxProjectedValue: 280_000,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Bingin Magic Story Villa 3",
+				Address:             "0xe5f846592a58bcfce912bc6fc594649397b6f519",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              115,
+				Raised:              249_000,
+				Projected:           280_000,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
 	},
 	"Bubbles Boutique Complex": {
-		{
-			Name:                "Bubbles Boutique Complex",
-			Address:             strings.ToLower("0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, //Canggu
-			AreaM2:              555,
-			BinaryxRaisedValue:  1_250_000,
-			MarketLowValue:      2_100,
-			MarketHighValue:     2_700,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
-			RentalProfitMonths: []rentalProfitMonth{
-				{Month: time.Date(2024, time.August, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(1828000000)},
-				{Month: time.Date(2024, time.September, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2968000000)},
-				{Month: time.Date(2024, time.October, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2290000000)},
-				{Month: time.Date(2024, time.November, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2882000000)},
-				{Month: time.Date(2024, time.December, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(6870000000)},
-				{Month: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(6870000000)},
-				{Month: time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(8319000000)},
-				{Month: time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(11298000000)},
+		newProperty(
+			propertyParams{
+				Name:                "Bubbles Boutique Complex",
+				Address:             "0xC1EA0Ccd94F17Ec0580DD57A34C2B521360ad4b1",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, //Canggu
+				AreaM2:              555,
+				Raised:              1_250_000,
+				MarketLow:           2_100,
+				MarketHigh:          2_700,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 4},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 4},
+				RentalProfitMonths: []rentalProfitMonth{
+					{Month: time.Date(2024, time.August, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(1828000000)},
+					{Month: time.Date(2024, time.September, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2968000000)},
+					{Month: time.Date(2024, time.October, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2290000000)},
+					{Month: time.Date(2024, time.November, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2882000000)},
+					{Month: time.Date(2024, time.December, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(6870000000)},
+					{Month: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(6870000000)},
+					{Month: time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(8319000000)},
+					{Month: time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(11298000000)},
+				},
 			},
-		},
+		),
 	},
 	"CASCADE Villas": {
-		{
-			Name:                  "CASCADE Villa 2",
-			Address:               strings.ToLower("0x5e55b3e941f42732f1b941f2f673dc8811355e5e"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                176,
-			BinaryxRaisedValue:    265_000,
-			BinaryxProjectedValue: 300_000,
-			MarketLowValue:        1_700,
-			MarketHighValue:       2_400,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 1},
-		},
-		{
-			Name:                  "CASCADE Villa 3",
-			Address:               strings.ToLower("0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                176,
-			BinaryxRaisedValue:    265_000,
-			BinaryxProjectedValue: 300_000,
-			MarketLowValue:        1_700,
-			MarketHighValue:       2_400,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 1},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "CASCADE Villa 2",
+				Address:             "0x5e55b3e941f42732f1b941f2f673dc8811355e5e",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              176,
+				Raised:              265_000,
+				Projected:           300_000,
+				MarketLow:           1_700,
+				MarketHigh:          2_400,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 1},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "CASCADE Villa 3",
+				Address:             "0xd5551375d5ba01ddbcb38d20ac40671f26e6ada5",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              176,
+				Raised:              265_000,
+				Projected:           300_000,
+				MarketLow:           1_700,
+				MarketHigh:          2_400,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 1},
+			},
+		),
 	},
 	"CEMAGI Units": {
-		{
-			Name:                  "CEMAGI Unit 3.44",
-			Address:               strings.ToLower("0x852b6995628b760c84bdd02bc143b48288d4dd3a"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                26,
-			BinaryxRaisedValue:    112_000,
-			BinaryxProjectedValue: 130_000,
-			MarketLowValue:        3_000,
-			MarketHighValue:       4_500,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 2},
-		},
-		{
-			Name:                  "CEMAGI Unit 3.46",
-			Address:               strings.ToLower("0x2b7dca2c2bafdb1dac0e01068091590fbe09e478"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                26,
-			BinaryxRaisedValue:    112_000,
-			BinaryxProjectedValue: 130_000,
-			MarketLowValue:        3_000,
-			MarketHighValue:       4_500,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 2},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "CEMAGI Unit 3.44",
+				Address:             "0x852b6995628b760c84bdd02bc143b48288d4dd3a",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              26,
+				Raised:              112_000,
+				Projected:           130_000,
+				MarketLow:           3_000,
+				MarketHigh:          4_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 2},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "CEMAGI Unit 3.46",
+				Address:             "0x2b7dca2c2bafdb1dac0e01068091590fbe09e478",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              26,
+				Raised:              112_000,
+				Projected:           130_000,
+				MarketLow:           3_000,
+				MarketHigh:          4_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 2},
+			},
+		),
 	},
 	"Dukley": {
-		{
-			Name:                  "Mountain Retreat by Dukley",
-			Address:               strings.ToLower("0x51343ee93059cbb11c4bf969a643e09117b3af6b"),
-			Type:                  PropertyTypeRedeemed,
-			Location:              binaryx.Montenegro, // Kolasin
-			AreaM2:                73,
-			BinaryxRaisedValue:    385_000,
-			BinaryxProjectedValue: 440_000,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 1},
-		},
-		{
-			Name:                  "Dukley Glamping 1",
-			Address:               strings.ToLower("0xad4f81d0f2f626a6ea29864f488604e6b5360e2a"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Montenegro, // Kolasin
-			AreaM2:                240,
-			BinaryxRaisedValue:    940_000,
-			BinaryxProjectedValue: 1_050_000,
-			MarketLowValue:        2_300,
-			MarketHighValue:       3_500,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Mountain Retreat by Dukley",
+				Address:             "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
+				State:               binaryx.Redeemed,
+				Location:            binaryx.Montenegro, // Kolasin
+				AreaM2:              73,
+				Raised:              385_000,
+				Projected:           440_000,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 1},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Dukley Glamping 1",
+				Address:             "0xad4f81d0f2f626a6ea29864f488604e6b5360e2a",
+				State:               binaryx.Rental,
+				Location:            binaryx.Montenegro, // Kolasin
+				AreaM2:              240,
+				Raised:              940_000,
+				Projected:           1_050_000,
+				MarketLow:           2_300,
+				MarketHigh:          3_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 4},
+			},
+		),
 	},
 	"Ecoverse Suites": {
-		{
-			Name:                  "Ecoverse Suite",
-			Address:               strings.ToLower("0x30ed65e470be4f351abf5311769505e3f977deca"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                41,
-			BinaryxRaisedValue:    178_500,
-			BinaryxProjectedValue: 214_200,
-			MarketLowValue:        2_500,
-			MarketHighValue:       3_500,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 3},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Ecoverse Suite",
+				Address:             "0x30ed65e470be4f351abf5311769505e3f977deca",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              41,
+				Raised:              178_500,
+				Projected:           214_200,
+				MarketLow:           2_500,
+				MarketHigh:          3_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 3},
+			},
+		),
 	},
 	"Hayat Green Tower": {
-		{
-			Name:                  "Hayat Green Tower",
-			Address:               strings.ToLower("0xF9d43a9F7Fc7ee7ac47fE96De20e545243450b27"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Turkey, // Avsallar, Alanya
-			AreaM2:                105,
-			BinaryxRaisedValue:    305_000,
-			MarketLowValue:        1_000,
-			MarketHighValue:       1_300,
-			RentalStartExpected:   YearQuarter{Year: 2023, Quarter: 3},
-			RentalStartActual:     &YearQuarter{Year: 2024, Quarter: 3},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Hayat Green Tower",
+				Address:             "0xF9d43a9F7Fc7ee7ac47fE96De20e545243450b27",
+				State:               binaryx.Rental,
+				Location:            binaryx.Turkey, // Avsallar, Alanya
+				AreaM2:              105,
+				Raised:              305_000,
+				MarketLow:           1_000,
+				MarketHigh:          1_300,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2023, Quarter: 3},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2024, Quarter: 3},
+			},
+		),
 	},
 	"Kammara Loft": {
-		{
-			Name:                "Kammara Loft",
-			Address:             strings.ToLower("0xB1B987FF1F317A47876185dE4dE9C430823Ad8c5"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              70,
-			BinaryxRaisedValue:  200_000,
-			MarketLowValue:      2_200,
-			MarketHighValue:     3_000,
-			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 4},
-			RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Kammara Loft",
+				Address:             "0xB1B987FF1F317A47876185dE4dE9C430823Ad8c5",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              70,
+				Raised:              200_000,
+				MarketLow:           2_200,
+				MarketHigh:          3_000,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2023, Quarter: 4},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2024, Quarter: 4},
+			},
+		),
 	},
 	"Kammora Living": {
-		{
-			Name:                "Kammora Living",
-			Address:             strings.ToLower("0x8389AcD0e05990eF0e087A3BCed3E9C5443d0455"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              49,
-			BinaryxRaisedValue:  150_000,
-			MarketLowValue:      2_200,
-			MarketHighValue:     3_000,
-			RentalStartExpected: YearQuarter{Year: 2024, Quarter: 3},
-			RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 3},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Kammora Living",
+				Address:             "0x8389AcD0e05990eF0e087A3BCed3E9C5443d0455",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              49,
+				Raised:              150_000,
+				MarketLow:           2_200,
+				MarketHigh:          3_000,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2024, Quarter: 3},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2024, Quarter: 3},
+			},
+		),
 	},
 	"Karra Loft": {
-		{
-			Name:                "Karra Loft 3A",
-			Address:             strings.ToLower("0x27Ceb34AC7545F78A97C0500465aCE9fA10570af"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              68,
-			BinaryxRaisedValue:  220_000,
-			MarketLowValue:      2_200,
-			MarketHighValue:     3_000,
-			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 3},
-			RentalStartActual:   &YearQuarter{Year: 2023, Quarter: 3},
-		},
-		{
-			Name:                "Karra Loft 5",
-			Address:             strings.ToLower("0x2d02E704174635F5E88E17995C3a5E29f283C033"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Canggu
-			AreaM2:              70,
-			BinaryxRaisedValue:  220_000,
-			MarketLowValue:      2_200,
-			MarketHighValue:     3_000,
-			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 3},
-			RentalStartActual:   &YearQuarter{Year: 2023, Quarter: 3},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Karra Loft 3A",
+				Address:             "0x27Ceb34AC7545F78A97C0500465aCE9fA10570af",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              68,
+				Raised:              220_000,
+				MarketLow:           2_200,
+				MarketHigh:          3_000,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2023, Quarter: 3},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2023, Quarter: 3},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Karra Loft 5",
+				Address:             "0x2d02E704174635F5E88E17995C3a5E29f283C033",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              70,
+				Raised:              220_000,
+				MarketLow:           2_200,
+				MarketHigh:          3_000,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2023, Quarter: 3},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2023, Quarter: 3},
+			},
+		),
 	},
 	"La Casa Española Villas": {
-		{
-			Name:                  "La Casa Española Villa 4",
-			Address:               strings.ToLower("0x7b592d8bb722324f75af834c23e6ad2058b168e1"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Bingin, Uluwatu
-			AreaM2:                166,  // binaryx website: 230
-			BinaryxRaisedValue:    385_000,
-			BinaryxProjectedValue: 460_000,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 4},
-		},
-		{
-			Name:                  "La Casa Española Villa 6",
-			Address:               strings.ToLower("0xdd36b686a5ff910b5074e3f5483135f19e49f02c"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Bingin, Uluwatu
-			AreaM2:                161,  // binaryx: 186
-			BinaryxRaisedValue:    350_000,
-			BinaryxProjectedValue: 425_000,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 4},
-		},
-		{
-			Name:                  "La Casa Española Villa 8",
-			Address:               strings.ToLower("0x223270bbbe4f6dac0dc3e57d985116bdc50616ee"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Bingin, Uluwatu
-			AreaM2:                171,  // binaryx: 211
-			BinaryxRaisedValue:    350_000,
-			BinaryxProjectedValue: 425_000,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 4},
-		},
-		{
-			Name:                  "La Casa Española Villa 9",
-			Address:               strings.ToLower("0x89ebdfaf79308871a24c6992232984b3c84af9a8"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Bingin, Uluwatu
-			AreaM2:                200,  // binaryx: 241
-			BinaryxRaisedValue:    385_000,
-			BinaryxProjectedValue: 460_000,
-			MarketLowValue:        2_100,
-			MarketHighValue:       3_200,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "La Casa Española Villa 4",
+				Address:             "0x7b592d8bb722324f75af834c23e6ad2058b168e1",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Bingin, Uluwatu
+				AreaM2:              166,          // binaryx website: 230
+				Raised:              385_000,
+				Projected:           460_000,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "La Casa Española Villa 6",
+				Address:             "0xdd36b686a5ff910b5074e3f5483135f19e49f02c",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Bingin, Uluwatu
+				AreaM2:              161,          // binaryx: 186
+				Raised:              350_000,
+				Projected:           425_000,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "La Casa Española Villa 8",
+				Address:             "0x223270bbbe4f6dac0dc3e57d985116bdc50616ee",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Bingin, Uluwatu
+				AreaM2:              171,          // binaryx: 211
+				Raised:              350_000,
+				Projected:           425_000,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "La Casa Española Villa 9",
+				Address:             "0x89ebdfaf79308871a24c6992232984b3c84af9a8",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Bingin, Uluwatu
+				AreaM2:              200,          // binaryx: 241
+				Raised:              385_000,
+				Projected:           460_000,
+				MarketLow:           2_100,
+				MarketHigh:          3_200,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 4},
+			},
+		),
 	},
 	"Oasis Royal Collection": {
-		{
-			Name:                  "Oasis Royal Collection 11a",
-			Address:               strings.ToLower("0xa26f11748ed29b3fd62e1d8e231d277a0980fb12"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, //Pererenan, north of Canggu
-			AreaM2:                40,
-			BinaryxRaisedValue:    120_000,
-			BinaryxProjectedValue: 144_000,
-			MarketLowValue:        2_500,
-			MarketHighValue:       3_500,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-		},
-		{
-			Name:                  "Oasis Royal Collection 18b",
-			Address:               strings.ToLower("0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed"),
-			Type:                  PropertyTypeRental,
-			Location:              binaryx.Bali, //Pererenan, north of Canggu
-			AreaM2:                40,
-			BinaryxRaisedValue:    120_000,
-			BinaryxProjectedValue: 144_000,
-			MarketLowValue:        2_500,
-			MarketHighValue:       3_500,
-			RentalStartExpected:   YearQuarter{Year: 2025, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Oasis Royal Collection 11a",
+				Address:             "0xa26f11748ed29b3fd62e1d8e231d277a0980fb12",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, //Pererenan, north of Canggu
+				AreaM2:              40,
+				Raised:              120_000,
+				Projected:           144_000,
+				MarketLow:           2_500,
+				MarketHigh:          3_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Oasis Royal Collection 18b",
+				Address:             "0x1dac5a4a0e566fb2674a6b7e1cdaf2c07716eeed",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, //Pererenan, north of Canggu
+				AreaM2:              40,
+				Raised:              120_000,
+				Projected:           144_000,
+				MarketLow:           2_500,
+				MarketHigh:          3_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 4},
+			},
+		),
 	},
 	"Onyx PARQ Resort 61": {
-		{
-			Name:                "Onyx PARQ Resort 61",
-			Address:             strings.ToLower("0xA07DB641FC95067a2Fe68b6224a9dD39564bFd57"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Parq, Ubud
-			AreaM2:              64,
-			BinaryxRaisedValue:  171_612,
-			MarketLowValue:      1_800,
-			MarketHighValue:     2_600,
-			RentalStartExpected: YearQuarter{Year: 2023, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2023, Quarter: 2},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Onyx PARQ Resort 61",
+				Address:             "0xA07DB641FC95067a2Fe68b6224a9dD39564bFd57",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Parq, Ubud
+				AreaM2:              64,
+				Raised:              171_612,
+				MarketLow:           1_800,
+				MarketHigh:          2_600,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2023, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2023, Quarter: 2},
+			},
+		),
 	},
 	"Roots Villas": {
-		{
-			Name:                  "Roots Villa 1",
-			Address:               strings.ToLower("0xbde380b4cc582d440255ebd89ff1839dcfad5d7b"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Ubud
-			AreaM2:                161,
-			BinaryxRaisedValue:    303_000,
-			BinaryxProjectedValue: 353_000,
-			MarketLowValue:        1_800,
-			MarketHighValue:       2_600,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 3},
-		},
-		{
-			Name:                  "Roots Villa 3",
-			Address:               strings.ToLower("0xc0a4b2e29bd44d3b798a02edc039711f03572739"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Ubud
-			AreaM2:                188,
-			BinaryxRaisedValue:    350_000,
-			BinaryxProjectedValue: 405_000,
-			MarketLowValue:        1_800,
-			MarketHighValue:       2_600,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 3},
-		},
-		{
-			Name:                  "Roots Villa 4",
-			Address:               strings.ToLower("0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Ubud
-			AreaM2:                188,
-			BinaryxRaisedValue:    350_000,
-			BinaryxProjectedValue: 405_000,
-			MarketLowValue:        1_800,
-			MarketHighValue:       2_600,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 3},
-		},
-		{
-			Name:                  "Roots Villa 5",
-			Address:               strings.ToLower("0x0ef68e86c3c9bc6187c69770053919e6b35991f6"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Ubud
-			AreaM2:                188,
-			BinaryxRaisedValue:    350_000,
-			BinaryxProjectedValue: 405_000,
-			MarketLowValue:        1_800,
-			MarketHighValue:       2_600,
-			RentalStartExpected:   YearQuarter{Year: 2026, Quarter: 3},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Roots Villa 1",
+				Address:             "0xbde380b4cc582d440255ebd89ff1839dcfad5d7b",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Ubud
+				AreaM2:              161,
+				Raised:              303_000,
+				Projected:           353_000,
+				MarketLow:           1_800,
+				MarketHigh:          2_600,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 3},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Roots Villa 3",
+				Address:             "0xc0a4b2e29bd44d3b798a02edc039711f03572739",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Ubud
+				AreaM2:              188,
+				Raised:              350_000,
+				Projected:           405_000,
+				MarketLow:           1_800,
+				MarketHigh:          2_600,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 3},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Roots Villa 4",
+				Address:             "0xb2b9f922c0494dbf08636b1dbcf6fcba0878a605",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Ubud
+				AreaM2:              188,
+				Raised:              350_000,
+				Projected:           405_000,
+				MarketLow:           1_800,
+				MarketHigh:          2_600,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 3},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Roots Villa 5",
+				Address:             "0x0ef68e86c3c9bc6187c69770053919e6b35991f6",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Ubud
+				AreaM2:              188,
+				Raised:              350_000,
+				Projected:           405_000,
+				MarketLow:           1_800,
+				MarketHigh:          2_600,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2026, Quarter: 3},
+			},
+		),
 	},
 	"Taryan Dragon Jungle View": {
-		{
-			Name:                  "Taryan Dragon Jungle View",
-			Address:               strings.ToLower("0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5"),
-			Type:                  PropertyTypeConstruction,
-			Location:              binaryx.Bali, // Canggu
-			AreaM2:                55,
-			BinaryxProjectedValue: 340_000,
-			MarketLowValue:        3_500,
-			MarketHighValue:       5_000,
-			RentalStartExpected:   YearQuarter{Year: 2027, Quarter: 4},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Taryan Dragon Jungle View",
+				Address:             "0x4bd4d7003a6ce76b9ad3ee364a29801c170b1ff5",
+				State:               binaryx.Construction,
+				Location:            binaryx.Bali, // Canggu
+				AreaM2:              55,
+				Projected:           340_000,
+				MarketLow:           3_500,
+				MarketHigh:          5_000,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2027, Quarter: 4},
+			},
+		),
 	},
 	"Tropical Loft Villas": {
-		{
-			Name:                "Tropical Loft Villa 2",
-			Address:             strings.ToLower("0x4b17845F255cC19dB2612ab8577Ea1e0852BBBd7"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, //Padonan, Canggu
-			AreaM2:              126,
-			BinaryxRaisedValue:  225_750,
-			MarketLowValue:      1_850,
-			MarketHighValue:     2_300,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 1},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 1},
-		},
-		{
-			Name:                "Tropical Loft Villa 3",
-			Address:             strings.ToLower("0x56467B7E0cF2116A1C7664eE60db77ED24709293"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, //Padonan, Canggu
-			AreaM2:              126,
-			BinaryxRaisedValue:  225_750,
-			MarketLowValue:      1_850,
-			MarketHighValue:     2_300,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 2},
-		},
-		{
-			Name:                "Tropical Loft Villa 4",
-			Address:             strings.ToLower("0x6a6F5681678Cc599d4d4Ae55270070406561DCa7"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, //Padonan, Canggu
-			AreaM2:              126,
-			BinaryxRaisedValue:  225_750,
-			MarketLowValue:      1_850,
-			MarketHighValue:     2_300,
-			RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 2},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Tropical Loft Villa 2",
+				Address:             "0x4b17845F255cC19dB2612ab8577Ea1e0852BBBd7",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, //Padonan, Canggu
+				AreaM2:              126,
+				Raised:              225_750,
+				MarketLow:           1_850,
+				MarketHigh:          2_300,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 1},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 1},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Tropical Loft Villa 3",
+				Address:             "0x56467B7E0cF2116A1C7664eE60db77ED24709293",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, //Padonan, Canggu
+				AreaM2:              126,
+				Raised:              225_750,
+				MarketLow:           1_850,
+				MarketHigh:          2_300,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 2},
+			},
+		),
+		newProperty(
+			propertyParams{
+				Name:                "Tropical Loft Villa 4",
+				Address:             "0x6a6F5681678Cc599d4d4Ae55270070406561DCa7",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, //Padonan, Canggu
+				AreaM2:              126,
+				Raised:              225_750,
+				MarketLow:           1_850,
+				MarketHigh:          2_300,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2025, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2025, Quarter: 2},
+			},
+		),
 	},
 	"Vesna Townhouse": {
-		{
-			Name:                "Vesna Townhouse",
-			Address:             strings.ToLower("0x09558935e9cA1c4985F96163b62Fd850616F6e33"),
-			Type:                PropertyTypeRental,
-			Location:            binaryx.Bali, // Berawa area of Canggu
-			AreaM2:              64,
-			BinaryxRaisedValue:  220_000,
-			MarketLowValue:      1_900,
-			MarketHighValue:     2_500,
-			RentalStartExpected: YearQuarter{Year: 2024, Quarter: 2},
-			RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 2},
-		},
+		newProperty(
+			propertyParams{
+				Name:                "Vesna Townhouse",
+				Address:             "0x09558935e9cA1c4985F96163b62Fd850616F6e33",
+				State:               binaryx.Rental,
+				Location:            binaryx.Bali, // Berawa area of Canggu
+				AreaM2:              64,
+				Raised:              220_000,
+				MarketLow:           1_900,
+				MarketHigh:          2_500,
+				RentalStartExpected: binaryx.YearQuarter{Year: 2024, Quarter: 2},
+				RentalStartActual:   &binaryx.YearQuarter{Year: 2024, Quarter: 2},
+			},
+		),
 	},
 }

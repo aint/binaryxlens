@@ -671,8 +671,8 @@ td.trend.flat { color: #888; }
 		const name = document.createElement("h3");
 		name.textContent = property.name || "—";
 		const tag = document.createElement("span");
-		tag.className = "tag tag-" + property.type;
-		tag.textContent = t("type." + property.type);
+		tag.className = "tag tag-" + property.state;
+		tag.textContent = t("state." + property.state);
 		const marks = document.createElement("span");
 		marks.className = "slot-marks";
 		if (property.score !== -1) marks.appendChild(ratingEl(property.score, property.scoreTier));
@@ -694,7 +694,7 @@ td.trend.flat { color: #888; }
 		scan.textContent = "Polygonscan";
 		const binaryx = document.createElement("a");
 		binaryx.className = "property-link";
-		binaryx.href = "https://app.binaryx.com/" + property.type + "/" + property.address;
+		binaryx.href = "https://app.binaryx.com/" + property.state + "/" + property.address;
 		binaryx.target = "_blank";
 		binaryx.rel = "noopener noreferrer";
 		binaryx.textContent = "Binaryx";
