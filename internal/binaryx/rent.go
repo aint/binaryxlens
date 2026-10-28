@@ -1,4 +1,4 @@
-package internal
+package binaryx
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ const (
 	paidRentTopic = "0x015e7e41d528ca1976bac28c93fbbef520250f9e4837b66a42f879ec545ca9f4"
 )
 
-type rentalProfitMonth struct {
+type RentalProfitMonth struct {
 	Month time.Time
 	USDT  *big.Int
 }
@@ -35,7 +35,7 @@ type rentSlice struct {
 
 // FetchRentalProfit returns PaidRent slices from both distributors, keyed by
 // property token. Each slice is booked to the UTC month its window starts.
-func FetchRentalProfit(client *polygonscan.Client, scanPause time.Duration) (map[string][]rentalProfitMonth, error) {
+func FetchRentalProfit(client *polygonscan.Client, scanPause time.Duration) (map[string][]RentalProfitMonth, error) {
 	byToken := make(map[string][]rentSlice)
 	for _, distributor := range []string{legacyRewardsDistributor, rewardsDistributor} {
 		logs, err := client.FetchLogs(distributor, paidRentTopic, scanPause)
@@ -51,7 +51,7 @@ func FetchRentalProfit(client *polygonscan.Client, scanPause time.Duration) (map
 		}
 	}
 	through := monthStart(time.Now().UTC())
-	out := make(map[string][]rentalProfitMonth, len(byToken))
+	out := make(map[string][]RentalProfitMonth, len(byToken))
 	for token, slices := range byToken {
 		out[token] = rentMonths(slices, through)
 	}
@@ -87,7 +87,7 @@ func parsePaidRent(l polygonscan.EventLog) (rentSlice, bool) {
 	}, true
 }
 
-func sumRentUSDT(months []rentalProfitMonth) *big.Int {
+func SumRentUSDT(months []RentalProfitMonth) *big.Int {
 	sum := big.NewInt(0)
 	for _, month := range months {
 		if month.USDT != nil {
@@ -97,7 +97,7 @@ func sumRentUSDT(months []rentalProfitMonth) *big.Int {
 	return sum
 }
 
-func rentMonths(slices []rentSlice, through time.Time) []rentalProfitMonth {
+func rentMonths(slices []rentSlice, through time.Time) []RentalProfitMonth {
 	byMonth := make(map[time.Time]*big.Int)
 	var first, last time.Time
 	for _, slice := range slices {
@@ -125,13 +125,13 @@ func rentMonths(slices []rentSlice, through time.Time) []rentalProfitMonth {
 	if t := monthStart(through); t.After(end) {
 		end = t
 	}
-	var out []rentalProfitMonth
+	var out []RentalProfitMonth
 	for month := first; !month.After(end); month = month.AddDate(0, 1, 0) {
 		usdt := byMonth[month]
 		if usdt == nil {
 			usdt = big.NewInt(0)
 		}
-		out = append(out, rentalProfitMonth{Month: month, USDT: usdt})
+		out = append(out, RentalProfitMonth{Month: month, USDT: usdt})
 	}
 	return out
 }
@@ -141,9 +141,9 @@ func monthStart(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 }
 
-// trailingNetRentalYield annualizes the last n months. When allowShort is set
+// TrailingNetRentalYield annualizes the last n months. When allowShort is set
 // and the history is shorter than n, the whole history is used and basis is that length.
-func trailingNetRentalYield(months []rentalProfitMonth, value uint, n int, allowShort bool) (percent float64, basis int, ok bool) {
+func TrailingNetRentalYield(months []RentalProfitMonth, value uint, n int, allowShort bool) (percent float64, basis int, ok bool) {
 	if n <= 0 || len(months) == 0 || (!allowShort && len(months) < n) {
 		return 0, 0, false
 	}
@@ -154,14 +154,14 @@ func trailingNetRentalYield(months []rentalProfitMonth, value uint, n int, allow
 	return netRentalYield(window, value)
 }
 
-func allTimeNetRentalYield(months []rentalProfitMonth, value uint) (percent float64, ok bool) {
+func AllTimeNetRentalYield(months []RentalProfitMonth, value uint) (percent float64, ok bool) {
 	percent, _, ok = netRentalYield(months, value)
 	return percent, ok
 }
 
 // netRentalYield is (annualized net rent profit / current value) × 100.
 // The total in window is scaled to a year by 12 / len(window).
-func netRentalYield(window []rentalProfitMonth, value uint) (percent float64, basis int, ok bool) {
+func netRentalYield(window []RentalProfitMonth, value uint) (percent float64, basis int, ok bool) {
 	basis = len(window)
 	if basis == 0 || value == 0 {
 		return 0, 0, false

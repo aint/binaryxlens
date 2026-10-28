@@ -1,12 +1,20 @@
-package internal
+package binaryx
 
 import (
 	"fmt"
 	"math"
 	"math/big"
+	"time"
 )
 
-const timeDateOnly = "2006-01-02"
+const TimeDateOnly = "2006-01-02"
+
+func FormatDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format(TimeDateOnly)
+}
 
 // FormatBigInt prints a token or USDT amount with two decimal places.
 // Digits past that round half away from zero: 1.225 becomes 1.23, 1.224 becomes 1.22.
@@ -45,7 +53,7 @@ func formatFixedPlaces(v *big.Int, decimals uint8) string {
 	return ip.String() + "." + frac
 }
 
-func formatDelta(raw *big.Int, decimals uint8) string {
+func FormatDelta(raw *big.Int, decimals uint8) string {
 	if raw == nil || raw.Sign() == 0 {
 		return "0.00"
 	}
@@ -59,7 +67,7 @@ func formatDelta(raw *big.Int, decimals uint8) string {
 	return "+" + s
 }
 
-func bigIntToFloat(raw *big.Int, decimals uint8) float64 {
+func BigIntToFloat(raw *big.Int, decimals uint8) float64 {
 	if raw == nil || raw.Sign() == 0 {
 		return 0
 	}

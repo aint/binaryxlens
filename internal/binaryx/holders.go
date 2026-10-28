@@ -1,12 +1,10 @@
-package internal
+package binaryx
 
 import (
 	"maps"
 	"math/big"
 	"slices"
 	"time"
-
-	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
 const zeroAddr0x = "0x0000000000000000000000000000000000000000"
@@ -146,7 +144,7 @@ func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, inWe
 	}
 }
 
-func (pr *Project) buildHolders() {
+func (pr *Project) BuildHolders() {
 	projectHolderMap := make(map[string]*ProjectHolder)
 
 	for _, property := range pr.Properties {
@@ -200,82 +198,6 @@ func (pr *Project) buildHolders() {
 	pr.Holders = projectHolders
 }
 
-func (pr *Project) buildHoldersPayload() ([]projectHolderPayload, []tierStatPayload) {
-	holders := make([]projectHolderPayload, 0, len(pr.Holders))
-	pcts := make([]float64, 0, len(pr.Holders))
-	for _, h := range pr.Holders {
-		pct := PercentFloat(h.TotalBalance, pr.TotalSupplyRaw)
-		tier := ""
-		if h.TotalBalance.Sign() > 0 {
-			tier = holderTier(pct)
-			pcts = append(pcts, pct)
-		}
-		holders = append(holders, projectHolderPayload{
-			Address:          h.Address,
-			PropertyNames:    slices.Sorted(maps.Keys(h.PropertyBalances)),
-			Balance:          FormatBigInt(h.TotalBalance, pr.Decimal),
-			WeekDeltaTokens:  formatDelta(h.WeekDeltaTokens, pr.Decimal),
-			MonthDeltaTokens: formatDelta(h.MonthDeltaTokens, pr.Decimal),
-			WeekDeltaUSDT:    formatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
-			MonthDeltaUSDT:   formatDelta(h.MonthDeltaUSDT, polygonscan.USDTDecimal),
-			InitialBought:    FormatBigInt(h.InitialBought, pr.Decimal),
-			P2PBought:        FormatBigInt(h.P2PBought, pr.Decimal),
-			InitSaleUSDT:     FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
-			P2PUSDT:          FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
-			OffPlatformP2P:   h.OffPlatformP2P,
-			SupplyPct:        pct,
-			Tier:             tier,
-			Entered:          formatDate(h.Entered),
-			Exited:           formatDate(h.Exited),
-		})
-	}
-	return holders, buildTierStatsPayload(pcts)
-}
-
-func buildTierStatsPayload(pcts []float64) []tierStatPayload {
-	total := len(pcts)
-	if total == 0 {
-		return nil
-	}
-
-	type tierStat struct {
-		count     int
-		supplyPct float64
-	}
-	stats := make(map[string]tierStat)
-	for _, pct := range pcts {
-		tier := holderTier(pct)
-		s := stats[tier]
-		s.count++
-		s.supplyPct += pct
-		stats[tier] = s
-	}
-
-	out := make([]tierStatPayload, 0, len(holderTierThresholds))
-	for _, t := range holderTierThresholds {
-		s := stats[t.name]
-		out = append(out, tierStatPayload{
-			Name:       t.name,
-			Count:      s.count,
-			HoldersPct: float64(s.count) / float64(total) * 100,
-			SupplyPct:  s.supplyPct,
-		})
-	}
-	return out
-}
-
-var holderTierThresholds = []struct {
-	max  float64
-	name string
-}{
-	{0.5, "shrimp"},
-	{1, "crab"},
-	{5, "fish"},
-	{10, "dolphin"},
-	{20, "shark"},
-	{100, "whale"},
-}
-
 func earlierTime(a, b time.Time) time.Time {
 	if a.IsZero() || (!b.IsZero() && b.Before(a)) {
 		return b
@@ -288,20 +210,4 @@ func laterTime(a, b time.Time) time.Time {
 		return b
 	}
 	return a
-}
-
-func formatDate(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.UTC().Format(timeDateOnly)
-}
-
-func holderTier(percent float64) string {
-	for _, t := range holderTierThresholds {
-		if percent <= t.max {
-			return t.name
-		}
-	}
-	return holderTierThresholds[len(holderTierThresholds)-1].name
 }

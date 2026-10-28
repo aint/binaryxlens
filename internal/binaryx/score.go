@@ -1,10 +1,8 @@
-package internal
+package binaryx
 
 import (
 	"math"
 	"time"
-
-	"github.com/aint/binaryxlens/internal/binaryx"
 )
 
 type scoreKnot struct {
@@ -44,10 +42,10 @@ const (
 )
 
 // score is the rounded mean of each property that has a score.
-func (pr *Project) score() int {
+func (pr *Project) Score() int {
 	total, n := 0, 0
 	for _, property := range pr.Properties {
-		score := property.score()
+		score := property.Score()
 		if score == -1 {
 			continue
 		}
@@ -64,7 +62,7 @@ func (pr *Project) score() int {
 
 // score is the 1–100 rental property score. It is present only when
 // both the price part and the yield part can be computed.
-func (p *Property) score() int {
+func (p *Property) Score() int {
 	price, okPrice := p.priceScore()
 	yield, okYield := p.yieldScore()
 	if !okPrice || !okYield {
@@ -99,18 +97,21 @@ func (p *Property) priceScore() (float64, bool) {
 }
 
 func (p *Property) yieldScore() (float64, bool) {
-	percent, months, ok := trailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, yieldTrailingMonths, true)
+	percent, months, ok := TrailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, yieldTrailingMonths, true)
 	if !ok || months < yieldTrailingMonths {
 		return 0, false
 	}
 	return interpolatePart(percent, yieldScoreKnots), true
 }
 
+// Add unit tests
+// case age is 0 (just built)
+
 func (p *Property) ageScore(now time.Time) (float64, bool) {
 	if p.RentalStartActual == nil {
 		return 0, false
 	}
-	quarters := binaryx.NewYearQuarter(now).QuartersSince(*p.RentalStartActual)
+	quarters := NewYearQuarter(now).QuartersSince(*p.RentalStartActual)
 	if quarters < 0 {
 		quarters = 0
 	}
@@ -144,7 +145,7 @@ func interpolatePart(x float64, knots []scoreKnot) float64 {
 	return last.s
 }
 
-func scoreTier(score int) string {
+func ScoreTier(score int) string {
 	switch {
 	case score >= 70:
 		return "high"

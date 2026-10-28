@@ -1,4 +1,4 @@
-package internal
+package site
 
 import (
 	"bytes"
@@ -33,7 +33,7 @@ type projectRow struct {
 	ScoreTier string
 }
 
-func WriteIndex(path string, updated time.Time, projects []*Project) error {
+func WriteIndex(path string, updated time.Time, projects []*binaryx.Project) error {
 	stamp := updated.UTC().Format(reportsUpdatedLayout)
 	if !bytes.Contains(indexTemplateSrc, indexNavPlaceholder) || !bytes.Contains(indexTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(indexTemplateSrc, i18nPlaceholder) {
 		return fmt.Errorf("index template missing placeholder")
@@ -78,8 +78,8 @@ func projectLinksHTML(projects []projectRow) string {
 	return b.String()
 }
 
-func projectRows(projects []*Project) []projectRow {
-	projectByName := make(map[string]*Project, len(projects))
+func projectRows(projects []*binaryx.Project) []projectRow {
+	projectByName := make(map[string]*binaryx.Project, len(projects))
 	for _, project := range projects {
 		projectByName[project.Name] = project
 	}
@@ -100,7 +100,7 @@ func projectRows(projects []*Project) []projectRow {
 	for _, name := range names {
 		project := projectByName[name]
 		properties := project.Properties
-		score := project.score()
+		score := project.Score()
 		projectRow := projectRow{
 			Name:      name,
 			Href:      "reports/" + projectReportFile(name),
@@ -108,7 +108,7 @@ func projectRows(projects []*Project) []projectRow {
 			Props:     propertyNames(name, properties),
 			Labels:    propertyStateLabels(properties),
 			Score:     score,
-			ScoreTier: scoreTier(score),
+			ScoreTier: binaryx.ScoreTier(score),
 		}
 		projectRows = append(projectRows, projectRow)
 	}
@@ -120,14 +120,14 @@ func projectReportFile(name string) string {
 	return slug + "_report.html"
 }
 
-func projectCountryFlag(properties []*Property) string {
+func projectCountryFlag(properties []*binaryx.Property) string {
 	if len(properties) == 0 {
 		return ""
 	}
 	return properties[0].Location.Flag()
 }
 
-func propertyNames(projectName string, properties []*Property) string {
+func propertyNames(projectName string, properties []*binaryx.Property) string {
 	if len(properties) == 1 && properties[0].Name == projectName {
 		return ""
 	}
@@ -138,7 +138,7 @@ func propertyNames(projectName string, properties []*Property) string {
 	return strings.Join(names, " · ")
 }
 
-func propertyStateLabels(properties []*Property) []string {
+func propertyStateLabels(properties []*binaryx.Property) []string {
 	seen := make(map[binaryx.RealEstateState]bool)
 	var labels []string
 	for _, property := range properties {

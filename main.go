@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aint/binaryxlens/internal"
+	"github.com/aint/binaryxlens/internal/site"
+	"github.com/aint/binaryxlens/internal/binaryx"
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
@@ -31,37 +32,37 @@ func main() {
 	client := polygonscan.NewClinet(*apiKey)
 	projects := initAllProjects(client, *scanPause)
 	for _, project := range projects {
-		err := project.GenerateReport()
+		err := site.GenerateReport(project)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to generate %q report: %v\n", project.Name, err)
 			os.Exit(1)
 		}
 	}
 	stamp := time.Now().UTC()
-	if err := internal.WriteIndex("index.html", stamp, projects); err != nil {
+	if err := site.WriteIndex("index.html", stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write index: %v\n", err)
 		os.Exit(1)
 	}
-	if err := internal.WriteHolders("holders.html", stamp, projects); err != nil {
+	if err := site.WriteHolders("holders.html", stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write holders: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*internal.Project {
-	allP2PTrades, err := internal.FetchP2PTrades(client, scanPause)
+func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*binaryx.Project {
+	allP2PTrades, err := binaryx.FetchP2PTrades(client, scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to fetch allP2P trades: %v\n", err)
 		os.Exit(1)
 	}
-	monthlyRentalProfit, err := internal.FetchRentalProfit(client, scanPause)
+	monthlyRentalProfit, err := binaryx.FetchRentalProfit(client, scanPause)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to fetch monthly rental profit: %v\n", err)
 		os.Exit(1)
 	}
 
-	var projects []*internal.Project
-	for name, properties := range internal.AllProperties {
+	var projects []*binaryx.Project
+	for name, properties := range binaryx.AllProperties {
 		for _, property := range properties {
 			err := property.Init(client, scanPause, allP2PTrades[property.Address], monthlyRentalProfit[property.Address])
 			if err != nil {
@@ -69,7 +70,7 @@ func initAllProjects(client *polygonscan.Client, scanPause time.Duration) []*int
 				continue
 			}
 		}
-		project, err := internal.NewProject(name, properties)
+		project, err := binaryx.NewProject(name, properties)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to create %q project: %v\n", name, err)
 			continue

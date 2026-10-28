@@ -7,6 +7,7 @@
 			"header.lede": "Blockchain data analysis for tokenized properties on",
 			"header.projectsButton": "Projects",
 			"header.holdersButton": "Holders",
+			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
 
 			"search.title": "Search",
@@ -149,6 +150,7 @@
 			"header.lede": "Аналіз блокчейн-даних токенізованої нерухомості на",
 			"header.projectsButton": "Проєкти",
 			"header.holdersButton": "Власники",
+			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
 
 			"search.title": "Пошук",

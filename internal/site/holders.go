@@ -1,4 +1,4 @@
-package internal
+package site
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aint/binaryxlens/internal/binaryx"
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
@@ -32,7 +33,7 @@ type globalHolder struct {
 	OffPlatform    bool
 }
 
-func WriteHolders(path string, updated time.Time, projects []*Project) error {
+func WriteHolders(path string, updated time.Time, projects []*binaryx.Project) error {
 	stamp := updated.UTC().Format(reportsUpdatedLayout)
 	if !bytes.Contains(holdersTemplateSrc, holdersRowsPlaceholder) || !bytes.Contains(holdersTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(holdersTemplateSrc, i18nPlaceholder) {
 		return fmt.Errorf("holders template missing placeholder")
@@ -48,7 +49,7 @@ func WriteHolders(path string, updated time.Time, projects []*Project) error {
 
 // globalHolders merges project holders by address. Only properties the wallet
 // still holds are listed. USDT is the sum of those projects.
-func globalHolders(projects []*Project) []globalHolder {
+func globalHolders(projects []*binaryx.Project) []globalHolder {
 	byAddress := make(map[string]*globalHolder)
 	for _, pr := range projects {
 		for _, h := range pr.Holders {
@@ -114,7 +115,7 @@ func holderRowsHTML(holders []globalHolder) string {
 			html.EscapeString(h.Address),
 			propertyLinksHTML(h.Properties),
 			len(h.Properties),
-			FormatBigInt(h.TotalUSDT, polygonscan.USDTDecimal),
+			binaryx.FormatBigInt(h.TotalUSDT, polygonscan.USDTDecimal),
 			mark,
 			holderMonthDeltaHTML(h.MonthDeltaUSDT),
 		)
@@ -138,7 +139,7 @@ func holderMonthDeltaHTML(delta *big.Int) string {
 	return fmt.Sprintf(`<td class="num trend %s">%s<span class="usdt">%s</span> USDT</td>`,
 		class,
 		sign,
-		FormatBigInt(new(big.Int).Abs(delta), polygonscan.USDTDecimal),
+		binaryx.FormatBigInt(new(big.Int).Abs(delta), polygonscan.USDTDecimal),
 	)
 }
 

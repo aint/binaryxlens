@@ -1,4 +1,4 @@
-package internal
+package binaryx
 
 import (
 	"math/big"
