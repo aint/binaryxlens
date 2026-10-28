@@ -178,6 +178,7 @@
     <div class="navigation" role="tablist">
       <button type="button" id="show-projects" role="tab" aria-selected="false"  data-i18n="header.projectsButton">Projects</button>
       <button type="button" id="show-holders"  role="tab" aria-selected="true" data-i18n="header.holdersButton">Holders</button>
+      <button type="button" id="show-trends"   role="tab" aria-selected="false" data-i18n="header.trendsButton">Trends</button>
     </div>
     <div class="tools">
       <label class="search">
@@ -215,6 +216,9 @@
       });
       document.getElementById('show-holders').addEventListener('click', function () {
         window.location.href = 'holders.html';
+      });
+      document.getElementById('show-trends').addEventListener('click', function () {
+        window.location.href = 'trends.html';
       });
 
       const t = window.i18n.t;

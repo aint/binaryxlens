@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aint/binaryxlens/internal/site"
 	"github.com/aint/binaryxlens/internal/binaryx"
 	"github.com/aint/binaryxlens/internal/polygonscan"
+	"github.com/aint/binaryxlens/internal/site"
 )
 
 // defaultExplorerAPIKey is the fallback when POLYGONSCAN_API_KEY and -api-key are empty.
@@ -45,6 +45,10 @@ func main() {
 	}
 	if err := site.WriteHolders("holders.html", stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write holders: %v\n", err)
+		os.Exit(1)
+	}
+	if err := site.WriteTrends("trends.html", stamp, projects); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to write trends: %v\n", err)
 		os.Exit(1)
 	}
 }

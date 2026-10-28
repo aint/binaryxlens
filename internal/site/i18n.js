@@ -10,6 +10,15 @@
 			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
 
+			"trends.monthDelta": "Month Δ",
+			"trends.monthDeltaNote": "USDT change over the last 30 days.",
+			"trends.type": "Type",
+			"trends.type.100k+": "Holders with 100K+ USDT invested.",
+			"trends.type.50k-100k": "Holders with 50K-100K USDT invested",
+			"trends.type.20k-50k": "Holders with 20K-50K USDT invested",
+			"trends.type.5k-20k": "Holders with 5K-20K USDT invested",
+			"trends.type.5k-0": "Holders with up to 5K USDT invested",
+
 			"search.title": "Search",
 			"search.indexPlaceholder": "Project or property",
 			"search.holdersPlaceholder": "Address or property",
@@ -152,6 +161,15 @@
 			"header.holdersButton": "Власники",
 			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
+
+			"trends.monthDelta": "Місяць Δ",
+			"trends.monthDeltaNote": "Зміна USDT за останні 30 днів.",
+			"trends.type": "Тип",
+			"trends.type.100k+": "Власники, які інвестували більше 100 тисяч USDT",
+			"trends.type.50k-100k": "Власники, які інвестували 50-100 тисяч USDT",
+			"trends.type.20k-50k": "Власники, які інвестували 20-50 тисяч USDT",
+			"trends.type.5k-20k": "Власники, які інвестували 5-20 тисяч USDT",
+			"trends.type.5k-0": "Власники, які інвестували до 5 тисяч USDT",
 
 			"search.title": "Пошук",
 			"search.indexPlaceholder": "Проєкт або об'єкт",
