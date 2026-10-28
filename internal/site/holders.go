@@ -1,12 +1,10 @@
 package site
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"html"
 	"math/big"
-	"os"
 	"slices"
 	"strings"
 	"time"
@@ -34,17 +32,8 @@ type globalHolder struct {
 }
 
 func WriteHolders(path string, updated time.Time, projects []*binaryx.Project) error {
-	stamp := updated.UTC().Format(reportsUpdatedLayout)
-	if !bytes.Contains(holdersTemplateSrc, holdersRowsPlaceholder) || !bytes.Contains(holdersTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(holdersTemplateSrc, i18nPlaceholder) {
-		return fmt.Errorf("holders template missing placeholder")
-	}
-	out := bytes.ReplaceAll(withI18n(holdersTemplateSrc), indexUpdatedPlaceholder, []byte(stamp))
-	out = bytes.ReplaceAll(out, holdersRowsPlaceholder, []byte(holderRowsHTML(globalHolders(projects))))
-	if err := os.WriteFile(path, out, 0o644); err != nil {
-		return fmt.Errorf("write holders: %w", err)
-	}
-	fmt.Println("Holders page is ready at", path)
-	return nil
+	payload := []byte(holderRowsHTML(globalHolders(projects)))
+	return write(path, updated, holdersTemplateSrc, holdersRowsPlaceholder, payload)
 }
 
 // globalHolders merges project holders by address. Only properties the wallet

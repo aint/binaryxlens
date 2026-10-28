@@ -1,11 +1,9 @@
 package site
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"html"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -16,10 +14,7 @@ import (
 //go:embed index.html
 var indexTemplateSrc []byte
 
-var (
-	indexNavPlaceholder     = []byte("__INDEX_NAV__")
-	indexUpdatedPlaceholder = []byte("__UPDATED__")
-)
+var indexNavPlaceholder = []byte("__INDEX_NAV__")
 
 const reportsUpdatedLayout = "2006-01-02 15:04"
 
@@ -34,17 +29,8 @@ type projectRow struct {
 }
 
 func WriteIndex(path string, updated time.Time, projects []*binaryx.Project) error {
-	stamp := updated.UTC().Format(reportsUpdatedLayout)
-	if !bytes.Contains(indexTemplateSrc, indexNavPlaceholder) || !bytes.Contains(indexTemplateSrc, indexUpdatedPlaceholder) || !bytes.Contains(indexTemplateSrc, i18nPlaceholder) {
-		return fmt.Errorf("index template missing placeholder")
-	}
-	out := bytes.ReplaceAll(withI18n(indexTemplateSrc), indexUpdatedPlaceholder, []byte(stamp))
-	out = bytes.ReplaceAll(out, indexNavPlaceholder, []byte(projectLinksHTML(projectRows(projects))))
-	if err := os.WriteFile(path, out, 0o644); err != nil {
-		return fmt.Errorf("write index: %w", err)
-	}
-	fmt.Println("Index is ready at", path)
-	return nil
+	payload := []byte(projectLinksHTML(projectRows(projects)))
+	return write(path, updated, indexTemplateSrc, indexNavPlaceholder, payload)
 }
 
 func projectLinksHTML(projects []projectRow) string {
