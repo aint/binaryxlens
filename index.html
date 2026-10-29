@@ -201,7 +201,7 @@
         <div id="lang-switch" class="lang-switch"></div>
       </div>
     </header>
-    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-10-28 02:43 UTC</time></p>
+    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-10-29 03:01 UTC</time></p>
     <p class="lede">
       <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
@@ -209,6 +209,7 @@
     <div class="navigation" role="tablist">
       <button type="button" id="show-projects" role="tab" aria-selected="true"  data-i18n="header.projectsButton">Projects</button>
       <button type="button" id="show-holders"  role="tab" aria-selected="false" data-i18n="header.holdersButton">Holders</button>
+      <button type="button" id="show-trends"   role="tab" aria-selected="false" data-i18n="header.trendsButton">Trends</button>
     </div>
     <div class="tools">
       <label class="search">
@@ -241,7 +242,7 @@
 			</a>
 			<a href="reports/bubbles_boutique_complex_report.html">
 				<span class="item"><span class="name">🇮🇩 Bubbles Boutique Complex</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">52/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">73/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/cascade_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 CASCADE Villas</span><span class="props">CASCADE Villa 2 · CASCADE Villa 3</span></span>
@@ -261,7 +262,7 @@
 			</a>
 			<a href="reports/hayat_green_tower_report.html">
 				<span class="item"><span class="name">🇹🇷 Hayat Green Tower</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-low" data-i18n-title="score.note">39/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">54/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/kammara_loft_report.html">
 				<span class="item"><span class="name">🇮🇩 Kammara Loft</span><span class="props"></span></span>
@@ -273,7 +274,7 @@
 			</a>
 			<a href="reports/karra_loft_report.html">
 				<span class="item"><span class="name">🇮🇩 Karra Loft</span><span class="props">Karra Loft 3A · Karra Loft 5</span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">62/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">78/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/la_casa_española_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 La Casa Española Villas</span><span class="props">La Casa Española Villa 4 · La Casa Española Villa 6 · La Casa Española Villa 8 · La Casa Española Villa 9</span></span>
@@ -297,7 +298,7 @@
 			</a>
 			<a href="reports/tropical_loft_villas_report.html">
 				<span class="item"><span class="name">🇮🇩 Tropical Loft Villas</span><span class="props">Tropical Loft Villa 2 · Tropical Loft Villa 3 · Tropical Loft Villa 4</span></span>
-				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">82/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">88/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/vesna_townhouse_report.html">
 				<span class="item"><span class="name">🇮🇩 Vesna Townhouse</span><span class="props"></span></span>
@@ -314,7 +315,17 @@
 			"header.lede": "Blockchain data analysis for tokenized properties on",
 			"header.projectsButton": "Projects",
 			"header.holdersButton": "Holders",
+			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
+
+			"trends.monthDelta": "Month Δ",
+			"trends.monthDeltaNote": "USDT change over the last 30 days.",
+			"trends.type": "Type",
+			"trends.type.100k+": "Holders with 100K+ USDT invested.",
+			"trends.type.50k-100k": "Holders with 50K-100K USDT invested",
+			"trends.type.20k-50k": "Holders with 20K-50K USDT invested",
+			"trends.type.5k-20k": "Holders with 5K-20K USDT invested",
+			"trends.type.5k-0": "Holders with up to 5K USDT invested",
 
 			"search.title": "Search",
 			"search.indexPlaceholder": "Project or property",
@@ -456,7 +467,17 @@
 			"header.lede": "Аналіз блокчейн-даних токенізованої нерухомості на",
 			"header.projectsButton": "Проєкти",
 			"header.holdersButton": "Власники",
+			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
+
+			"trends.monthDelta": "Місяць Δ",
+			"trends.monthDeltaNote": "Зміна USDT за останні 30 днів.",
+			"trends.type": "Тип",
+			"trends.type.100k+": "Власники, які інвестували більше 100 тисяч USDT",
+			"trends.type.50k-100k": "Власники, які інвестували 50-100 тисяч USDT",
+			"trends.type.20k-50k": "Власники, які інвестували 20-50 тисяч USDT",
+			"trends.type.5k-20k": "Власники, які інвестували 5-20 тисяч USDT",
+			"trends.type.5k-0": "Власники, які інвестували до 5 тисяч USDT",
 
 			"search.title": "Пошук",
 			"search.indexPlaceholder": "Проєкт або об'єкт",
@@ -688,6 +709,9 @@
       });
       document.getElementById('show-holders').addEventListener('click', function () {
         window.location.href = 'holders.html';
+      });
+      document.getElementById('show-trends').addEventListener('click', function () {
+        window.location.href = 'trends.html';
       });
 
       const search = document.getElementById("project-search");
