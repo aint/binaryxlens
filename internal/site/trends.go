@@ -11,6 +11,8 @@ import (
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
+const ceoWallet = "0xdf24253c84f16aac030917c2672720b11610e109"
+
 //go:embed trends.html
 var trendsTemplateSrc []byte
 
@@ -72,6 +74,9 @@ func trends(holders []globalHolder) []trend {
 	}
 
 	for _, h := range holders {
+		if h.Address == ceoWallet {
+			trends = append(trends, trend{Name: "ceo", MonthDeltaUSDT: h.MonthDeltaUSDT})
+		}
 		for i, bucket := range trendBuckets {
 			if h.TotalUSDT.Cmp(bucket.min) >= 0 {
 				trends[i].MonthDeltaUSDT.Add(trends[i].MonthDeltaUSDT, h.MonthDeltaUSDT)
