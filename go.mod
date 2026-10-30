@@ -1,3 +1,3 @@
 module github.com/aint/binaryxlens
 
-go 1.24.2
+go 1.27
