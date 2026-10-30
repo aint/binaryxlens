@@ -20,10 +20,9 @@ var trendBuckets = []struct {
 	name string
 	min  *big.Int
 }{
-	{"100k+", big.NewInt(100_000_000000)},
-	{"50k-100k", big.NewInt(50_000_000000)},
-	{"20k-50k", big.NewInt(20_000_000000)},
-	{"5k-20k", big.NewInt(5_000_000000)},
+	{"150k+", big.NewInt(150_000_000000)},
+	{"50k-150k", big.NewInt(50_000_000000)},
+	{"5k-50k", big.NewInt(5_000_000000)},
 	{"5k-0", big.NewInt(0)},
 }
 
