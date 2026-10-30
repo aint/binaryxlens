@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trends - Binaryx Lens</title>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      padding: 32px 16px 48px;
+      line-height: 1.5;
+    }
+    main { max-width: 45rem; margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
+    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; flex: 1; min-width: 0; }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .github-links { display: flex; align-items: center; gap: 6px; }
+    .github-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      color: #444;
+      text-decoration: none;
+    }
+    .github-links a:hover { background: #e8e8e8; color: #1a1a1a; }
+    .github-links a:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
+    .github-links svg { display: block; width: 18px; height: 18px; }
+    .lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
+    .lang-switch button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    .lede { color: #444; margin: 0 0 16px; font-size: 0.95rem; }
+    .lede a, .report-problem a, td.properties a { color: #0b57d0; }
+    .updated {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    .updated time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+      color: #1a1a1a;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+    .navigation { display: flex; gap: 4px; margin: 0 0 16px; }
+    .navigation button {
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    .navigation button[aria-selected="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    .navigation button:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
+    .tools { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
+    .tools-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+    .tools-row .search { flex: 1; max-width: 24rem; }
+    .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
+    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; }
+    .search input {
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 400;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: inherit;
+    }
+    .search input:focus-visible, #state-filters button:focus-visible {
+      outline: 2px solid #0b57d0;
+      outline-offset: 2px;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 12px;
+    }
+    #state-filters { display: flex; flex-wrap: wrap; gap: 4px; }
+    #state-filters button {
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+    }
+    #state-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+    #project-count, #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
+    .empty {
+      margin: 0;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      color: #444;
+    }
+    nav {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    nav a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      color: #1a1a1a;
+      text-decoration: none;
+      border-bottom: 1px solid #eee;
+    }
+    nav a[hidden], nav[hidden] { display: none; }
+    nav a:last-child, nav a.is-last { border-bottom: none; }
+    nav a:hover { background: #f7f8fa; }
+    .trend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+    }
+    .trend-row:last-child { border-bottom: none; }
+    .trends-note { margin: 0 0 8px; font-size: 0.8rem; color: #555; }
+    .trend-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 14px;
+      background: #f7f8fa;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #555;
+    }
+    .delta {
+      font-size: 0.9rem;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .delta.up { color: #1d6b3a; }
+    .delta.down { color: #b42318; }
+    .delta.flat { color: #555; }
+    .item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .name { font-weight: 550; }
+    .props { color: #555; font-size: 0.8rem; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .tag-construction { background: #f4efe4; color: #7a5b2e; }
+    .tag-rental { background: #e7f2ea; color: #1d6b3a; }
+    .tag-redeemed { background: #e8eef6; color: #1e4a7a; }
+    .tags { align-items: center; }
+    .rating {
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .rating-high { background: #e7f2ea; color: #1d6b3a; }
+    .rating-mid { background: #fff4d6; color: #8a5a00; }
+    .rating-low { background: #fde8e8; color: #b42318; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Binaryx Lens</h1>
+      <div class="header-actions">
+        <div class="github-links">
+          <a href="https://github.com/aint/binaryxlens" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.756 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+          </a>
+          <a href="https://github.com/aint/binaryxlens#binaryx-lens" target="_blank" rel="noopener noreferrer" aria-label="Source code">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.18.82a7.49 7.49 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.51-1.04 2.18-.82 2.18-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.06-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          </a>
+        </div>
+        <div id="lang-switch" class="lang-switch"></div>
+      </div>
+    </header>
+    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-10-30 03:06 UTC</time></p>
+    <p class="lede">
+      <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
+      <a href="https://binaryx.com">binaryx.com</a>.
+    </p>
+    <div class="navigation" role="tablist">
+      <button type="button" id="show-projects" role="tab" aria-selected="false"  data-i18n="header.projectsButton">Projects</button>
+      <button type="button" id="show-holders"  role="tab" aria-selected="false"  data-i18n="header.holdersButton">Holders</button>
+      <button type="button" id="show-trends"   role="tab" aria-selected="true"   data-i18n="header.trendsButton">Trends</button>
+    </div>
+    <p class="trends-note" data-i18n="trends.monthDeltaNote">USDT change over the last 30 days.</p>
+    <nav>
+      <div class="trend-head">
+        <span data-i18n="trends.type">Type</span>
+        <span data-i18n="trends.monthDelta">Month Δ</span>
+      </div>
+      
+				<div class="trend-row">
+					<span class="item"><span class="name" data-i18n="trends.type.100k+">100k+</span></span>
+					<span class="delta up">+3294.77 USDT</span>
+				</div>
+				<div class="trend-row">
+					<span class="item"><span class="name" data-i18n="trends.type.50k-100k">50k-100k</span></span>
+					<span class="delta up">+4730.00 USDT</span>
+				</div>
+				<div class="trend-row">
+					<span class="item"><span class="name" data-i18n="trends.type.20k-50k">20k-50k</span></span>
+					<span class="delta up">+2978.25 USDT</span>
+				</div>
+				<div class="trend-row">
+					<span class="item"><span class="name" data-i18n="trends.type.5k-20k">5k-20k</span></span>
+					<span class="delta up">+387.09 USDT</span>
+				</div>
+				<div class="trend-row">
+					<span class="item"><span class="name" data-i18n="trends.type.5k-0">5k-0</span></span>
+					<span class="delta down">-1771.06 USDT</span>
+				</div>
+    </nav>
+    <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="footer.reportProblem">Report a problem</a></p>
+  </main>
+  <script>(function () {
+	const I18N = {
+		en: {
+			"lang.label": "Language",
+
+			"header.updated": "Updated",
+			"header.lede": "Blockchain data analysis for tokenized properties on",
+			"header.projectsButton": "Projects",
+			"header.holdersButton": "Holders",
+			"header.trendsButton": "Trends",
+			"footer.reportProblem": "Report a problem",
+
+			"trends.monthDelta": "Month Δ",
+			"trends.monthDeltaNote": "USDT change over the last 30 days.",
+			"trends.type": "Type",
+			"trends.type.100k+": "Holders with 100K+ USDT invested.",
+			"trends.type.50k-100k": "Holders with 50K-100K USDT invested",
+			"trends.type.20k-50k": "Holders with 20K-50K USDT invested",
+			"trends.type.5k-20k": "Holders with 5K-20K USDT invested",
+			"trends.type.5k-0": "Holders with up to 5K USDT invested",
+
+			"search.title": "Search",
+			"search.indexPlaceholder": "Project or property",
+			"search.holdersPlaceholder": "Address or property",
+
+			"index.state": "State",
+			"index.all": "All",
+			"index.projects": { one: "{n} project", other: "{n} projects" },
+			"index.empty": "No projects match. Clear the search or choose All.",
+			"index.holdersSearchPlaceholder": "Address or property",
+			"index.holdersShowing": "Showing {shown} of {total}",
+			"index.holdersEmpty": "No holders match.",
+
+			"report.title": "Project report",
+			"report.invalidJson": "Invalid JSON in #project-data.",
+			"aria.summary": "Project summary",
+			"aria.charts": "Property charts",
+			"aria.holders": "Project holders",
+
+			"summary.properties": "Properties",
+			"summary.totalSupply": "Total supply",
+			"summary.bought": "Bought (cumulative)",
+			"summary.tokens": { one: "{n} token", other: "{n} tokens" },
+			"score.label": "Score",
+			"score.value": "{n}/100",
+			"score.note": "Based on the current price versus the market, trailing 3 months of net yield, and asset age.",
+
+			"state.construction": "construction",
+			"state.rental": "rental",
+			"state.redeemed": "redeemed",
+
+			"location.bali": "Bali, Indonesia",
+			"location.montenegro": "Montenegro",
+			"location.turkey": "Turkey",
+
+			"rental.expected": "Expected start",
+			"rental.actual": "Actual start",
+			"rental.status": "Status",
+			"rental.onTime": "on time",
+			"rental.delay": { one: "+{n} quarter", other: "+{n} quarters" },
+			"rental.notStarted": "not started",
+			"rental.age": "Age",
+			"rental.years": { one: "{n} year", other: "{n} years" },
+			"rent.section": "Rent",
+			"rent.title": "Posted rent",
+			"rent.caption": "Property total net profit.",
+			"rent.monthly": "USDT",
+			"rent.yield": { one: "{n} month net rental yield", other: "{n} months net rental yield" },
+			"rent.profitAllTime": "Net profit, all time",
+			"rent.profit": { one: "Net profit, {n} month", other: "Net profit, {n} months" },
+			"rent.yieldAllTime": "All time net rental yield",
+			"rent.yieldTrendAllTime": "Compared with all time",
+			"rent.yieldTrendMonths": { one: "Compared with {n} month", other: "Compared with {n} months" },
+
+			"price.area": "Area, m²",
+			"price.current": "Current, Binaryx",
+			"price.raised": "Raised, Binaryx",
+			"price.projected": "Projected, Binaryx",
+			"price.market": "Market, USD/m²",
+			"price.valueTier": "Estimated value",
+			"price.aiNote": "AI analysis, {when}. Market value and estimated value may be inaccurate.",
+			"value.fair": "Fair",
+			"value.rich": "Rich",
+			"value.overpriced": "Overpriced",
+			"value.underpriced": "Underpriced",
+
+			"initialSales": "Initial sales",
+			"noSeries": "No series",
+			"noProperties": "No properties loaded",
+			"resetZoom": "Reset zoom",
+			"chart.weeklyVolume": "Weekly volume",
+			"chart.cumulative": "Cumulative",
+
+			"eta.title": "ETA",
+			"eta.none": "No ETA rows.",
+			"eta.band": "Band",
+			"eta.window": "Window",
+			"eta.rate": "Avg Δ",
+			"eta.days": "Days",
+			"eta.date": "Date",
+			"eta.last1": "last 1 week",
+			"eta.last4": "last 4 weeks",
+			"eta.all": "full history (all weeks)",
+
+			"secondary.title": "Weekly secondary volume",
+			"secondary.market": "Secondary market",
+			"secondary.noTransfers": "no wallet-to-wallet transfers yet",
+			"secondary.txs": "Secondary txs",
+
+			"holders.project": "Project holders",
+			"holders.all": "all",
+			"holders.limit": "Number of holders",
+			"holders.none": "No holders.",
+			"holders.global": "Top project holders",
+			"holders.showing": "Showing {shown} of {total} holders (by total balance).",
+			"holders.exited": "Exited",
+			"holders.offPlatformP2P": "* Includes P2P outside the platform. Total USDT is not accurate.",
+			"holders.back": "Projects",
+			"holders.platform": "Holders",
+			"holders.empty": "No holders match.",
+			"col.address": "Address",
+			"col.count": "Count",
+			"col.initUsdt": "Initial sale, USDT",
+			"col.p2pUsdt": "P2P, USDT",
+			"col.totalUsdt": "Total, USDT",
+			"col.propertyNames": "Property names",
+			"col.balance": "Tokens / USDT, total",
+			"col.p2pBought": "Tokens / USDT, P2P",
+			"col.initialBought": "Tokens / USDT, initial sale",
+			"col.week": "Week Δ",
+			"col.month": "Month Δ",
+			"col.supplyPct": "% supply",
+			"col.tier": "Tier",
+			"col.invested": "Tokens / USDT, invested",
+			"col.dateIn": "Date in",
+			"col.dateOut": "Date out",
+			"col.properties": "Properties",
+			"col.properties.showMore": "Show More",
+			"col.properties.collapse": "Collapse",
+
+			"tier.distribution": "Tier distribution",
+			"tier.holdersChart": "Holders by tier",
+			"tier.supplyChart": "Supply by tier",
+			"tier.noData": "No tier data",
+			"tier.tokens": "Tokens: {v}",
+			"tier.supplyPct": "% supply: {v}%",
+			"tier.holdersPct": "% holders: {v}%",
+			"tier.shrimp": "🦐 Shrimp",
+			"tier.crab": "🦀 Crab",
+			"tier.fish": "🐟 Fish",
+			"tier.dolphin": "🐬 Dolphin",
+			"tier.shark": "🦈 Shark",
+			"tier.whale": "🐋 Whale"
+		},
+		uk: {
+			"lang.label": "Мова",
+
+			"header.updated": "Оновлено",
+			"header.lede": "Аналіз блокчейн-даних токенізованої нерухомості на",
+			"header.projectsButton": "Проєкти",
+			"header.holdersButton": "Власники",
+			"header.trendsButton": "Тренди",
+			"footer.reportProblem": "Повідомити про проблему",
+
+			"trends.monthDelta": "Місяць Δ",
+			"trends.monthDeltaNote": "Зміна USDT за останні 30 днів.",
+			"trends.type": "Тип",
+			"trends.type.100k+": "Власники, які інвестували більше 100 тисяч USDT",
+			"trends.type.50k-100k": "Власники, які інвестували 50-100 тисяч USDT",
+			"trends.type.20k-50k": "Власники, які інвестували 20-50 тисяч USDT",
+			"trends.type.5k-20k": "Власники, які інвестували 5-20 тисяч USDT",
+			"trends.type.5k-0": "Власники, які інвестували до 5 тисяч USDT",
+
+			"search.title": "Пошук",
+			"search.indexPlaceholder": "Проєкт або об'єкт",
+			"search.holdersPlaceholder": "Адреса або об'єкт",
+
+			"index.state": "Стан",
+			"index.all": "Усі",
+			"index.projects": { one: "{n} проєкт", few: "{n} проєкти", many: "{n} проєктів", other: "{n} проєкту" },
+			"index.empty": "Немає збігів. Очистіть пошук або оберіть «Усі».",
+			"index.holdersSearchPlaceholder": "Адреса або об'єкт",
+			"index.holdersShowing": "Показано {shown} з {total}",
+			"index.holdersEmpty": "Немає збігів.",
+
+			"report.title": "Звіт по проєкту",
+			"report.invalidJson": "Некоректний JSON у #project-data.",
+			"aria.summary": "Підсумок проєкту",
+			"aria.charts": "Графіки об'єктів",
+			"aria.holders": "Власники проєкту",
+
+			"summary.properties": "Об'єкти",
+			"summary.totalSupply": "Загальна емісія",
+			"summary.bought": "Куплено (усього)",
+			"summary.tokens": { one: "{n} токен", few: "{n} токени", many: "{n} токенів", other: "{n} токена" },
+			"score.label": "Оцінка",
+			"score.value": "{n}/100",
+			"score.note": "На основі поточної ціни відносно ринку, чистої дохідності за останні 3 місяці та віку об'єкту.",
+
+			"state.construction": "будівництво",
+			"state.rental": "оренда",
+			"state.redeemed": "викуплено",
+
+			"location.bali": "Індонезія, Балі",
+			"location.montenegro": "Чорногорія",
+			"location.turkey": "Туреччина",
+
+			"rental.expected": "Очікуваний старт",
+			"rental.actual": "Фактичний старт",
+			"rental.status": "Статус",
+			"rental.onTime": "вчасно",
+			"rental.delay": { one: "+{n} квартал", few: "+{n} квартали", many: "+{n} кварталів", other: "+{n} кварталу" },
+			"rental.notStarted": "не розпочато",
+			"rental.age": "Вік",
+			"rental.years": { one: "{n} рік", few: "{n} роки", many: "{n} років", other: "{n} року" },
+			"rent.section": "Оренда",
+			"rent.title": "Нарахована оренда",
+			"rent.caption": "Загальний чистий прибуток об'єкту.",
+			"rent.monthly": "USDT",
+			"rent.yield": { one: "Чиста орендна дохідність за {n} місяць", few: "Чиста орендна дохідність за {n} місяці", many: "Чиста орендна дохідність за {n} місяців", other: "Чиста орендна дохідність за {n} місяця" },
+			"rent.profitAllTime": "Чистий прибуток за весь час",
+			"rent.profit": { one: "Чистий прибуток за {n} місяць", few: "Чистий прибуток за {n} місяці", many: "Чистий прибуток за {n} місяців", other: "Чистий прибуток за {n} місяця" },
+			"rent.yieldAllTime": "Чиста орендна дохідність за весь час",
+			"rent.yieldTrendAllTime": "Порівняно з дохідністю за весь час",
+			"rent.yieldTrendMonths": { one: "Порівняно з {n} місяцем", few: "Порівняно з {n} місяцями", many: "Порівняно з {n} місяцями", other: "Порівняно з {n} місяцями" },
+
+			"price.area": "Площа, м²",
+			"price.current": "Поточна, Binaryx",
+			"price.raised": "Зібрано, Binaryx",
+			"price.projected": "Прогноз, Binaryx",
+			"price.market": "Ринок, USD/м²",
+			"price.valueTier": "Оцінка вартості",
+			"price.aiNote": "Аналіз ШІ, {when}. Ринкова вартість і оцінка вартості можуть бути неточними.",
+			"value.fair": "Справедлива",
+			"value.rich": "Висока",
+			"value.overpriced": "Завищена",
+			"value.underpriced": "Занижена",
+
+			"initialSales": "Первинні продажі",
+			"noSeries": "Немає даних",
+			"noProperties": "Об'єкти не завантажено",
+			"resetZoom": "Скинути масштаб",
+			"chart.weeklyVolume": "Тижневий обсяг",
+			"chart.cumulative": "Накопичено",
+
+			"eta.title": "Прогноз",
+			"eta.none": "Немає даних прогнозу.",
+			"eta.band": "Діапазон",
+			"eta.window": "Період",
+			"eta.rate": "Сер. Δ",
+			"eta.days": "Днів",
+			"eta.date": "Дата",
+			"eta.last1": "останній 1 тиждень",
+			"eta.last4": "останні 4 тижні",
+			"eta.all": "уся історія (усі тижні)",
+
+			"secondary.title": "Тижневий обсяг вторинного ринку",
+			"secondary.market": "Вторинний ринок",
+			"secondary.noTransfers": "переказів між гаманцями ще немає",
+			"secondary.txs": "Вторинних транзакцій",
+
+			"holders.project": "Власники проєкту",
+			"holders.all": "усі",
+			"holders.limit": "Кількість власників",
+			"holders.none": "Немає власників.",
+			"holders.global": "Топ власників проєкту",
+			"holders.showing": "Показано {shown} з {total} власників (за загальним балансом).",
+			"holders.exited": "Вийшли",
+			"holders.offPlatformP2P": "* Включає P2P поза платформою. Загальний USDT неточний.",
+			"holders.back": "Проєкти",
+			"holders.platform": "Власники",
+			"holders.empty": "Немає збігів.",
+			"col.address": "Адреса",
+			"col.count": "Кількість",
+			"col.initUsdt": "Первинний продаж, USDT",
+			"col.p2pUsdt": "P2P, USDT",
+			"col.totalUsdt": "Разом, USDT",
+			"col.propertyNames": "Об'єкти",
+			"col.balance": "Токени / USDT, всього",
+			"col.p2pBought": "Токени / USDT, P2P",
+			"col.initialBought": "Токени / USDT, первинний продаж",
+			"col.week": "Тиждень Δ",
+			"col.month": "Місяць Δ",
+			"col.supplyPct": "% емісії",
+			"col.tier": "Рівень",
+			"col.invested": "Токени / USDT, вкладено",
+			"col.dateIn": "Дата входу",
+			"col.dateOut": "Дата виходу",
+			"col.properties": "Об'єкти",
+			"col.properties.showMore": "Показати більше",
+			"col.properties.collapse": "Згорнути",
+
+			"tier.distribution": "Розподіл за рівнями",
+			"tier.holdersChart": "Власники за рівнями",
+			"tier.supplyChart": "Емісія за рівнями",
+			"tier.noData": "Немає даних за рівнями",
+			"tier.tokens": "Токени: {v}",
+			"tier.supplyPct": "% емісії: {v}%",
+			"tier.holdersPct": "% власників: {v}%",
+			"tier.shrimp": "🦐 Креветка",
+			"tier.crab": "🦀 Краб",
+			"tier.fish": "🐟 Риба",
+			"tier.dolphin": "🐬 Дельфін",
+			"tier.shark": "🦈 Акула",
+			"tier.whale": "🐋 Кит"
+		}
+	};
+	const STORAGE_KEY = "lang";
+
+	function storedLang() {
+		try {
+			return localStorage.getItem(STORAGE_KEY);
+		} catch (e) {
+			return null;
+		}
+	}
+
+	// ?lang= wins over the saved choice, which wins over the browser language.
+	function detectLang() {
+		const candidates = [
+			new URLSearchParams(location.search).get("lang"),
+			storedLang(),
+			(navigator.language || "").slice(0, 2).toLowerCase()
+		];
+		for (const code of candidates) {
+			if (code && I18N[code]) return code;
+		}
+		return "en";
+	}
+
+	const lang = detectLang();
+	const pluralRules = new Intl.PluralRules(lang);
+	document.documentElement.lang = lang;
+
+	function has(key) {
+		return key in I18N[lang] || key in I18N.en;
+	}
+
+	// Plural entries are objects keyed by Intl.PluralRules category and pick a form by vars.n.
+	function t(key, vars) {
+		let msg = key in I18N[lang] ? I18N[lang][key] : I18N.en[key];
+		if (msg == null) return key;
+		if (typeof msg === "object") {
+			msg = msg[pluralRules.select(Number(vars && vars.n))] || msg.other;
+		}
+		if (!vars) return msg;
+		return msg.replace(/\{(\w+)\}/g, function (match, name) {
+			return vars[name] != null ? String(vars[name]) : match;
+		});
+	}
+
+	function applyStatic() {
+		document.querySelectorAll("[data-i18n]").forEach(function (el) {
+			el.textContent = t(el.dataset.i18n);
+		});
+		document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
+			el.setAttribute("aria-label", t(el.dataset.i18nAria));
+		});
+		document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+			el.title = t(el.dataset.i18nTitle);
+		});
+	}
+
+	function switchTo(code) {
+		try {
+			localStorage.setItem(STORAGE_KEY, code);
+		} catch (e) {
+			// The ?lang= param below still carries the choice for this page.
+		}
+		const url = new URL(location.href);
+		url.searchParams.set("lang", code);
+		location.href = url.toString();
+	}
+
+	function mountSwitcher() {
+		const slot = document.getElementById("lang-switch");
+		if (!slot) return;
+		slot.setAttribute("role", "group");
+		slot.setAttribute("aria-label", t("lang.label"));
+		Object.keys(I18N).forEach(function (code) {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.textContent = code.toUpperCase();
+			button.setAttribute("aria-pressed", String(code === lang));
+			button.addEventListener("click", function () {
+				if (code !== lang) switchTo(code);
+			});
+			slot.appendChild(button);
+		});
+	}
+
+	applyStatic();
+	mountSwitcher();
+	window.i18n = { lang: lang, t: t, has: has };
+})();
+</script>
+  <script>
+    (function () {
+      document.getElementById('show-projects').addEventListener('click', function () {
+        window.location.href = 'index.html';
+      });
+      document.getElementById('show-holders').addEventListener('click', function () {
+        window.location.href = 'holders.html';
+      });
+      document.getElementById('show-trends').addEventListener('click', function () {
+        window.location.href = 'trends.html';
+      });
+    })();
+  </script>
+</body>
+</html>
