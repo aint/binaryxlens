@@ -422,6 +422,7 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_100,
 				MarketHigh:          3_200,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
+				RentalStartActual:   &YearQuarter{Year: 2026, Quarter: 3},
 			},
 		),
 	},
