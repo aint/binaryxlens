@@ -511,19 +511,7 @@ var AllProperties = map[string][]*Property{
 			},
 		),
 	},
-	"Dukley": {
-		newProperty(
-			propertyParams{
-				Name:                "Mountain Retreat by Dukley",
-				Address:             "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
-				State:               Redeemed,
-				Location:            Montenegro, // Kolasin
-				AreaM2:              73,
-				Raised:              385_000,
-				Projected:           440_000,
-				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 1},
-			},
-		),
+	"Dukley Glamping 1": {
 		newProperty(
 			propertyParams{
 				Name:                "Dukley Glamping 1",
@@ -536,6 +524,20 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_300,
 				MarketHigh:          3_500,
 				RentalStartExpected: YearQuarter{Year: 2026, Quarter: 4},
+			},
+		),
+	},
+	"Mountain Retreat by Dukley": {
+		newProperty(
+			propertyParams{
+				Name:                "Mountain Retreat by Dukley",
+				Address:             "0x51343ee93059cbb11c4bf969a643e09117b3af6b",
+				State:               Redeemed,
+				Location:            Montenegro, // Kolasin
+				AreaM2:              73,
+				Raised:              385_000,
+				Projected:           440_000,
+				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 1},
 			},
 		),
 	},
