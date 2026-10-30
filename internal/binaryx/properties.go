@@ -76,6 +76,10 @@ func newProperty(params propertyParams) *Property {
 func (p *Property) Init(client *polygonscan.Client, scanPause time.Duration, p2pTrades []P2PTrade, monthlyRentalProfit []RentalProfitMonth) error {
 	p.RentalProfitMonths = append(p.RentalProfitMonths, monthlyRentalProfit...)
 
+	if len(p.RentalProfitMonths) > 0 {
+		p.RentalStartActual = new(NewYearQuarter(p.RentalProfitMonths[0].Month))
+	}
+
 	tokenTransfers, err := client.FetchAllTokenTransfers(p.Address, 1000, scanPause)
 	if err != nil {
 		return fmt.Errorf("fetch token transfers: %v", err)
