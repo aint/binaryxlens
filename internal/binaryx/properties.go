@@ -46,7 +46,6 @@ type propertyParams struct {
 	Raised, Projected     uint
 	MarketLow, MarketHigh uint
 	RentalStartExpected   YearQuarter
-	RentalStartActual     *YearQuarter
 	RentalProfitMonths    []RentalProfitMonth
 }
 
@@ -61,7 +60,6 @@ func newProperty(params propertyParams) *Property {
 		MarketLowValue:      params.MarketLow,
 		MarketHighValue:     params.MarketHigh,
 		RentalStartExpected: params.RentalStartExpected,
-		RentalStartActual:   params.RentalStartActual,
 		RentalProfitMonths:  params.RentalProfitMonths,
 	}
 
@@ -351,7 +349,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_800,
 				MarketHigh:          3_800,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
 			},
 		),
 		newProperty(
@@ -365,7 +362,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_800,
 				MarketHigh:          3_800,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
 			},
 		),
 		newProperty(
@@ -379,7 +375,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_800,
 				MarketHigh:          3_800,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
 			},
 		),
 	},
@@ -426,7 +421,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_100,
 				MarketHigh:          3_200,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
-				RentalStartActual:   &YearQuarter{Year: 2026, Quarter: 3},
 			},
 		),
 	},
@@ -442,7 +436,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_100,
 				MarketHigh:          2_700,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 4},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 4},
 				RentalProfitMonths: []RentalProfitMonth{
 					{Month: time.Date(2024, time.August, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(1828000000)},
 					{Month: time.Date(2024, time.September, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(2968000000)},
@@ -559,7 +552,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_500,
 				MarketHigh:          3_500,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 3},
-				RentalStartActual:   &YearQuarter{Year: 2026, Quarter: 3},
 			},
 		),
 	},
@@ -575,7 +567,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           1_000,
 				MarketHigh:          1_300,
 				RentalStartExpected: YearQuarter{Year: 2023, Quarter: 3},
-				RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 3},
 			},
 		),
 	},
@@ -591,7 +582,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_200,
 				MarketHigh:          3_000,
 				RentalStartExpected: YearQuarter{Year: 2023, Quarter: 4},
-				RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 4},
 			},
 		),
 	},
@@ -607,7 +597,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_200,
 				MarketHigh:          3_000,
 				RentalStartExpected: YearQuarter{Year: 2024, Quarter: 3},
-				RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 3},
 			},
 		),
 	},
@@ -623,7 +612,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_200,
 				MarketHigh:          3_000,
 				RentalStartExpected: YearQuarter{Year: 2023, Quarter: 3},
-				RentalStartActual:   &YearQuarter{Year: 2023, Quarter: 3},
 			},
 		),
 		newProperty(
@@ -637,7 +625,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           2_200,
 				MarketHigh:          3_000,
 				RentalStartExpected: YearQuarter{Year: 2023, Quarter: 3},
-				RentalStartActual:   &YearQuarter{Year: 2023, Quarter: 3},
 			},
 		),
 	},
@@ -741,7 +728,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           1_800,
 				MarketHigh:          2_600,
 				RentalStartExpected: YearQuarter{Year: 2023, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2023, Quarter: 2},
 			},
 		),
 	},
@@ -814,7 +800,6 @@ var AllProperties = map[string][]*Property{
 				Projected:           340_000,
 				MarketLow:           3_500,
 				MarketHigh:          5_000,
-				RentalStartExpected: YearQuarter{Year: 2027, Quarter: 4},
 			},
 		),
 	},
@@ -830,7 +815,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           1_850,
 				MarketHigh:          2_300,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 1},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 1},
 			},
 		),
 		newProperty(
@@ -844,7 +828,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           1_850,
 				MarketHigh:          2_300,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 2},
 			},
 		),
 		newProperty(
@@ -858,7 +841,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           1_850,
 				MarketHigh:          2_300,
 				RentalStartExpected: YearQuarter{Year: 2025, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2025, Quarter: 2},
 			},
 		),
 	},
@@ -874,7 +856,6 @@ var AllProperties = map[string][]*Property{
 				MarketLow:           1_900,
 				MarketHigh:          2_500,
 				RentalStartExpected: YearQuarter{Year: 2024, Quarter: 2},
-				RentalStartActual:   &YearQuarter{Year: 2024, Quarter: 2},
 			},
 		),
 	},
