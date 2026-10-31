@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Project report</title>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; }
+body { font-family: system-ui, sans-serif; padding: 16px; }
+h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
+.lang-switch button {
+	font: inherit;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 2px 8px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	color: #444;
+	cursor: pointer;
+}
+.lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+.project-summary { font-size: 0.9rem; color: #333; margin: 0 0 20px; line-height: 1.5; }
+.project-summary p { margin: 0 0 4px; }
+.grid {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+.slot {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 10px 12px 14px;
+	background: #fafafa;
+}
+summary { cursor: pointer; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▸ "; }
+details[open] > summary::before { content: "▾ "; }
+.slot h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.property-head {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0 0 12px;
+}
+.property-head h3 { margin: 0; font-size: 1.05rem; }
+.property-location {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #888;
+}
+.property-links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 14px;
+}
+.property-link {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #1e4a7a;
+}
+.price-facts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 14px 28px;
+	margin: 0 0 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e8e8e8;
+}
+.rent-section {
+	margin: 0 0 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e8e8e8;
+}
+.rent-section-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	margin: 0 0 12px;
+}
+.rental-facts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 14px 28px;
+	margin: 0 0 16px;
+}
+.rent-section > .rental-facts:last-child { margin-bottom: 0; }
+.rental-facts.yields { align-items: flex-start; }
+.metric { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.price-figure { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.metric-label { font-size: 0.68rem; font-weight: 500; color: #777; }
+.metric strong { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.yield-trend { font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.yield-trend.up { color: #1a7f37; }
+.yield-trend.down { color: #cf222e; }
+.yield-trend.flat { color: #888; }
+.price-ai-note {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 0.72rem;
+	line-height: 1.35;
+	color: #8a5a00;
+}
+.value {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 0.68rem;
+	font-weight: 600;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+.value::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+}
+.value-underpriced { color: #1d6b3a; }
+.value-fair { color: #1e4a7a; }
+.value-rich { color: #8a5a00; }
+.value-overpriced { color: #b42318; }
+.slot-title {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+.slot-marks {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+.rating {
+	font-size: 0.72rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+	padding: 2px 7px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+.rating-high { background: #e7f2ea; color: #1d6b3a; }
+.rating-mid { background: #fff4d6; color: #8a5a00; }
+.rating-low { background: #fde8e8; color: #b42318; }
+.score-note { color: #777; font-size: 0.8rem; }
+.tag {
+	flex-shrink: 0;
+	font-size: 0.68rem;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0.02em;
+	text-transform: lowercase;
+	padding: 2px 7px;
+	border-radius: 999px;
+	white-space: nowrap;
+	background: #eee;
+	color: #333;
+}
+.tag-construction { background: #f4efe4; color: #7a5b2e; }
+.tag-rental { background: #e7f2ea; color: #1d6b3a; }
+.tag-redeemed { background: #e8eef6; color: #1e4a7a; }
+.score {
+	font-size: 0.68rem;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 2px 7px;
+	border-radius: 999px;
+	white-space: nowrap;
+}
+.score-green { background: #e7f2ea; color: #1d6b3a; }
+.score-yellow { background: #fff4d6; color: #8a5a00; }
+.score-red { background: #fde8e8; color: #b42318; }
+.metric .score { font-size: 0.75rem; padding: 3px 8px; }
+.rental-pending { font-size: 0.95rem; font-weight: 500; color: #888; }
+.rent-wrap { margin: 0; }
+.rent-wrap h5 { font-size: 0.85rem; font-weight: 600; margin: 0 0 4px; }
+.rent-caption { margin: 0 0 8px; font-size: 0.75rem; line-height: 1.35; color: #666; }
+.rent-legend {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: baseline;
+	gap: 4px 16px;
+	margin: 0 0 6px;
+	font-size: 0.75rem;
+	line-height: 1.35;
+	color: #666;
+}
+.rent-legend-swatch {
+	display: inline-block;
+	width: 28px;
+	height: 10px;
+	margin-right: 6px;
+	vertical-align: -1px;
+	background: rgba(29, 107, 58, 0.45);
+	border: 1px solid rgb(29, 107, 58);
+}
+.rent-legend strong { font-weight: 600; font-variant-numeric: tabular-nums; color: #222; }
+.chart-wrap.rent-chart { height: 220px; }
+.slot .buys-wrap > summary {
+	display: flex;
+	align-items: flex-start;
+	font-size: 0.95rem;
+	font-weight: 600;
+	margin: 0 0 8px;
+}
+.chart-wrap {
+	position: relative;
+	width: 100%;
+	height: 340px;
+}
+.chart-wrap canvas { display: block; max-width: 100%; cursor: crosshair; }
+.zoom-reset {
+	position: absolute;
+	top: 0;
+	right: 0;
+	font-size: 0.7rem;
+	padding: 2px 8px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+.chart-placeholder { color: #666; font-size: 0.9rem; padding: 20px 8px; text-align: center; }
+.slot .eta-wrap { margin-top: 10px; }
+.slot .eta-wrap h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.slot .eta-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .eta-wrap th, .slot .eta-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+.slot .eta-wrap th { background: #eee; }
+.slot .eta-wrap .muted { color: #666; font-size: 0.8rem; }
+.slot .holders-wrap { margin-top: 12px; }
+.slot .holders-wrap > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	margin: 0 0 6px;
+}
+.holders-count { color: #6b7280; font-weight: 500; }
+.holders-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px 12px;
+	margin: 0 0 8px;
+}
+.holders-toolbar .section-meta { margin: 0; }
+.holders-limit {
+	display: inline-flex;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	overflow: hidden;
+}
+.holders-limit button {
+	border: 0;
+	background: #fff;
+	padding: 3px 10px;
+	font: inherit;
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: #374151;
+	cursor: pointer;
+	text-transform: capitalize;
+}
+.holders-limit button + button { border-left: 1px solid #d1d5db; }
+.holders-limit button[aria-pressed="true"] { background: #1f2937; color: #fff; }
+.slot .holders-wrap table { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+.slot .holders-wrap th, .slot .holders-wrap td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+.slot .holders-wrap th { background: #eee; white-space: nowrap; }
+.slot .holders-wrap td.num { text-align: right; white-space: nowrap; }
+.slot .holders-wrap td.pair .usdt { display: block; color: #666; font-size: 0.92em; }
+.slot .holders-wrap td.address { font-family: ui-monospace, monospace; font-size: 0.7rem; }
+.slot .holders-wrap td.address a,
+.holders-section td.address a { color: #0b57d0; text-decoration: none; }
+.slot .holders-wrap td.address a:hover,
+.holders-section td.address a:hover { text-decoration: underline; }
+.slot .holders-wrap td.tier { white-space: nowrap; }
+.slot .secondary-meta { font-size: 0.85rem; color: #444; margin: 0 0 8px; }
+.slot > .secondary-meta { margin: 12px 0 6px; }
+.slot .secondary-wrap { margin-top: 4px; }
+.slot .secondary-wrap h4 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.slot .tier-wrap { margin: 4px 0 0 14px; }
+.tier-row {
+	display: grid;
+	grid-template-columns: 140px 1fr;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 6px;
+	font-size: 0.8rem;
+}
+.tier-row-label { color: #444; }
+.tier-bar {
+	display: flex;
+	height: 22px;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #eee;
+}
+.tier-seg {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2px;
+	overflow: hidden;
+	white-space: nowrap;
+	color: #fff;
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+.tier-seg + .tier-seg { border-left: 1px solid #fff; }
+.tier-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	list-style: none;
+	margin: 8px 0 0 150px;
+	padding: 0;
+	font-size: 0.75rem;
+	color: #444;
+}
+.tier-swatch {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	margin-right: 6px;
+	vertical-align: -1px;
+}
+.holders-section { margin-top: 28px; }
+.holders-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 8px; }
+.exited-holders { margin-top: 12px; }
+.exited-holders h4 { font-size: 0.85rem; font-weight: 600; margin: 0 0 6px; }
+.tier-layout {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px 24px;
+	align-items: center;
+}
+.tier-chart-wrap {
+	position: relative;
+	height: 300px;
+	flex: 1 1 280px;
+	max-width: 480px;
+}
+.tier-chart-wrap canvas { display: block; max-width: 100%; }
+.holders-section details.holders-collapse { margin-top: 20px; }
+.holders-section details.holders-collapse > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	margin: 0 0 8px;
+}
+.section-meta { font-size: 0.85rem; color: #444; margin: 0 0 10px; }
+.holders-scroll { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
+.holders-section table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+.holders-section th, .holders-section td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+.holders-section th { background: #eee; white-space: nowrap; }
+.holders-section td.num { text-align: right; white-space: nowrap; }
+.holders-section td.pair .usdt { display: block; color: #666; font-size: 0.92em; }
+.holders-section td.address { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+.holders-section td.properties { min-width: 200px; max-width: 420px; }
+.holders-section td.tier { white-space: nowrap; }
+td.trend.up { color: #1a7f37; }
+td.trend.down { color: #cf222e; }
+td.trend.flat { color: #888; }
+.off-platform-note { color: #666; font-size: 0.8rem; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<header class="page-header">
+	<h1 id="project-title" data-i18n="report.title">Project report</h1>
+	<div id="lang-switch" class="lang-switch"></div>
+</header>
+<div id="project-summary" class="project-summary" aria-label="Project summary" data-i18n-aria="aria.summary"></div>
+
+<div id="grid" class="grid" aria-label="Property charts" data-i18n-aria="aria.charts"></div>
+
+<section id="holders-section" class="holders-section" aria-label="Project holders" data-i18n-aria="aria.holders">
+	<h2 data-i18n="holders.project">Project holders</h2>
+	<div class="tier-layout">
+		<div class="tier-chart-wrap">
+			<canvas id="tier-holders-chart" aria-label="Holders by tier" data-i18n-aria="tier.holdersChart"></canvas>
+		</div>
+		<div class="tier-chart-wrap">
+			<canvas id="tier-supply-chart" aria-label="Supply by tier" data-i18n-aria="tier.supplyChart"></canvas>
+		</div>
+	</div>
+	<details id="global-holders-block" class="holders-collapse">
+		<summary><span data-i18n="holders.global">Top project holders</span></summary>
+	</details>
+</section>
+
+<script type="application/json" id="project-data">{"name":"Mountain Retreat by Dukley","generatedAt":"2026-10-31","summary":{"propertyCount":1,"totalSupply":"10000.00","bought":"10000.00","boughtPct":100,"score":-1,"scoreTier":""},"properties":[{"name":"Mountain Retreat by Dukley","address":"0x51343ee93059cbb11c4bf969a643e09117b3af6b","state":"redeemed","location":"montenegro","score":-1,"scoreTier":"","price":{"areaM2":73,"current":0,"raised":385000,"projected":440000,"marketLow":0,"marketHigh":0,"currentValueTier":"","projectedValueTier":"","raisedValueTier":""},"holders":[],"tierStats":null,"initial_sales":{"labels":["2024-08-05","2024-08-12","2024-08-19","2024-08-26","2024-09-02","2024-09-09","2024-09-16","2024-09-23","2024-09-30","2024-10-07","2024-10-14","2024-10-21","2024-10-28","2024-11-04","2024-11-11","2024-11-18","2024-11-25","2024-12-02"],"weekly":[2144,33,25,288,37,653,87,70,8,160,31,317,239,150,366,1277,2552,1563],"cumulative":[2144,2177,2202,2490,2527,3180,3267,3337,3345,3505,3536,3853,4092,4242,4608,5885,8437,10000],"etas":[{"window":"2024-08-05 – 2024-12-02","rate":"555.6","days":126,"date":"0001-01-01"}]},"p2p_sales":{"txCount":0,"labels":[],"weekly":[],"cumulative":[]}}],"holders":[],"tierStats":null}</script>
+
+<script>(function () {
+	const I18N = {
+		en: {
+			"lang.label": "Language",
+
+			"header.updated": "Updated",
+			"header.lede": "Blockchain data analysis for tokenized properties on",
+			"header.projectsButton": "Projects",
+			"header.holdersButton": "Holders",
+			"header.trendsButton": "Trends",
+			"footer.reportProblem": "Report a problem",
+
+			"trends.monthDelta": "Month Δ",
+			"trends.monthDeltaNote": "USDT change over the last 30 days.",
+			"trends.type": "Type",
+			"trends.type.150k+": "Holders with 150K+ USDT invested",
+			"trends.type.50k-150k": "Holders with 50K-150K USDT invested",
+			"trends.type.5k-50k": "Holders with 5K-50K USDT invested",
+			"trends.type.5k-0": "Holders with up to 5K USDT invested",
+
+			"search.title": "Search",
+			"search.indexPlaceholder": "Project or property",
+			"search.holdersPlaceholder": "Address or property",
+
+			"index.state": "State",
+			"index.all": "All",
+			"index.projects": { one: "{n} project", other: "{n} projects" },
+			"index.empty": "No projects match. Clear the search or choose All.",
+			"index.holdersSearchPlaceholder": "Address or property",
+			"index.holdersShowing": "Showing {shown} of {total}",
+			"index.holdersEmpty": "No holders match.",
+
+			"report.title": "Project report",
+			"report.invalidJson": "Invalid JSON in #project-data.",
+			"aria.summary": "Project summary",
+			"aria.charts": "Property charts",
+			"aria.holders": "Project holders",
+
+			"summary.properties": "Properties",
+			"summary.totalSupply": "Total supply",
+			"summary.bought": "Bought (cumulative)",
+			"summary.tokens": { one: "{n} token", other: "{n} tokens" },
+			"score.label": "Score",
+			"score.value": "{n}/100",
+			"score.note": "Based on the current price versus the market, trailing 3 months of net yield, and asset age.",
+
+			"state.construction": "construction",
+			"state.rental": "rental",
+			"state.redeemed": "redeemed",
+
+			"location.bali": "Bali, Indonesia",
+			"location.montenegro": "Montenegro",
+			"location.turkey": "Turkey",
+
+			"rental.expected": "Expected start",
+			"rental.actual": "Actual start",
+			"rental.status": "Status",
+			"rental.onTime": "on time",
+			"rental.delay": { one: "+{n} quarter", other: "+{n} quarters" },
+			"rental.notStarted": "not started",
+			"rental.age": "Age",
+			"rental.years": { one: "{n} year", other: "{n} years" },
+			"rent.section": "Rent",
+			"rent.title": "Posted rent",
+			"rent.caption": "Property total net profit.",
+			"rent.monthly": "USDT",
+			"rent.yield": { one: "{n} month net rental yield", other: "{n} months net rental yield" },
+			"rent.profitAllTime": "Net profit, all time",
+			"rent.profit": { one: "Net profit, {n} month", other: "Net profit, {n} months" },
+			"rent.yieldAllTime": "All time net rental yield",
+			"rent.yieldTrendAllTime": "Compared with all time",
+			"rent.yieldTrendMonths": { one: "Compared with {n} month", other: "Compared with {n} months" },
+
+			"price.area": "Area, m²",
+			"price.current": "Current, Binaryx",
+			"price.raised": "Raised, Binaryx",
+			"price.projected": "Projected, Binaryx",
+			"price.market": "Market, USD/m²",
+			"price.valueTier": "Estimated value",
+			"price.aiNote": "AI analysis, {when}. Market value and estimated value may be inaccurate.",
+			"value.fair": "Fair",
+			"value.rich": "Rich",
+			"value.overpriced": "Overpriced",
+			"value.underpriced": "Underpriced",
+
+			"initialSales": "Initial sales",
+			"noSeries": "No series",
+			"noProperties": "No properties loaded",
+			"resetZoom": "Reset zoom",
+			"chart.weeklyVolume": "Weekly volume",
+			"chart.cumulative": "Cumulative",
+
+			"eta.title": "ETA",
+			"eta.none": "No ETA rows.",
+			"eta.band": "Band",
+			"eta.window": "Window",
+			"eta.rate": "Avg Δ",
+			"eta.days": "Days",
+			"eta.date": "Date",
+			"eta.last1": "last 1 week",
+			"eta.last4": "last 4 weeks",
+			"eta.all": "full history (all weeks)",
+
+			"secondary.title": "Weekly secondary volume",
+			"secondary.market": "Secondary market",
+			"secondary.noTransfers": "no wallet-to-wallet transfers yet",
+			"secondary.txs": "Secondary txs",
+
+			"holders.project": "Project holders",
+			"holders.all": "all",
+			"holders.limit": "Number of holders",
+			"holders.none": "No holders.",
+			"holders.global": "Top project holders",
+			"holders.showing": "Showing {shown} of {total} holders (by total balance).",
+			"holders.exited": "Exited",
+			"holders.offPlatformP2P": "* Includes P2P outside the platform. Total USDT is not accurate.",
+			"holders.back": "Projects",
+			"holders.platform": "Holders",
+			"holders.empty": "No holders match.",
+			"col.address": "Address",
+			"col.count": "Count",
+			"col.initUsdt": "Initial sale, USDT",
+			"col.p2pUsdt": "P2P, USDT",
+			"col.totalUsdt": "Total, USDT",
+			"col.propertyNames": "Property names",
+			"col.balance": "Tokens / USDT, total",
+			"col.p2pBought": "Tokens / USDT, P2P",
+			"col.initialBought": "Tokens / USDT, initial sale",
+			"col.week": "Week Δ",
+			"col.month": "Month Δ",
+			"col.supplyPct": "% supply",
+			"col.tier": "Tier",
+			"col.invested": "Tokens / USDT, invested",
+			"col.dateIn": "Date in",
+			"col.dateOut": "Date out",
+			"col.properties": "Properties",
+			"col.properties.showMore": "Show More",
+			"col.properties.collapse": "Collapse",
+
+			"tier.distribution": "Tier distribution",
+			"tier.holdersChart": "Holders by tier",
+			"tier.supplyChart": "Supply by tier",
+			"tier.noData": "No tier data",
+			"tier.tokens": "Tokens: {v}",
+			"tier.supplyPct": "% supply: {v}%",
+			"tier.holdersPct": "% holders: {v}%",
+			"tier.shrimp": "🦐 Shrimp",
+			"tier.crab": "🦀 Crab",
+			"tier.fish": "🐟 Fish",
+			"tier.dolphin": "🐬 Dolphin",
+			"tier.shark": "🦈 Shark",
+			"tier.whale": "🐋 Whale"
+		},
+		uk: {
+			"lang.label": "Мова",
+
+			"header.updated": "Оновлено",
+			"header.lede": "Аналіз блокчейн-даних токенізованої нерухомості на",
+			"header.projectsButton": "Проєкти",
+			"header.holdersButton": "Власники",
+			"header.trendsButton": "Тренди",
+			"footer.reportProblem": "Повідомити про проблему",
+
+			"trends.monthDelta": "Місяць Δ",
+			"trends.monthDeltaNote": "Зміна USDT за останні 30 днів.",
+			"trends.type": "Тип",
+			"trends.type.150k+": "Власники, які інвестували більше 150 тисяч USDT",
+			"trends.type.50k-150k": "Власники, які інвестували 50-150 тисяч USDT",
+			"trends.type.5k-50k": "Власники, які інвестували 5-50 тисяч USDT",
+			"trends.type.5k-0": "Власники, які інвестували до 5 тисяч USDT",
+
+			"search.title": "Пошук",
+			"search.indexPlaceholder": "Проєкт або об'єкт",
+			"search.holdersPlaceholder": "Адреса або об'єкт",
+
+			"index.state": "Стан",
+			"index.all": "Усі",
+			"index.projects": { one: "{n} проєкт", few: "{n} проєкти", many: "{n} проєктів", other: "{n} проєкту" },
+			"index.empty": "Немає збігів. Очистіть пошук або оберіть «Усі».",
+			"index.holdersSearchPlaceholder": "Адреса або об'єкт",
+			"index.holdersShowing": "Показано {shown} з {total}",
+			"index.holdersEmpty": "Немає збігів.",
+
+			"report.title": "Звіт по проєкту",
+			"report.invalidJson": "Некоректний JSON у #project-data.",
+			"aria.summary": "Підсумок проєкту",
+			"aria.charts": "Графіки об'єктів",
+			"aria.holders": "Власники проєкту",
+
+			"summary.properties": "Об'єкти",
+			"summary.totalSupply": "Загальна емісія",
+			"summary.bought": "Куплено (усього)",
+			"summary.tokens": { one: "{n} токен", few: "{n} токени", many: "{n} токенів", other: "{n} токена" },
+			"score.label": "Оцінка",
+			"score.value": "{n}/100",
+			"score.note": "На основі поточної ціни відносно ринку, чистої дохідності за останні 3 місяці та віку об'єкту.",
+
+			"state.construction": "будівництво",
+			"state.rental": "оренда",
+			"state.redeemed": "викуплено",
+
+			"location.bali": "Індонезія, Балі",
+			"location.montenegro": "Чорногорія",
+			"location.turkey": "Туреччина",
+
+			"rental.expected": "Очікуваний старт",
+			"rental.actual": "Фактичний старт",
+			"rental.status": "Статус",
+			"rental.onTime": "вчасно",
+			"rental.delay": { one: "+{n} квартал", few: "+{n} квартали", many: "+{n} кварталів", other: "+{n} кварталу" },
+			"rental.notStarted": "не розпочато",
+			"rental.age": "Вік",
+			"rental.years": { one: "{n} рік", few: "{n} роки", many: "{n} років", other: "{n} року" },
+			"rent.section": "Оренда",
+			"rent.title": "Нарахована оренда",
+			"rent.caption": "Загальний чистий прибуток об'єкту.",
+			"rent.monthly": "USDT",
+			"rent.yield": { one: "Чиста орендна дохідність за {n} місяць", few: "Чиста орендна дохідність за {n} місяці", many: "Чиста орендна дохідність за {n} місяців", other: "Чиста орендна дохідність за {n} місяця" },
+			"rent.profitAllTime": "Чистий прибуток за весь час",
+			"rent.profit": { one: "Чистий прибуток за {n} місяць", few: "Чистий прибуток за {n} місяці", many: "Чистий прибуток за {n} місяців", other: "Чистий прибуток за {n} місяця" },
+			"rent.yieldAllTime": "Чиста орендна дохідність за весь час",
+			"rent.yieldTrendAllTime": "Порівняно з дохідністю за весь час",
+			"rent.yieldTrendMonths": { one: "Порівняно з {n} місяцем", few: "Порівняно з {n} місяцями", many: "Порівняно з {n} місяцями", other: "Порівняно з {n} місяцями" },
+
+			"price.area": "Площа, м²",
+			"price.current": "Поточна, Binaryx",
+			"price.raised": "Зібрано, Binaryx",
+			"price.projected": "Прогноз, Binaryx",
+			"price.market": "Ринок, USD/м²",
+			"price.valueTier": "Оцінка вартості",
+			"price.aiNote": "Аналіз ШІ, {when}. Ринкова вартість і оцінка вартості можуть бути неточними.",
+			"value.fair": "Справедлива",
+			"value.rich": "Висока",
+			"value.overpriced": "Завищена",
+			"value.underpriced": "Занижена",
+
+			"initialSales": "Первинні продажі",
+			"noSeries": "Немає даних",
+			"noProperties": "Об'єкти не завантажено",
+			"resetZoom": "Скинути масштаб",
+			"chart.weeklyVolume": "Тижневий обсяг",
+			"chart.cumulative": "Накопичено",
+
+			"eta.title": "Прогноз",
+			"eta.none": "Немає даних прогнозу.",
+			"eta.band": "Діапазон",
+			"eta.window": "Період",
+			"eta.rate": "Сер. Δ",
+			"eta.days": "Днів",
+			"eta.date": "Дата",
+			"eta.last1": "останній 1 тиждень",
+			"eta.last4": "останні 4 тижні",
+			"eta.all": "уся історія (усі тижні)",
+
+			"secondary.title": "Тижневий обсяг вторинного ринку",
+			"secondary.market": "Вторинний ринок",
+			"secondary.noTransfers": "переказів між гаманцями ще немає",
+			"secondary.txs": "Вторинних транзакцій",
+
+			"holders.project": "Власники проєкту",
+			"holders.all": "усі",
+			"holders.limit": "Кількість власників",
+			"holders.none": "Немає власників.",
+			"holders.global": "Топ власників проєкту",
+			"holders.showing": "Показано {shown} з {total} власників (за загальним балансом).",
+			"holders.exited": "Вийшли",
+			"holders.offPlatformP2P": "* Включає P2P поза платформою. Загальний USDT неточний.",
+			"holders.back": "Проєкти",
+			"holders.platform": "Власники",
+			"holders.empty": "Немає збігів.",
+			"col.address": "Адреса",
+			"col.count": "Кількість",
+			"col.initUsdt": "Первинний продаж, USDT",
+			"col.p2pUsdt": "P2P, USDT",
+			"col.totalUsdt": "Разом, USDT",
+			"col.propertyNames": "Об'єкти",
+			"col.balance": "Токени / USDT, всього",
+			"col.p2pBought": "Токени / USDT, P2P",
+			"col.initialBought": "Токени / USDT, первинний продаж",
+			"col.week": "Тиждень Δ",
+			"col.month": "Місяць Δ",
+			"col.supplyPct": "% емісії",
+			"col.tier": "Рівень",
+			"col.invested": "Токени / USDT, вкладено",
+			"col.dateIn": "Дата входу",
+			"col.dateOut": "Дата виходу",
+			"col.properties": "Об'єкти",
+			"col.properties.showMore": "Показати більше",
+			"col.properties.collapse": "Згорнути",
+
+			"tier.distribution": "Розподіл за рівнями",
+			"tier.holdersChart": "Власники за рівнями",
+			"tier.supplyChart": "Емісія за рівнями",
+			"tier.noData": "Немає даних за рівнями",
+			"tier.tokens": "Токени: {v}",
+			"tier.supplyPct": "% емісії: {v}%",
+			"tier.holdersPct": "% власників: {v}%",
+			"tier.shrimp": "🦐 Креветка",
+			"tier.crab": "🦀 Краб",
+			"tier.fish": "🐟 Риба",
+			"tier.dolphin": "🐬 Дельфін",
+			"tier.shark": "🦈 Акула",
+			"tier.whale": "🐋 Кит"
+		}
+	};
+	const STORAGE_KEY = "lang";
+
+	function storedLang() {
+		try {
+			return localStorage.getItem(STORAGE_KEY);
+		} catch (e) {
+			return null;
+		}
+	}
+
+	// ?lang= wins over the saved choice, which wins over the browser language.
+	function detectLang() {
+		const candidates = [
+			new URLSearchParams(location.search).get("lang"),
+			storedLang(),
+			(navigator.language || "").slice(0, 2).toLowerCase()
+		];
+		for (const code of candidates) {
+			if (code && I18N[code]) return code;
+		}
+		return "en";
+	}
+
+	const lang = detectLang();
+	const pluralRules = new Intl.PluralRules(lang);
+	document.documentElement.lang = lang;
+
+	function has(key) {
+		return key in I18N[lang] || key in I18N.en;
+	}
+
+	// Plural entries are objects keyed by Intl.PluralRules category and pick a form by vars.n.
+	function t(key, vars) {
+		let msg = key in I18N[lang] ? I18N[lang][key] : I18N.en[key];
+		if (msg == null) return key;
+		if (typeof msg === "object") {
+			msg = msg[pluralRules.select(Number(vars && vars.n))] || msg.other;
+		}
+		if (!vars) return msg;
+		return msg.replace(/\{(\w+)\}/g, function (match, name) {
+			return vars[name] != null ? String(vars[name]) : match;
+		});
+	}
+
+	function applyStatic() {
+		document.querySelectorAll("[data-i18n]").forEach(function (el) {
+			el.textContent = t(el.dataset.i18n);
+		});
+		document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
+			el.setAttribute("aria-label", t(el.dataset.i18nAria));
+		});
+		document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+			el.title = t(el.dataset.i18nTitle);
+		});
+	}
+
+	function switchTo(code) {
+		try {
+			localStorage.setItem(STORAGE_KEY, code);
+		} catch (e) {
+			// The ?lang= param below still carries the choice for this page.
+		}
+		const url = new URL(location.href);
+		url.searchParams.set("lang", code);
+		location.href = url.toString();
+	}
+
+	function mountSwitcher() {
+		const slot = document.getElementById("lang-switch");
+		if (!slot) return;
+		slot.setAttribute("role", "group");
+		slot.setAttribute("aria-label", t("lang.label"));
+		Object.keys(I18N).forEach(function (code) {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.textContent = code.toUpperCase();
+			button.setAttribute("aria-pressed", String(code === lang));
+			button.addEventListener("click", function () {
+				if (code !== lang) switchTo(code);
+			});
+			slot.appendChild(button);
+		});
+	}
+
+	applyStatic();
+	mountSwitcher();
+	window.i18n = { lang: lang, t: t, has: has };
+})();
+</script>
+
+<script>
+(function () {
+	const t = window.i18n.t;
+	const raw = document.getElementById("project-data").textContent;
+	let projectData;
+	try {
+		projectData = JSON.parse(raw);
+	} catch (e) {
+		document.body.innerHTML = "<p>" + escapeHtml(t("report.invalidJson")) + "</p>";
+		return;
+	}
+
+	function strong(text) {
+		const el = document.createElement("strong");
+		el.textContent = text || "—";
+		return el;
+	}
+
+	function appendMetric(block, labelKey, valueEl, pill, labelText) {
+		const cell = document.createElement("div");
+		cell.className = "metric";
+		const label = document.createElement("span");
+		label.className = "metric-label";
+		label.textContent = labelText != null ? labelText : t(labelKey);
+		cell.appendChild(label);
+		if (pill) {
+			const figure = document.createElement("div");
+			figure.className = "price-figure";
+			figure.appendChild(valueEl);
+			figure.appendChild(pill);
+			cell.appendChild(figure);
+		} else {
+			cell.appendChild(valueEl);
+		}
+		block.appendChild(cell);
+	}
+
+	function yieldPercent(percent) {
+		return Number(percent).toLocaleString(window.i18n.lang, {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		}) + "%";
+	}
+
+	function yieldTrend(delta, title) {
+		const n = Number(delta);
+		const el = document.createElement("span");
+		const dir = n > 0 ? "up" : n < 0 ? "down" : "flat";
+		el.className = "yield-trend " + dir;
+		const arrow = n > 0 ? "↑ " : n < 0 ? "↓ " : "";
+		const points = n.toLocaleString(window.i18n.lang, {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+			signDisplay: "exceptZero"
+		});
+		el.textContent = arrow + points;
+		el.title = title;
+		return el;
+	}
+
+	function rentalAgeText(years) {
+		const label = t("rental.years", { n: years });
+		const shown = years.toLocaleString(window.i18n.lang, { maximumFractionDigits: 2 });
+		return label.replace(String(years), shown);
+	}
+
+	function renderRentInto(slot, property) {
+		const rental = property.rental;
+		if (!rental || !rental.expected) return;
+
+		const section = document.createElement("section");
+		section.className = "rent-section";
+		const title = document.createElement("h4");
+		title.className = "rent-section-title";
+		title.textContent = t("rent.section");
+		section.appendChild(title);
+
+		const facts = document.createElement("div");
+		facts.className = "rental-facts";
+		appendMetric(facts, "rental.expected", strong(rental.expected));
+		if (rental.actual) {
+			appendMetric(facts, "rental.actual", strong(rental.actual));
+		} else {
+			const pending = document.createElement("span");
+			pending.className = "rental-pending";
+			pending.textContent = t("rental.notStarted");
+			appendMetric(facts, "rental.actual", pending);
+		}
+		if (rental.score) {
+			const score = document.createElement("span");
+			score.className = "score score-" + rental.score;
+			score.textContent = rental.delayQuarters > 0 ? t("rental.delay", { n: rental.delayQuarters }) : t("rental.onTime");
+			appendMetric(facts, "rental.status", score);
+		}
+		if (rental.ageYears != null) appendMetric(facts, "rental.age", strong(rentalAgeText(rental.ageYears)));
+		section.appendChild(facts);
+
+		if (rental.netYieldQuarter != null || rental.netYieldYear != null || rental.netYieldAllTime != null) {
+			const yields = document.createElement("div");
+			yields.className = "rental-facts yields";
+			if (rental.netYieldAllTime != null) appendMetric(yields, "rent.yieldAllTime", strong(yieldPercent(rental.netYieldAllTime)));
+			if (rental.netYieldYear != null) {
+				const trend = rental.netYieldYearTrend != null ? yieldTrend(rental.netYieldYearTrend, t("rent.yieldTrendAllTime")) : null;
+				appendMetric(yields, "rent.yield", strong(yieldPercent(rental.netYieldYear)), trend, t("rent.yield", { n: rental.netYieldYearMonths }));
+			}
+			if (rental.netYieldQuarter != null) {
+				const trend = rental.netYieldQuarterTrend != null ? yieldTrend(rental.netYieldQuarterTrend, t("rent.yieldTrendMonths", { n: rental.netYieldYearMonths })) : null;
+				appendMetric(yields, "rent.yield", strong(yieldPercent(rental.netYieldQuarter)), trend, t("rent.yield", { n: 3 }));
+			}
+			section.appendChild(yields);
+		}
+
+		let canvas = null;
+		if (rental.labels && rental.labels.length > 0) {
+			const wrap = document.createElement("div");
+			wrap.className = "rent-wrap";
+			const heading = document.createElement("h5");
+			heading.textContent = t("rent.title");
+			const caption = document.createElement("p");
+			caption.className = "rent-caption";
+			caption.textContent = t("rent.caption");
+			wrap.appendChild(heading);
+			wrap.appendChild(caption);
+			const legend = document.createElement("div");
+			legend.className = "rent-legend";
+			const series = document.createElement("span");
+			const swatch = document.createElement("span");
+			swatch.className = "rent-legend-swatch";
+			series.appendChild(swatch);
+			series.appendChild(document.createTextNode(t("rent.monthly")));
+			legend.appendChild(series);
+			function profitLegend(label, amount) {
+				const item = document.createElement("span");
+				item.appendChild(document.createTextNode(label + " "));
+				const value = document.createElement("strong");
+				value.textContent = formatUSDT(amount) + " USDT";
+				item.appendChild(value);
+				legend.appendChild(item);
+			}
+			if (rental.profitAllTime) profitLegend(t("rent.profitAllTime"), rental.profitAllTime);
+			if (rental.profitYear) profitLegend(t("rent.profit", { n: rental.profitYearMonths }), rental.profitYear);
+			wrap.appendChild(legend);
+			const chartWrap = document.createElement("div");
+			chartWrap.className = "chart-wrap rent-chart";
+			canvas = document.createElement("canvas");
+			chartWrap.appendChild(canvas);
+			wrap.appendChild(chartWrap);
+			section.appendChild(wrap);
+		}
+		slot.appendChild(section);
+		if (!canvas) return;
+
+		new Chart(canvas, {
+			type: "bar",
+			data: {
+				labels: rental.labels,
+				datasets: [{
+					label: t("rent.monthly"),
+					data: rental.monthly.map(function (s) { return Number(s); }),
+					backgroundColor: "rgba(29, 107, 58, 0.45)",
+					borderColor: "rgb(29, 107, 58)",
+					borderWidth: 1
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				interaction: { mode: "index", intersect: false },
+				plugins: {
+					legend: { display: false },
+					tooltip: {
+						callbacks: {
+							label: function (ctx) {
+								return rental.monthly[ctx.dataIndex] + " USDT";
+							}
+						}
+					}
+				},
+				scales: {
+					x: { ticks: { maxTicksLimit: 24 } },
+					y: {
+						beginAtZero: true,
+						title: { display: true, text: t("rent.monthly"), font: { size: 10 } }
+					}
+				}
+			}
+		});
+	}
+
+	function escapeHtml(s) {
+		if (s == null) return "";
+		return String(s)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
+
+	if (projectData.name) {
+		document.title = projectData.name;
+		document.getElementById("project-title").textContent = projectData.name;
+	}
+
+	function ratingEl(score, scoreTier) {
+		const el = document.createElement("span");
+		el.className = "rating rating-" + scoreTier;
+		el.textContent = t("score.value", { n: score });
+		el.title = t("score.note");
+		return el;
+	}
+
+	if (projectData.summary) {
+		const s = projectData.summary;
+		const summary = document.getElementById("project-summary");
+		summary.innerHTML =
+			"<p>" + escapeHtml(t("summary.properties")) + ": <strong>" + s.propertyCount + "</strong></p>" +
+			"<p>" + escapeHtml(t("summary.totalSupply")) + ": <strong>" + escapeHtml(s.totalSupply) + "</strong></p>" +
+			"<p>" + escapeHtml(t("summary.bought")) + ": <strong>" + s.boughtPct.toFixed(2) + "%</strong> (" + escapeHtml(t("summary.tokens", { n: s.bought })) + ")</p>";
+		if (s.score !== -1) {
+			const line = document.createElement("p");
+			line.appendChild(document.createTextNode(t("score.label") + ": "));
+			const value = document.createElement("strong");
+			value.className = "rating rating-" + s.scoreTier;
+			value.textContent = t("score.value", { n: s.score });
+			line.appendChild(value);
+			line.appendChild(document.createTextNode(" "));
+			const note = document.createElement("span");
+			note.className = "score-note";
+			note.textContent = t("score.note");
+			line.appendChild(note);
+			summary.appendChild(line);
+		}
+	}
+
+	const allProperties = Array.isArray(projectData.properties) ? projectData.properties : [];
+	const allHolders = Array.isArray(projectData.holders) ? projectData.holders : [];
+	const tierStats = Array.isArray(projectData.tierStats) ? projectData.tierStats : [];
+	const propertyHoldersDefault = 10;
+	const projectHoldersDefault = 25;
+	const grid = document.getElementById("grid");
+
+	function etaDate(row) {
+		const date = row && row.date;
+		return date && date !== "0001-01-01" ? date : "";
+	}
+
+	// Trailing windows arrive as keys; a completed sale sends its date range as-is.
+	function etaWindowLabel(name) {
+		return i18n.has("eta." + name) ? t("eta." + name) : name;
+	}
+
+	function renderPropertyHead(slot, property) {
+		const head = document.createElement("div");
+		head.className = "property-head";
+		const titleRow = document.createElement("span");
+		titleRow.className = "slot-title";
+		const name = document.createElement("h3");
+		name.textContent = property.name || "—";
+		const tag = document.createElement("span");
+		tag.className = "tag tag-" + property.state;
+		tag.textContent = t("state." + property.state);
+		const marks = document.createElement("span");
+		marks.className = "slot-marks";
+		if (property.score !== -1) marks.appendChild(ratingEl(property.score, property.scoreTier));
+		marks.appendChild(tag);
+		titleRow.appendChild(name);
+		titleRow.appendChild(marks);
+		head.appendChild(titleRow);
+		const location = document.createElement("span");
+		location.className = "property-location";
+		location.textContent = t("location." + property.location);
+		head.appendChild(location);
+		const links = document.createElement("span");
+		links.className = "property-links";
+		const scan = document.createElement("a");
+		scan.className = "property-link";
+		scan.href = "https://polygonscan.com/token/" + property.address;
+		scan.target = "_blank";
+		scan.rel = "noopener noreferrer";
+		scan.textContent = "Polygonscan";
+		const binaryx = document.createElement("a");
+		binaryx.className = "property-link";
+		binaryx.href = "https://app.binaryx.com/" + property.state + "/" + property.address;
+		binaryx.target = "_blank";
+		binaryx.rel = "noopener noreferrer";
+		binaryx.textContent = "Binaryx";
+		links.appendChild(scan);
+		links.appendChild(binaryx);
+		head.appendChild(links);
+		slot.appendChild(head);
+	}
+
+	function renderPriceInto(slot, property) {
+		const price = property.price;
+		const block = document.createElement("div");
+		block.className = "price-facts";
+
+		function amount(n) {
+			return n ? Number(n).toLocaleString(window.i18n.lang) : "";
+		}
+		function marketRange() {
+			const low = amount(price.marketLow);
+			const high = amount(price.marketHigh);
+			if (low && high) return low === high ? low : low + " – " + high;
+			return low || high;
+		}
+		function tierPill(tier) {
+			if (!tier || !i18n.has("value." + tier)) return null;
+			const el = document.createElement("span");
+			el.className = "value value-" + tier;
+			el.textContent = t("value." + tier);
+			return el;
+		}
+		appendMetric(block, "price.area", strong(amount(price.areaM2)));
+		appendMetric(block, "price.current", strong(amount(price.current)), tierPill(price.currentValueTier));
+		appendMetric(block, "price.raised", strong(amount(price.raised)), tierPill(price.raisedValueTier));
+		appendMetric(block, "price.projected", strong(amount(price.projected)), tierPill(price.projectedValueTier));
+		appendMetric(block, "price.market", strong(marketRange()));
+		if (price.marketLow || price.marketHigh || price.currentValueTier || price.raisedValueTier || price.projectedValueTier) {
+			const note = document.createElement("p");
+			note.className = "price-ai-note";
+			const parts = new Intl.DateTimeFormat(window.i18n.lang, { month: "long", year: "numeric", timeZone: "UTC" }).formatToParts(new Date(Date.UTC(2026, 9, 1)));
+			const when = parts.filter(function (p) { return p.type === "month" || p.type === "year"; }).map(function (p) { return p.value; }).join(" ");
+			note.textContent = t("price.aiNote", { when: when });
+			block.appendChild(note);
+		}
+		slot.appendChild(block);
+	}
+
+	function renderETAsInto(container, chartData) {
+		const rows = chartData.etas;
+		if (!rows || rows.length === 0) {
+			container.innerHTML = "<h4>" + escapeHtml(t("eta.title")) + "</h4><p class=\"muted\">" + escapeHtml(t("eta.none")) + "</p>";
+			return;
+		}
+		const times = rows.map(etaDate).filter(Boolean).sort();
+		const showDate = times.length > 0;
+		let band = "";
+		if (times.length >= 2) {
+			band = "<p class=\"muted\">" + escapeHtml(t("eta.band")) + ": <strong>" + escapeHtml(times[0]) + "</strong> … <strong>" + escapeHtml(times[times.length - 1]) + "</strong></p>";
+		}
+		const body = rows.map(function (r) {
+			let row = "<tr><td>" + escapeHtml(etaWindowLabel(r.window)) + "</td><td>" + escapeHtml(r.rate) + "</td><td>" + r.days + "</td>";
+			if (showDate) {
+				row += "<td>" + escapeHtml(etaDate(r)) + "</td>";
+			}
+			return row + "</tr>";
+		}).join("");
+		const heading = showDate ? "<h4>" + escapeHtml(t("eta.title")) + "</h4>" : "";
+		container.innerHTML =
+			heading +
+			band +
+			"<table><thead><tr><th>" + escapeHtml(t("eta.window")) + "</th><th>" + escapeHtml(t("eta.rate")) + "</th><th>" + escapeHtml(t("eta.days")) + "</th>" + (showDate ? "<th>" + escapeHtml(t("eta.date")) + "</th>" : "") + "</tr></thead><tbody>" +
+			body +
+			"</tbody></table>";
+	}
+
+	function amountIsZero(raw) {
+		if (raw == null || raw === "") return true;
+		const n = Number(String(raw).replace(/^\+/, ""));
+		return n === 0;
+	}
+
+	function formatUSDT(raw) {
+		if (raw == null || raw === "") return "";
+		const s = String(raw);
+		const plus = s.charAt(0) === "+";
+		let body = plus ? s.slice(1) : s;
+		const neg = body.charAt(0) === "-";
+		if (neg) body = body.slice(1);
+		const dot = body.indexOf(".");
+		const whole = dot < 0 ? body : body.slice(0, dot);
+		const frac = dot < 0 ? "" : body.slice(dot + 1);
+		if (!/^\d+$/.test(whole)) return s;
+		const grouped = Number(whole).toLocaleString(window.i18n.lang, { maximumFractionDigits: 0 });
+		let out = grouped;
+		if (frac) {
+			const dec = (1.1).toLocaleString(window.i18n.lang).replace(/\d/g, "");
+			out += dec + frac;
+		}
+		if (neg) return "-" + out;
+		if (plus) return "+" + out;
+		return out;
+	}
+
+	function trendCell(delta, usdt) {
+		const tokenFlat = amountIsZero(delta);
+		const paid = usdt || "0";
+		if (tokenFlat && amountIsZero(paid)) {
+			return "<td class=\"num trend flat\">—</td>";
+		}
+		let cls = "flat";
+		let tokenHtml = "—";
+		if (!tokenFlat) {
+			const down = String(delta).charAt(0) === "-";
+			cls = down ? "down" : "up";
+			tokenHtml = (down ? "↓ " : "↑ ") + escapeHtml(delta);
+		}
+		return "<td class=\"num trend pair " + cls + "\">" + tokenHtml +
+			"<span class=\"usdt\">" + escapeHtml(formatUSDT(paid)) + " USDT</span></td>";
+	}
+
+	function addUSDT(a, b) {
+		const scale = 100;
+		const sum = Math.round(((Number(a) || 0) + (Number(b) || 0)) * scale);
+		const sign = sum < 0 ? "-" : "";
+		const abs = Math.abs(sum);
+		const whole = Math.trunc(abs / scale);
+		const frac = String(abs % scale).padStart(2, "0");
+		return sign + whole + "." + frac;
+	}
+
+	function amountPair(tokens, usdt, mark) {
+		const star = mark ? "*" : "";
+		return "<td class=\"num pair\"><span>" + escapeHtml(tokens) +
+			"</span><span class=\"usdt\">" + escapeHtml(formatUSDT(usdt)) + " USDT" + star + "</span></td>";
+	}
+
+	function amountPairOrDash(tokens, usdt, mark) {
+		if (amountIsZero(tokens) && amountIsZero(usdt)) {
+			return "<td class=\"num trend flat\">—</td>";
+		}
+		return amountPair(tokens, usdt, mark);
+	}
+
+	function offPlatformNote(rows) {
+		const marked = rows.some(function (h) { return h.offPlatformP2P; });
+		if (!marked) return "";
+		return "<p class=\"off-platform-note\">" + escapeHtml(t("holders.offPlatformP2P")) + "</p>";
+	}
+
+	const holderLimitChoices = [10, 25, 50, 0];
+
+	function shownHolders(holders, limit) {
+		if (!limit) return holders;
+		return holders.slice(0, limit);
+	}
+
+	function deltaNumber(v) {
+		const n = Number(v);
+		return isFinite(n) ? n : 0;
+	}
+
+	function splitHolders(holders) {
+		const active = [];
+		const exited = [];
+		holders.forEach(function (h) {
+			(deltaNumber(h.balance) === 0 ? exited : active).push(h);
+		});
+		exited.sort(function (a, b) {
+			const week = deltaNumber(a.weekDeltaTokens) - deltaNumber(b.weekDeltaTokens);
+			if (week !== 0) return week;
+			return deltaNumber(a.monthDeltaTokens) - deltaNumber(b.monthDeltaTokens);
+		});
+		return { active: active, exited: exited };
+	}
+
+	function tierCell(h) {
+		if (!h.tier) return "<td class=\"tier\">—</td>";
+		return "<td class=\"tier\">" + escapeHtml(t("tier." + h.tier)) + "</td>";
+	}
+
+	function addressCell(address) {
+		const params = new URLSearchParams();
+		params.set("q", address);
+		params.set("lang", window.i18n.lang);
+		return "<td class=\"address\"><a href=\"../holders.html?" + escapeHtml(params.toString()) + "\">" + escapeHtml(address) + "</a></td>";
+	}
+
+	function holderRow(h, i, withProperties) {
+		const names = withProperties
+			? "<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>"
+			: "";
+		return "<tr>" +
+			"<td class=\"num\">" + (i + 1) + "</td>" +
+			addressCell(h.address) +
+			names +
+			amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
+			amountPairOrDash(h.initialBought, h.initSaleUSDT) +
+			amountPairOrDash(h.p2pBought, h.p2pUSDT, h.offPlatformP2P) +
+			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+			trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
+			"<td class=\"num\">" + (h.supplyPct != null ? h.supplyPct.toFixed(2) : "0.00") + "%</td>" +
+			tierCell(h) +
+			"</tr>";
+	}
+
+	function holdersTable(rows, columns) {
+		return "<div class=\"holders-scroll\"><table><thead><tr>" +
+			"<th>#</th>" + columns.map(function (key) {
+				return "<th>" + escapeHtml(t(key)) + "</th>";
+			}).join("") +
+			"</tr></thead><tbody>" + rows + "</tbody></table></div>";
+	}
+
+	function dateCell(value) {
+		if (!value) return "<td class=\"num\">—</td>";
+		return "<td class=\"num\">" + escapeHtml(value) + "</td>";
+	}
+
+	function exitedRow(h, i, withProperties) {
+		const names = withProperties
+			? "<td class=\"properties\">" + escapeHtml((h.propertyNames || []).join(", ")) + "</td>"
+			: "";
+		return "<tr>" +
+			"<td class=\"num\">" + (i + 1) + "</td>" +
+			addressCell(h.address) +
+			names +
+			amountPair(addUSDT(h.initialBought, h.p2pBought), addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
+			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
+			trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
+			dateCell(h.entered) +
+			dateCell(h.exited) +
+			"</tr>";
+	}
+
+	function exitedBlock(exited, withProperties) {
+		if (exited.length === 0) return "";
+		const columns = withProperties ? projectExitedColumns : propertyExitedColumns;
+		const rows = exited.map(function (h, i) {
+			return exitedRow(h, i, withProperties);
+		}).join("");
+		return "<div class=\"exited-holders\"><h4>" + escapeHtml(t("holders.exited")) + "</h4>" +
+			holdersTable(rows, columns) + "</div>";
+	}
+
+	const propertyHolderColumns = ["col.address", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"];
+	const projectHolderColumns = ["col.address", "col.propertyNames", "col.balance", "col.initialBought", "col.p2pBought", "col.week", "col.month", "col.supplyPct", "col.tier"];
+	const propertyExitedColumns = ["col.address", "col.invested", "col.week", "col.month", "col.dateIn", "col.dateOut"];
+	const projectExitedColumns = ["col.address", "col.propertyNames", "col.invested", "col.week", "col.month", "col.dateIn", "col.dateOut"];
+
+	function holdersLimitControl(selected, onChange) {
+		const group = document.createElement("div");
+		group.className = "holders-limit";
+		group.setAttribute("role", "group");
+		group.setAttribute("aria-label", t("holders.limit"));
+		holderLimitChoices.forEach(function (n) {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.textContent = n ? String(n) : t("holders.all");
+			button.setAttribute("aria-pressed", String(n === selected));
+			button.addEventListener("click", function () {
+				group.querySelectorAll("button").forEach(function (b) {
+					b.setAttribute("aria-pressed", String(b === button));
+				});
+				onChange(n);
+			});
+			group.appendChild(button);
+		});
+		return group;
+	}
+
+	function holdersCount(n) {
+		const el = document.createElement("span");
+		el.className = "holders-count";
+		el.textContent = "· " + n;
+		return el;
+	}
+
+	function renderHolderList(container, split, limit, withProperties) {
+		const toolbar = document.createElement("div");
+		toolbar.className = "holders-toolbar";
+		const meta = document.createElement("p");
+		meta.className = "section-meta";
+		toolbar.appendChild(meta);
+		const list = document.createElement("div");
+		container.appendChild(toolbar);
+		container.appendChild(list);
+		const columns = withProperties ? projectHolderColumns : propertyHolderColumns;
+		function paint() {
+			const shown = shownHolders(split.active, limit);
+			meta.textContent = t("holders.showing", { shown: shown.length, total: split.active.length });
+			const rows = shown.map(function (h, i) {
+				return holderRow(h, i, withProperties);
+			}).join("");
+			list.innerHTML = holdersTable(rows, columns) + exitedBlock(split.exited, withProperties) +
+				offPlatformNote(shown.concat(split.exited));
+		}
+		toolbar.appendChild(holdersLimitControl(limit, function (next) {
+			limit = next;
+			paint();
+		}));
+		paint();
+	}
+
+	function renderPropertyHoldersInto(container, property) {
+		const summary = document.createElement("summary");
+		container.appendChild(summary);
+		const split = splitHolders(property.holders);
+		if (split.active.length === 0) {
+			summary.textContent = t("holders.none");
+			container.insertAdjacentHTML("beforeend", exitedBlock(split.exited, false) + offPlatformNote(split.exited));
+			return;
+		}
+		summary.textContent = t("holders.title");
+		summary.appendChild(holdersCount(split.active.length));
+		renderHolderList(container, split, propertyHoldersDefault, false);
+	}
+
+	function chartOptions() {
+		return {
+			responsive: true,
+			maintainAspectRatio: false,
+			interaction: { mode: "index", intersect: false },
+			scales: {
+				x: { ticks: { maxTicksLimit: 24 } },
+				y: {
+					type: "linear",
+					position: "left",
+					beginAtZero: true,
+					title: { display: true, text: t("chart.weeklyVolume"), font: { size: 10 } }
+				},
+				y1: {
+					type: "linear",
+					position: "right",
+					beginAtZero: true,
+					grid: { drawOnChartArea: false },
+					title: { display: true, text: t("chart.cumulative"), font: { size: 10 } }
+				}
+			}
+		};
+	}
+
+	// Drag across the plot area to zoom the x axis to that range; "Reset zoom" restores it.
+	const rangeSelectPlugin = {
+		id: "rangeSelect",
+		afterInit: function (chart) {
+			const canvas = chart.canvas;
+			const state = chart.$rangeSelect = { start: null, end: null };
+
+			const reset = document.createElement("button");
+			reset.type = "button";
+			reset.className = "zoom-reset";
+			reset.textContent = t("resetZoom");
+			reset.hidden = true;
+			reset.addEventListener("click", function () {
+				chart.options.scales.x.min = undefined;
+				chart.options.scales.x.max = undefined;
+				reset.hidden = true;
+				chart.update();
+			});
+			canvas.parentElement.appendChild(reset);
+
+			function pointerX(e) {
+				return e.clientX - canvas.getBoundingClientRect().left;
+			}
+			function clampX(x) {
+				return Math.min(Math.max(x, chart.chartArea.left), chart.chartArea.right);
+			}
+			function cancel() {
+				state.start = state.end = null;
+				chart.draw();
+			}
+
+			canvas.addEventListener("pointerdown", function (e) {
+				if (e.button !== 0) return;
+				const x = pointerX(e);
+				if (x < chart.chartArea.left || x > chart.chartArea.right) return;
+				e.preventDefault();
+				state.start = state.end = x;
+				canvas.setPointerCapture(e.pointerId);
+			});
+			canvas.addEventListener("pointermove", function (e) {
+				if (state.start == null) return;
+				state.end = clampX(pointerX(e));
+				chart.draw();
+			});
+			canvas.addEventListener("pointerup", function () {
+				if (state.start == null) return;
+				const from = Math.min(state.start, state.end);
+				const to = Math.max(state.start, state.end);
+				const lo = chart.scales.x.getValueForPixel(from);
+				const hi = chart.scales.x.getValueForPixel(to);
+				if (to - from < 5 || hi <= lo) {
+					cancel();
+					return;
+				}
+				state.start = state.end = null;
+				chart.options.scales.x.min = lo;
+				chart.options.scales.x.max = hi;
+				reset.hidden = false;
+				chart.update();
+			});
+			canvas.addEventListener("pointercancel", cancel);
+		},
+		afterDraw: function (chart) {
+			const state = chart.$rangeSelect;
+			if (!state || state.start == null || state.start === state.end) return;
+			const area = chart.chartArea;
+			const ctx = chart.ctx;
+			ctx.save();
+			ctx.fillStyle = "rgba(54, 162, 235, 0.15)";
+			ctx.fillRect(Math.min(state.start, state.end), area.top, Math.abs(state.end - state.start), area.bottom - area.top);
+			ctx.restore();
+		}
+	};
+
+	function hasSecondaryVolume(property) {
+		return property.p2p_sales.labels.length > 0;
+	}
+
+	function mountInitialChart(canvas, initial) {
+		new Chart(canvas, {
+			type: "line",
+			data: {
+				labels: initial.labels,
+				datasets: [
+					{
+						label: t("chart.weeklyVolume"),
+						data: initial.weekly,
+						borderColor: "rgb(75, 192, 192)",
+						backgroundColor: "rgba(75, 192, 192, 0.2)",
+						tension: 0,
+						stepped: "before",
+						fill: false,
+						yAxisID: "y"
+					},
+					{
+						label: t("chart.cumulative"),
+						data: initial.cumulative,
+						borderColor: "rgb(255, 99, 132)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions(),
+			plugins: [rangeSelectPlugin]
+		});
+	}
+
+	function renderSecondaryInto(slot, property) {
+		const secondary = property.p2p_sales;
+		const meta = document.createElement("p");
+		meta.className = "secondary-meta";
+		if (!hasSecondaryVolume(property)) {
+			meta.innerHTML = escapeHtml(t("secondary.market")) + ": <strong>" + escapeHtml(t("secondary.noTransfers")) + "</strong>";
+			slot.appendChild(meta);
+			return;
+		}
+		meta.innerHTML = escapeHtml(t("secondary.txs")) + ": <strong>" + secondary.txCount + "</strong>";
+
+		const wrap = document.createElement("div");
+		wrap.className = "secondary-wrap";
+		const heading = document.createElement("h4");
+		heading.textContent = t("secondary.title");
+		wrap.appendChild(heading);
+		wrap.appendChild(meta);
+
+		const chartWrap = document.createElement("div");
+		chartWrap.className = "chart-wrap";
+		const canvas = document.createElement("canvas");
+		chartWrap.appendChild(canvas);
+		wrap.appendChild(chartWrap);
+		slot.appendChild(wrap);
+
+		new Chart(canvas, {
+			type: "bar",
+			data: {
+				labels: secondary.labels,
+				datasets: [
+					{
+						label: t("chart.weeklyVolume"),
+						data: secondary.weekly,
+						backgroundColor: "rgba(54, 162, 235, 0.45)",
+						borderColor: "rgb(54, 162, 235)",
+						borderWidth: 1,
+						yAxisID: "y"
+					},
+					{
+						type: "line",
+						label: t("chart.cumulative"),
+						data: secondary.cumulative,
+						borderColor: "rgb(255, 159, 64)",
+						tension: 0.05,
+						fill: false,
+						yAxisID: "y1"
+					}
+				]
+			},
+			options: chartOptions(),
+			plugins: [rangeSelectPlugin]
+		});
+	}
+
+	function renderHolders() {
+		const section = document.getElementById("holders-section");
+		if (allHolders.length === 0 || allProperties.length < 2) {
+			section.hidden = true;
+			return;
+		}
+
+		const block = document.getElementById("global-holders-block");
+		const split = splitHolders(allHolders);
+		block.querySelector("summary").appendChild(holdersCount(split.active.length));
+		renderHolderList(block, split, projectHoldersDefault, true);
+
+		renderTierCharts(
+			document.getElementById("tier-holders-chart"),
+			document.getElementById("tier-supply-chart"),
+			allHolders,
+			tierStats
+		);
+	}
+
+	const tierPalette = ["#94a3b8", "#fb923c", "#38bdf8", "#6366f1", "#10b981", "#1e40af"];
+
+	function tierTokenTotals(holders) {
+		const totals = {};
+		holders.forEach(function (h) {
+			const n = Number(h.balance);
+			if (!isFinite(n) || n === 0) return;
+			totals[h.tier] = (totals[h.tier] || 0) + n;
+		});
+		return totals;
+	}
+
+	function tierSlices(holders, stats, include) {
+		const tokens = tierTokenTotals(holders);
+		const slices = [];
+		stats.forEach(function (s, i) {
+			if (!include(s)) return;
+			slices.push({
+				stat: s,
+				tokens: tokens[s.name] || 0,
+				color: tierPalette[i % tierPalette.length]
+			});
+		});
+		return slices;
+	}
+
+	function tierTooltip(slices) {
+		return {
+			callbacks: {
+				label: function (ctx) {
+					return tierDetails(slices[ctx.dataIndex]).map(function (line) { return " " + line; });
+				}
+			}
+		};
+	}
+
+	function tierDetails(slice) {
+		const s = slice.stat;
+		return [
+			t("tier.tokens", { v: slice.tokens.toFixed(2) }),
+			t("tier.supplyPct", { v: s.supplyPct.toFixed(2) }),
+			t("tier.holdersPct", { v: s.holdersPct.toFixed(1) })
+		];
+	}
+
+	function mountTierPie(canvas, title, values, slices) {
+		if (slices.length === 0) {
+			canvas.parentElement.innerHTML = "<div class=\"chart-placeholder\">" + escapeHtml(t("tier.noData")) + "</div>";
+			return;
+		}
+		new Chart(canvas, {
+			type: "pie",
+			data: {
+				labels: slices.map(function (s) { return t("tier." + s.stat.name); }),
+				datasets: [{
+					data: slices.map(values),
+					backgroundColor: slices.map(function (s) { return s.color; }),
+					borderColor: "#fff",
+					borderWidth: 2
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					title: {
+						display: true,
+						text: title,
+						font: { size: 13, weight: "600" }
+					},
+					legend: {
+						position: "bottom",
+						labels: { boxWidth: 12, font: { size: 12 } }
+					},
+					tooltip: tierTooltip(slices)
+				}
+			}
+		});
+	}
+
+	function renderTierCharts(holdersCanvas, supplyCanvas, holders, stats) {
+		mountTierPie(
+			holdersCanvas,
+			t("tier.holdersChart"),
+			function (s) { return s.stat.count; },
+			tierSlices(holders, stats, function (s) { return s.count > 0; })
+		);
+		mountTierPie(
+			supplyCanvas,
+			t("tier.supplyChart"),
+			function (s) { return s.stat.supplyPct; },
+			tierSlices(holders, stats, function (s) { return s.supplyPct > 0; })
+		);
+	}
+
+	// Supply segments are scaled to the held total so both bars fill the track.
+	function tierBar(labelKey, slices, share) {
+		const total = slices.reduce(function (sum, s) { return sum + share(s); }, 0);
+		const row = document.createElement("div");
+		row.className = "tier-row";
+		const label = document.createElement("span");
+		label.className = "tier-row-label";
+		label.textContent = t(labelKey);
+		const bar = document.createElement("div");
+		bar.className = "tier-bar";
+		bar.setAttribute("aria-label", t(labelKey));
+		slices.forEach(function (slice) {
+			const pct = total > 0 ? share(slice) / total * 100 : 0;
+			const seg = document.createElement("span");
+			seg.className = "tier-seg";
+			seg.style.width = pct + "%";
+			seg.style.background = slice.color;
+			seg.title = t("tier." + slice.stat.name) + "\n" + tierDetails(slice).join("\n");
+			if (pct >= 8) seg.textContent = Math.round(pct) + "%";
+			bar.appendChild(seg);
+		});
+		row.appendChild(label);
+		row.appendChild(bar);
+		return row;
+	}
+
+	function tierLegend(slices) {
+		const list = document.createElement("ul");
+		list.className = "tier-legend";
+		slices.forEach(function (slice) {
+			const item = document.createElement("li");
+			const swatch = document.createElement("span");
+			swatch.className = "tier-swatch";
+			swatch.style.background = slice.color;
+			const count = document.createElement("strong");
+			count.textContent = slice.stat.count;
+			item.appendChild(swatch);
+			item.appendChild(document.createTextNode(t("tier." + slice.stat.name) + " "));
+			item.appendChild(count);
+			list.appendChild(item);
+		});
+		return list;
+	}
+
+	function renderPropertyTiersInto(slot, property) {
+		const stats = Array.isArray(property.tierStats) ? property.tierStats : [];
+		const slices = tierSlices(property.holders, stats, function (s) { return s.count > 0; });
+		if (slices.length === 0) return;
+		const wrap = document.createElement("div");
+		wrap.className = "tier-wrap";
+		wrap.setAttribute("role", "group");
+		wrap.setAttribute("aria-label", t("tier.distribution"));
+		wrap.appendChild(tierBar("tier.holdersChart", slices, function (s) { return s.stat.count; }));
+		wrap.appendChild(tierBar("tier.supplyChart", slices, function (s) { return s.stat.supplyPct; }));
+		wrap.appendChild(tierLegend(slices));
+		slot.appendChild(wrap);
+	}
+
+	function renderCharts() {
+		if (allProperties.length === 0) {
+			grid.innerHTML = "<p class=\"chart-placeholder\">" + escapeHtml(t("noProperties")) + "</p>";
+			return;
+		}
+
+		allProperties.forEach(function (property) {
+			const initial = property.initial_sales;
+			const collapseBuys = hasSecondaryVolume(property);
+			const slot = document.createElement("div");
+			slot.className = "slot";
+			renderPropertyHead(slot, property);
+			renderPriceInto(slot, property);
+			renderRentInto(slot, property);
+			const title = document.createElement(collapseBuys ? "summary" : "h3");
+			title.textContent = t("initialSales");
+
+			const chartParent = document.createElement(collapseBuys ? "details" : "div");
+			if (collapseBuys) {
+				chartParent.className = "buys-wrap";
+			}
+			chartParent.appendChild(title);
+
+			const wrap = document.createElement("div");
+			wrap.className = "chart-wrap";
+			const canvas = document.createElement("canvas");
+			wrap.appendChild(canvas);
+			chartParent.appendChild(wrap);
+
+			const etaWrap = document.createElement("div");
+			etaWrap.className = "eta-wrap";
+			chartParent.appendChild(etaWrap);
+			slot.appendChild(chartParent);
+
+			grid.appendChild(slot);
+
+			if (initial.labels.length === 0) {
+				wrap.innerHTML = "<div class=\"chart-placeholder\">" + escapeHtml(t("noSeries")) + "</div>";
+				etaWrap.innerHTML = "<h4>" + escapeHtml(t("eta.title")) + "</h4><p class=\"muted\">—</p>";
+			} else {
+				renderETAsInto(etaWrap, initial);
+				if (collapseBuys) {
+					chartParent.addEventListener("toggle", function () {
+						mountInitialChart(canvas, initial);
+					}, { once: true });
+				} else {
+					mountInitialChart(canvas, initial);
+				}
+			}
+
+			renderSecondaryInto(slot, property);
+			const holdersWrap = document.createElement("details");
+			holdersWrap.className = "holders-wrap";
+			renderPropertyHoldersInto(holdersWrap, property);
+			slot.appendChild(holdersWrap);
+			renderPropertyTiersInto(slot, property);
+		});
+	}
+
+	renderHolders();
+	renderCharts();
+})();
+</script>
+</body>
+</html>
