@@ -2,7 +2,7 @@
 
 On-chain analytics for tokenized real estate on [binaryx.com](https://binaryx.com).
 
-**Live reports:** https://aint.github.io/binaryxlens/
+**Live:** https://binaryxlens.pages.dev/
 
 ## Why
 
@@ -27,8 +27,6 @@ Reports are available in English and Ukrainian.
 `go run .` writes `index.html` and `reports/*.html`. A daily GitHub Action regenerates those files at 00:00 UTC. The property catalog is `internal/properties.go`.
 
 ## Screenshots
-
-<!-- TODO: add screenshots to docs/screenshots/ -->
 
 | Index | Project report |
 | --- | --- |
@@ -57,8 +55,8 @@ Open `index.html` in a browser.
 
 ### Holders
 
-- [ ] Wallet pages — click a holder address to see all assets across the platform.
-- [ ] Global top holders — leaderboard across all projects.
+- [x] Wallet pages — click a holder address to see all assets across the platform.
+- [x] Global top holders — leaderboard across all projects.
 - [ ] Exited holders — former holdings (tokens and USDT invested), hold duration, exit date.
 
 ### Secondary market (P2P)
