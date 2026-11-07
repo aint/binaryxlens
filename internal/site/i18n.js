@@ -17,6 +17,7 @@
 			"trends.type.50k-150k": "Holders with 50K-150K USDT invested",
 			"trends.type.5k-50k": "Holders with 5K-50K USDT invested",
 			"trends.type.5k-0": "Holders with up to 5K USDT invested",
+			"trends.type.ceo": "CEO",
 
 			"search.title": "Search",
 			"search.indexPlaceholder": "Project or property",
@@ -106,6 +107,7 @@
 			"secondary.noTransfers": "no wallet-to-wallet transfers yet",
 			"secondary.txs": "Secondary txs",
 
+			"holders.property": "Holders",
 			"holders.project": "Project holders",
 			"holders.all": "all",
 			"holders.limit": "Number of holders",
@@ -114,8 +116,6 @@
 			"holders.showing": "Showing {shown} of {total} holders (by total balance).",
 			"holders.exited": "Exited",
 			"holders.offPlatformP2P": "* Includes P2P outside the platform. Total USDT is not accurate.",
-			"holders.back": "Projects",
-			"holders.platform": "Holders",
 			"holders.empty": "No holders match.",
 			"col.address": "Address",
 			"col.count": "Count",
@@ -168,6 +168,7 @@
 			"trends.type.50k-150k": "Власники, які інвестували 50-150 тисяч USDT",
 			"trends.type.5k-50k": "Власники, які інвестували 5-50 тисяч USDT",
 			"trends.type.5k-0": "Власники, які інвестували до 5 тисяч USDT",
+			"trends.type.ceo": "CEO",
 
 			"search.title": "Пошук",
 			"search.indexPlaceholder": "Проєкт або об'єкт",
@@ -257,6 +258,7 @@
 			"secondary.noTransfers": "переказів між гаманцями ще немає",
 			"secondary.txs": "Вторинних транзакцій",
 
+			"holders.property": "Власники",
 			"holders.project": "Власники проєкту",
 			"holders.all": "усі",
 			"holders.limit": "Кількість власників",
@@ -265,8 +267,6 @@
 			"holders.showing": "Показано {shown} з {total} власників (за загальним балансом).",
 			"holders.exited": "Вийшли",
 			"holders.offPlatformP2P": "* Включає P2P поза платформою. Загальний USDT неточний.",
-			"holders.back": "Проєкти",
-			"holders.platform": "Власники",
 			"holders.empty": "Немає збігів.",
 			"col.address": "Адреса",
 			"col.count": "Кількість",
