@@ -52,10 +52,11 @@ func projectLinksHTML(projects []projectRow) string {
 				<span class="item"><span class="name">%s %s</span><span class="props">%s</span></span>
 				<span class="tags">%s%s</span>
 			</a>`
-		fmt.Fprintf(&b, projectLinkHTML,
+		fmt.Fprintf(
+			&b, projectLinkHTML,
 			html.EscapeString(project.Href),
-			html.EscapeString(project.Flag),
 			html.EscapeString(project.Name),
+			html.EscapeString(project.Flag),
 			html.EscapeString(project.Props),
 			rating,
 			labels.String(),
