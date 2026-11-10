@@ -87,7 +87,8 @@ func (p *Property) buildHolders() {
 		inMonth := !t.Time.Before(monthAgo)
 		week := NewWeek(t.Time)
 
-		if t.From != zeroAddr0x {
+		// tokens sent from t.From (balance goes down)
+		if t.From != zeroAddr0x && t.From != p.Address {
 			var paid *big.Int
 			if p.isP2PTransfer(t.From, t.To) {
 				paid = negBigInt(t.USDT)
@@ -98,7 +99,8 @@ func (p *Property) buildHolders() {
 				from.Exited = t.Time
 			}
 		}
-		if t.To != zeroAddr0x {
+		// tokens sent to t.To (balance goes up)
+		if t.To != zeroAddr0x && t.To != p.Address {
 			to := holderMap[t.To]
 			opening := to == nil || to.Balance.Sign() == 0
 			updateHolder(holderMap, t.To, v, t.USDT, week, inWeek, inMonth)
@@ -132,10 +134,6 @@ func (p *Property) buildHolders() {
 
 	holders := make([]Holder, 0, len(holderMap))
 	for _, address := range keys {
-		if address == p.Address {
-			// ignore unclaimed balance
-			continue
-		}
 		h := holderMap[address]
 		if h.Balance.Sign() == 0 && h.MonthDeltaTokens.Sign() == 0 && h.MonthDeltaUSDT.Sign() == 0 {
 			continue
