@@ -921,7 +921,7 @@ td.trend.flat { color: #888; }
 			"<td class=\"num\">" + (i + 1) + "</td>" +
 			addressCell(h.address) +
 			names +
-			amountPair(addUSDT(h.initialBought, h.p2pBought), addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
+			amountPair(h.tokenBalance, addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
 			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
 			trendCell(h.monthDeltaTokens, h.monthDeltaUSDT) +
 			dateCell(h.entered) +
