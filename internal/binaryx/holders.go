@@ -11,7 +11,6 @@ const zeroAddr0x = "0x0000000000000000000000000000000000000000"
 
 type Holder struct {
 	Address          string
-	Balance          *big.Int
 	WeekDeltaTokens  *big.Int
 	MonthDeltaTokens *big.Int
 	WeekDeltaUSDT    *big.Int
@@ -75,6 +74,14 @@ func (a WeeklyActivity) Merge(a2 WeeklyActivity) {
 	}
 }
 
+func (h *Holder) TokenBalance() *big.Int {
+	tokens := big.NewInt(0)
+	for _, v := range h.WeeklyActivity {
+		tokens.Add(tokens, v.TokensIn)
+		tokens.Add(tokens, v.TokensOut)
+	}
+	return tokens
+}
 func (p *Property) buildHolders() {
 	now := time.Now().UTC()
 	weekAgo := now.AddDate(0, 0, -7)
@@ -95,14 +102,14 @@ func (p *Property) buildHolders() {
 			}
 			updateHolder(holderMap, t.From, new(big.Int).Neg(v), paid, week, inWeek, inMonth)
 			from := holderMap[t.From]
-			if from.Balance.Sign() == 0 {
+			if from.TokenBalance().Sign() == 0 {
 				from.Exited = t.Time
 			}
 		}
 		// tokens sent to t.To (balance goes up)
 		if t.To != zeroAddr0x && t.To != p.Address {
 			to := holderMap[t.To]
-			opening := to == nil || to.Balance.Sign() == 0
+			opening := to == nil || to.TokenBalance().Sign() == 0
 			updateHolder(holderMap, t.To, v, t.USDT, week, inWeek, inMonth)
 			to = holderMap[t.To]
 			if opening {
@@ -129,13 +136,13 @@ func (p *Property) buildHolders() {
 
 	keys := slices.Collect(maps.Keys(holderMap))
 	slices.SortFunc(keys, func(a, b string) int {
-		return holderMap[b].Balance.Cmp(holderMap[a].Balance) // descending by balance
+		return holderMap[b].TokenBalance().Cmp(holderMap[a].TokenBalance()) // descending by balance
 	})
 
 	holders := make([]Holder, 0, len(holderMap))
 	for _, address := range keys {
 		h := holderMap[address]
-		if h.Balance.Sign() == 0 && h.MonthDeltaTokens.Sign() == 0 && h.MonthDeltaUSDT.Sign() == 0 {
+		if h.TokenBalance().Sign() == 0 && h.MonthDeltaTokens.Sign() == 0 && h.MonthDeltaUSDT.Sign() == 0 {
 			continue
 		}
 		holders = append(holders, *h)
@@ -149,7 +156,6 @@ func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week
 	if h == nil {
 		h = &Holder{
 			Address:          addr,
-			Balance:          big.NewInt(0),
 			WeekDeltaTokens:  big.NewInt(0),
 			MonthDeltaTokens: big.NewInt(0),
 			WeekDeltaUSDT:    big.NewInt(0),
@@ -162,7 +168,6 @@ func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week
 		}
 		m[addr] = h
 	}
-	h.Balance.Add(h.Balance, tokens)
 	if inWeek {
 		h.WeekDeltaTokens.Add(h.WeekDeltaTokens, tokens)
 		if usdt != nil {
@@ -209,8 +214,8 @@ func (pr *Project) BuildHolders() {
 			if ph == nil {
 				ph = &ProjectHolder{
 					Address:          hol.Address,
-					PropertyBalances: map[string]*big.Int{property.Name: new(big.Int).Set(hol.Balance)},
-					TotalBalance:     new(big.Int).Set(hol.Balance),
+					PropertyBalances: map[string]*big.Int{property.Name: new(big.Int).Set(hol.TokenBalance())},
+					TotalBalance:     new(big.Int).Set(hol.TokenBalance()),
 					WeekDeltaTokens:  new(big.Int).Set(hol.WeekDeltaTokens),
 					MonthDeltaTokens: new(big.Int).Set(hol.MonthDeltaTokens),
 					WeekDeltaUSDT:    new(big.Int).Set(hol.WeekDeltaUSDT),
@@ -228,8 +233,8 @@ func (pr *Project) BuildHolders() {
 				continue
 			}
 
-			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.Balance)
-			ph.TotalBalance.Add(ph.TotalBalance, hol.Balance)
+			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.TokenBalance())
+			ph.TotalBalance.Add(ph.TotalBalance, hol.TokenBalance())
 			ph.WeekDeltaTokens.Add(ph.WeekDeltaTokens, hol.WeekDeltaTokens)
 			ph.MonthDeltaTokens.Add(ph.MonthDeltaTokens, hol.MonthDeltaTokens)
 			ph.WeekDeltaUSDT.Add(ph.WeekDeltaUSDT, hol.WeekDeltaUSDT)

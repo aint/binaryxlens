@@ -860,7 +860,7 @@ td.trend.flat { color: #888; }
 		const active = [];
 		const exited = [];
 		holders.forEach(function (h) {
-			(deltaNumber(h.balance) === 0 ? exited : active).push(h);
+			(deltaNumber(h.tokenBalance) === 0 ? exited : active).push(h);
 		});
 		exited.sort(function (a, b) {
 			const week = deltaNumber(a.weekDeltaTokens) - deltaNumber(b.weekDeltaTokens);
@@ -890,7 +890,7 @@ td.trend.flat { color: #888; }
 			"<td class=\"num\">" + (i + 1) + "</td>" +
 			addressCell(h.address) +
 			names +
-			amountPair(h.balance, addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
+			amountPair(h.tokenBalance, addUSDT(h.initSaleUSDT, h.p2pUSDT), h.offPlatformP2P) +
 			amountPairOrDash(h.initialBought, h.initSaleUSDT) +
 			amountPairOrDash(h.p2pBought, h.p2pUSDT, h.offPlatformP2P) +
 			trendCell(h.weekDeltaTokens, h.weekDeltaUSDT) +
@@ -1224,7 +1224,7 @@ td.trend.flat { color: #888; }
 	function tierTokenTotals(holders) {
 		const totals = {};
 		holders.forEach(function (h) {
-			const n = Number(h.balance);
+			const n = Number(h.tokenBalance);
 			if (!isFinite(n) || n === 0) return;
 			totals[h.tier] = (totals[h.tier] || 0) + n;
 		});

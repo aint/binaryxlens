@@ -213,15 +213,15 @@ func buildPropertyHoldersPayload(property *binaryx.Property) ([]propertyHolderRo
 	holders := make([]propertyHolderRow, 0, len(property.Holders))
 	pcts := make([]float64, 0, len(property.Holders))
 	for _, h := range property.Holders {
-		pct := binaryx.PercentFloat(h.Balance, property.TotalSupplyRaw)
+		pct := binaryx.PercentFloat(h.TokenBalance(), property.TotalSupplyRaw)
 		tier := ""
-		if h.Balance.Sign() > 0 {
+		if h.TokenBalance().Sign() > 0 {
 			tier = holderTier(pct)
 			pcts = append(pcts, pct)
 		}
 		holders = append(holders, propertyHolderRow{
 			Address:          h.Address,
-			Balance:          binaryx.FormatBigInt(h.Balance, property.Decimal),
+			TokenBalance:     binaryx.FormatBigInt(h.TokenBalance(), property.Decimal),
 			WeekDeltaTokens:  binaryx.FormatDelta(h.WeekDeltaTokens, property.Decimal),
 			MonthDeltaTokens: binaryx.FormatDelta(h.MonthDeltaTokens, property.Decimal),
 			WeekDeltaUSDT:    binaryx.FormatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
@@ -417,7 +417,7 @@ type propertyETA struct {
 type projectHolderPayload struct {
 	Address          string   `json:"address"`
 	PropertyNames    []string `json:"propertyNames"`
-	Balance          string   `json:"balance"`
+	Balance          string   `json:"tokenBalance"`
 	WeekDeltaTokens  string   `json:"weekDeltaTokens"`
 	MonthDeltaTokens string   `json:"monthDeltaTokens"`
 	WeekDeltaUSDT    string   `json:"weekDeltaUSDT"`
@@ -435,7 +435,7 @@ type projectHolderPayload struct {
 
 type propertyHolderRow struct {
 	Address          string  `json:"address"`
-	Balance          string  `json:"balance"`
+	TokenBalance     string  `json:"tokenBalance"`
 	WeekDeltaTokens  string  `json:"weekDeltaTokens"`
 	MonthDeltaTokens string  `json:"monthDeltaTokens"`
 	WeekDeltaUSDT    string  `json:"weekDeltaUSDT"`
