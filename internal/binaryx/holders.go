@@ -246,7 +246,7 @@ func (pr *Project) BuildHolders() {
 					OffPlatformP2P:   hol.OffPlatformP2P,
 					Entered:          hol.Entered,
 					Exited:           hol.Exited,
-					WeeklyActivity:   hol.WeeklyActivity,
+					// WeeklyActivity:   hol.WeeklyActivity,
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -265,7 +265,7 @@ func (pr *Project) BuildHolders() {
 			ph.OffPlatformP2P = ph.OffPlatformP2P || hol.OffPlatformP2P
 			ph.Entered = earlierTime(ph.Entered, hol.Entered)
 			ph.Exited = laterTime(ph.Exited, hol.Exited)
-			ph.WeeklyActivity.Merge(hol.WeeklyActivity)
+			// ph.WeeklyActivity.Merge(hol.WeeklyActivity)
 		}
 	}
 
