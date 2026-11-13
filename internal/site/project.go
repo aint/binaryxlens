@@ -222,8 +222,8 @@ func buildPropertyHoldersPayload(property *binaryx.Property) ([]propertyHolderRo
 		holders = append(holders, propertyHolderRow{
 			Address:          h.Address,
 			TokenBalance:     binaryx.FormatBigInt(h.TokenBalance(), property.Decimal),
-			WeekDeltaTokens:  binaryx.FormatDelta(h.WeekDeltaTokens, property.Decimal),
-			MonthDeltaTokens: binaryx.FormatDelta(h.MonthDeltaTokens, property.Decimal),
+			WeekDeltaTokens:  binaryx.FormatDelta(h.TokenWeekDelta(), property.Decimal),
+			MonthDeltaTokens: binaryx.FormatDelta(h.TokenMonthDelta(), property.Decimal),
 			WeekDeltaUSDT:    binaryx.FormatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
 			MonthDeltaUSDT:   binaryx.FormatDelta(h.MonthDeltaUSDT, polygonscan.USDTDecimal),
 			InitialBought:    binaryx.FormatBigInt(h.InitialBought, property.Decimal),
