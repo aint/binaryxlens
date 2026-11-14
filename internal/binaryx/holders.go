@@ -11,8 +11,6 @@ const zeroAddr0x = "0x0000000000000000000000000000000000000000"
 
 type Holder struct {
 	Address        string
-	WeekDeltaUSDT  *big.Int
-	MonthDeltaUSDT *big.Int
 	InitialBought  *big.Int
 	P2PBought      *big.Int
 	InitSaleUSDT   *big.Int
@@ -105,16 +103,34 @@ func (h *Holder) TokenMonthDelta() *big.Int {
 	return delta
 }
 
-func (p *Property) buildHolders() {
-	now := time.Now().UTC()
-	weekAgo := now.AddDate(0, 0, -7)
-	monthAgo := now.AddDate(0, 0, -30)
+func (h *Holder) UsdtWeekDelta() *big.Int {
+	delta := big.NewInt(0)
+	week := NewWeek(time.Now().UTC())
+	activity := h.WeeklyActivity[week]
+	if activity == nil {
+		return delta
+	}
+	return delta.Add(activity.UsdtIn, activity.UsdtOut)
+}
 
+func (h *Holder) UsdtMonthDelta() *big.Int {
+	now := time.Now().UTC()
+	delta := big.NewInt(0)
+	for i := range 5 {
+		week := NewWeek(now.AddDate(0, 0, -i*7))
+		activity := h.WeeklyActivity[week]
+		if activity == nil {
+			continue
+		}
+		delta.Add(activity.UsdtIn, activity.UsdtOut)
+	}
+	return delta
+}
+
+func (p *Property) buildHolders() {
 	holderMap := make(map[string]*Holder)
 	for _, t := range p.transfers {
 		v := t.Value
-		inWeek := !t.Time.Before(weekAgo)
-		inMonth := !t.Time.Before(monthAgo)
 		week := NewWeek(t.Time)
 
 		// tokens sent from t.From (balance goes down)
@@ -123,7 +139,7 @@ func (p *Property) buildHolders() {
 			if p.isP2PTransfer(t.From, t.To) {
 				paid = negBigInt(t.USDT)
 			}
-			updateHolder(holderMap, t.From, new(big.Int).Neg(v), paid, week, inWeek, inMonth)
+			updateHolder(holderMap, t.From, new(big.Int).Neg(v), paid, week)
 			from := holderMap[t.From]
 			if from.TokenBalance().Sign() == 0 {
 				from.Exited = t.Time
@@ -133,7 +149,7 @@ func (p *Property) buildHolders() {
 		if t.To != zeroAddr0x && t.To != p.Address {
 			to := holderMap[t.To]
 			opening := to == nil || to.TokenBalance().Sign() == 0
-			updateHolder(holderMap, t.To, v, t.USDT, week, inWeek, inMonth)
+			updateHolder(holderMap, t.To, v, t.USDT, week)
 			to = holderMap[t.To]
 			if opening {
 				to.Entered = t.Time
@@ -165,7 +181,7 @@ func (p *Property) buildHolders() {
 	holders := make([]Holder, 0, len(holderMap))
 	for _, address := range keys {
 		h := holderMap[address]
-		if h.TokenBalance().Sign() == 0 && h.TokenMonthDelta().Sign() == 0 && h.MonthDeltaUSDT.Sign() == 0 {
+		if h.TokenBalance().Sign() == 0 && h.TokenMonthDelta().Sign() == 0 {
 			continue
 		}
 		holders = append(holders, *h)
@@ -174,13 +190,11 @@ func (p *Property) buildHolders() {
 	p.Holders = holders
 }
 
-func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week Week, inWeek, inMonth bool) {
+func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week Week) {
 	h := m[addr]
 	if h == nil {
 		h = &Holder{
 			Address:        addr,
-			WeekDeltaUSDT:  big.NewInt(0),
-			MonthDeltaUSDT: big.NewInt(0),
 			InitialBought:  big.NewInt(0),
 			P2PBought:      big.NewInt(0),
 			InitSaleUSDT:   big.NewInt(0),
@@ -188,16 +202,6 @@ func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week
 			WeeklyActivity: make(WeeklyActivity),
 		}
 		m[addr] = h
-	}
-	if inWeek {
-		if usdt != nil {
-			h.WeekDeltaUSDT.Add(h.WeekDeltaUSDT, usdt)
-		}
-	}
-	if inMonth {
-		if usdt != nil {
-			h.MonthDeltaUSDT.Add(h.MonthDeltaUSDT, usdt)
-		}
 	}
 
 	activity := h.WeeklyActivity[week]
@@ -237,8 +241,8 @@ func (pr *Project) BuildHolders() {
 					TotalBalance:     new(big.Int).Set(hol.TokenBalance()),
 					WeekDeltaTokens:  new(big.Int).Set(hol.TokenWeekDelta()),
 					MonthDeltaTokens: new(big.Int).Set(hol.TokenMonthDelta()),
-					WeekDeltaUSDT:    new(big.Int).Set(hol.WeekDeltaUSDT),
-					MonthDeltaUSDT:   new(big.Int).Set(hol.MonthDeltaUSDT),
+					WeekDeltaUSDT:    new(big.Int).Set(hol.UsdtWeekDelta()),
+					MonthDeltaUSDT:   new(big.Int).Set(hol.UsdtMonthDelta()),
 					InitialBought:    new(big.Int).Set(hol.InitialBought),
 					P2PBought:        new(big.Int).Set(hol.P2PBought),
 					InitSaleUSDT:     new(big.Int).Set(hol.InitSaleUSDT),
@@ -256,8 +260,8 @@ func (pr *Project) BuildHolders() {
 			ph.TotalBalance.Add(ph.TotalBalance, hol.TokenBalance())
 			ph.WeekDeltaTokens.Add(ph.WeekDeltaTokens, hol.TokenWeekDelta())
 			ph.MonthDeltaTokens.Add(ph.MonthDeltaTokens, hol.TokenMonthDelta())
-			ph.WeekDeltaUSDT.Add(ph.WeekDeltaUSDT, hol.WeekDeltaUSDT)
-			ph.MonthDeltaUSDT.Add(ph.MonthDeltaUSDT, hol.MonthDeltaUSDT)
+			ph.WeekDeltaUSDT.Add(ph.WeekDeltaUSDT, hol.UsdtWeekDelta())
+			ph.MonthDeltaUSDT.Add(ph.MonthDeltaUSDT, hol.UsdtMonthDelta())
 			ph.InitialBought.Add(ph.InitialBought, hol.InitialBought)
 			ph.P2PBought.Add(ph.P2PBought, hol.P2PBought)
 			ph.InitSaleUSDT.Add(ph.InitSaleUSDT, hol.InitSaleUSDT)
