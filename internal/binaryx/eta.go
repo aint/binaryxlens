@@ -92,14 +92,14 @@ func (p *Property) calculateCompletedSaleDates() error {
 	end := pts[len(pts)-1].Week
 	days := inclusiveUTCDays(start, end.AddDate(0, 0, 6))
 	if days <= 0 {
-		return fmt.Errorf("invalid sale period: %s – %s", start.Format(TimeDateOnly), end.Format(TimeDateOnly))
+		return fmt.Errorf("invalid sale period: %s - %s", start.Format(time.DateOnly), end.Format(time.DateOnly))
 	}
 
 	avgRat := new(big.Rat).SetFrac(new(big.Int).Set(p.TotalSupplyRaw), big.NewInt(int64(len(pts))))
 	p.ETAs = []ETA{{
 		Days:   days,
 		Rate:   FormatBigRat(avgRat, p.Decimal, 1),
-		Window: fmt.Sprintf("%s – %s", start.Format(TimeDateOnly), end.Format(TimeDateOnly)),
+		Window: fmt.Sprintf("%s - %s", start.Format(time.DateOnly), end.Format(time.DateOnly)),
 	}}
 
 	return nil

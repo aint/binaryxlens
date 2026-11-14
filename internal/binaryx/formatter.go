@@ -7,13 +7,11 @@ import (
 	"time"
 )
 
-const TimeDateOnly = "2006-01-02"
-
 func FormatDate(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	return t.UTC().Format(TimeDateOnly)
+	return t.UTC().Format(time.DateOnly)
 }
 
 // FormatBigInt prints a token or USDT amount with two decimal places.

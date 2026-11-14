@@ -37,7 +37,7 @@ func GenerateReport(pr *binaryx.Project) error {
 	holders, tierStats := buildHoldersPayload(pr)
 	env := projectEnvelope{
 		Name:        pr.Name,
-		GeneratedAt: time.Now().UTC().Format(binaryx.TimeDateOnly),
+		GeneratedAt: time.Now().UTC().Format(time.DateOnly),
 		Summary:     buildSummary(pr),
 		Properties:  payloads,
 		Holders:     holders,
@@ -117,7 +117,7 @@ func buildPropertyReportPayload(property *binaryx.Property) (propertyReportPaylo
 	}
 
 	for _, p := range initialSaleWeeklyPoints {
-		payload.Initial.Labels = append(payload.Initial.Labels, p.Week.UTC().Format(binaryx.TimeDateOnly))
+		payload.Initial.Labels = append(payload.Initial.Labels, p.Week.UTC().Format(time.DateOnly))
 		payload.Initial.Weekly = append(payload.Initial.Weekly, binaryx.BigIntToFloat(p.Value, property.Decimal))
 		payload.Initial.Cumulative = append(payload.Initial.Cumulative, binaryx.BigIntToFloat(p.CumValue, property.Decimal))
 	}
@@ -130,7 +130,7 @@ func buildPropertyReportPayload(property *binaryx.Property) (propertyReportPaylo
 		})
 	}
 	for _, p := range p2pWeeklyPoints {
-		payload.Secondary.Labels = append(payload.Secondary.Labels, p.Week.UTC().Format(binaryx.TimeDateOnly))
+		payload.Secondary.Labels = append(payload.Secondary.Labels, p.Week.UTC().Format(time.DateOnly))
 		payload.Secondary.Weekly = append(payload.Secondary.Weekly, binaryx.BigIntToFloat(p.Value, property.Decimal))
 		payload.Secondary.Cumulative = append(payload.Secondary.Cumulative, binaryx.BigIntToFloat(p.CumValue, property.Decimal))
 	}
