@@ -48,7 +48,7 @@ func globalHolders(projects []*binaryx.Project) []globalHolder {
 				byAddress[h.Address] = g
 			}
 			g.MonthDeltaUSDT.Add(g.MonthDeltaUSDT, h.MonthDeltaUSDT)
-			if h.TotalBalance.Sign() <= 0 {
+			if h.Tokens.Total.Sign() <= 0 {
 				continue
 			}
 			for name, bal := range h.PropertyBalances {
@@ -57,8 +57,8 @@ func globalHolders(projects []*binaryx.Project) []globalHolder {
 				}
 				g.Properties = append(g.Properties, holderProperty{Name: name, Project: pr.Name})
 			}
-			g.TotalUSDT.Add(g.TotalUSDT, h.InitSaleUSDT)
-			g.TotalUSDT.Add(g.TotalUSDT, h.P2PUSDT)
+			g.TotalUSDT.Add(g.TotalUSDT, h.USDT.InitSale)
+			g.TotalUSDT.Add(g.TotalUSDT, h.USDT.P2P)
 			g.OffPlatform = g.OffPlatform || h.OffPlatformP2P
 		}
 	}

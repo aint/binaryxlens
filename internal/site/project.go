@@ -213,23 +213,23 @@ func buildPropertyHoldersPayload(property *binaryx.Property) ([]propertyHolderRo
 	holders := make([]propertyHolderRow, 0, len(property.Holders))
 	pcts := make([]float64, 0, len(property.Holders))
 	for _, h := range property.Holders {
-		pct := binaryx.PercentFloat(h.TokenBalance(), property.TotalSupplyRaw)
+		pct := binaryx.PercentFloat(h.Tokens.Total, property.TotalSupplyRaw)
 		tier := ""
-		if h.TokenBalance().Sign() > 0 {
+		if h.Tokens.Total.Sign() > 0 {
 			tier = holderTier(pct)
 			pcts = append(pcts, pct)
 		}
 		holders = append(holders, propertyHolderRow{
 			Address:          h.Address,
-			TokenBalance:     binaryx.FormatBigInt(h.TokenBalance(), property.Decimal),
+			TokenBalance:     binaryx.FormatBigInt(h.Tokens.Total, property.Decimal),
 			WeekDeltaTokens:  binaryx.FormatDelta(h.TokenWeekDelta(), property.Decimal),
 			MonthDeltaTokens: binaryx.FormatDelta(h.TokenMonthDelta(), property.Decimal),
 			WeekDeltaUSDT:    binaryx.FormatDelta(h.UsdtWeekDelta(), polygonscan.USDTDecimal),
 			MonthDeltaUSDT:   binaryx.FormatDelta(h.UsdtMonthDelta(), polygonscan.USDTDecimal),
-			InitialBought:    binaryx.FormatBigInt(h.InitialBought, property.Decimal),
-			P2PBought:        binaryx.FormatBigInt(h.P2PBought, property.Decimal),
-			InitSaleUSDT:     binaryx.FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
-			P2PUSDT:          binaryx.FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
+			InitialBought:    binaryx.FormatBigInt(h.Tokens.InitSale, property.Decimal),
+			P2PBought:        binaryx.FormatBigInt(h.Tokens.P2P, property.Decimal),
+			InitSaleUSDT:     binaryx.FormatBigInt(h.USDT.InitSale, polygonscan.USDTDecimal),
+			P2PUSDT:          binaryx.FormatBigInt(h.USDT.P2P, polygonscan.USDTDecimal),
 			OffPlatformP2P:   h.OffPlatformP2P,
 			SupplyPct:        pct,
 			Tier:             tier,
@@ -244,24 +244,24 @@ func buildHoldersPayload(pr *binaryx.Project) ([]projectHolderPayload, []tierSta
 	holders := make([]projectHolderPayload, 0, len(pr.Holders))
 	pcts := make([]float64, 0, len(pr.Holders))
 	for _, h := range pr.Holders {
-		pct := binaryx.PercentFloat(h.TotalBalance, pr.TotalSupplyRaw)
+		pct := binaryx.PercentFloat(h.Tokens.Total, pr.TotalSupplyRaw)
 		tier := ""
-		if h.TotalBalance.Sign() > 0 {
+		if h.Tokens.Total.Sign() > 0 {
 			tier = holderTier(pct)
 			pcts = append(pcts, pct)
 		}
 		holders = append(holders, projectHolderPayload{
 			Address:          h.Address,
 			PropertyNames:    slices.Sorted(maps.Keys(h.PropertyBalances)),
-			Balance:          binaryx.FormatBigInt(h.TotalBalance, pr.Decimal),
+			Balance:          binaryx.FormatBigInt(h.Tokens.Total, pr.Decimal),
 			WeekDeltaTokens:  binaryx.FormatDelta(h.WeekDeltaTokens, pr.Decimal),
 			MonthDeltaTokens: binaryx.FormatDelta(h.MonthDeltaTokens, pr.Decimal),
 			WeekDeltaUSDT:    binaryx.FormatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
 			MonthDeltaUSDT:   binaryx.FormatDelta(h.MonthDeltaUSDT, polygonscan.USDTDecimal),
-			InitialBought:    binaryx.FormatBigInt(h.InitialBought, pr.Decimal),
-			P2PBought:        binaryx.FormatBigInt(h.P2PBought, pr.Decimal),
-			InitSaleUSDT:     binaryx.FormatBigInt(h.InitSaleUSDT, polygonscan.USDTDecimal),
-			P2PUSDT:          binaryx.FormatBigInt(h.P2PUSDT, polygonscan.USDTDecimal),
+			InitialBought:    binaryx.FormatBigInt(h.Tokens.InitSale, pr.Decimal),
+			P2PBought:        binaryx.FormatBigInt(h.Tokens.P2P, pr.Decimal),
+			InitSaleUSDT:     binaryx.FormatBigInt(h.USDT.InitSale, polygonscan.USDTDecimal),
+			P2PUSDT:          binaryx.FormatBigInt(h.USDT.P2P, polygonscan.USDTDecimal),
 			OffPlatformP2P:   h.OffPlatformP2P,
 			SupplyPct:        pct,
 			Tier:             tier,
