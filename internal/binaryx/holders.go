@@ -18,7 +18,7 @@ type Holder struct {
 	OffPlatformP2P bool
 	Entered        time.Time
 	Exited         time.Time
-	WeeklyActivity WeeklyActivity
+	DailyActivity  DailyActivity
 }
 
 type ProjectHolder struct {
@@ -36,10 +36,9 @@ type ProjectHolder struct {
 	OffPlatformP2P   bool
 	Entered          time.Time
 	Exited           time.Time
-	WeeklyActivity   WeeklyActivity
 }
 
-type WeeklyActivity map[Week]*Activity
+type DailyActivity map[Day]*Activity
 
 type Activity struct {
 	TokensIn  *big.Int
@@ -48,81 +47,64 @@ type Activity struct {
 	UsdtOut   *big.Int
 }
 
-type Week time.Time
+type Day time.Time
 
-// NewWeek creates a new time instant at Monday 00:00 UTC
-func NewWeek(t time.Time) Week {
-	t = t.UTC().Truncate(24 * time.Hour)
-	offset := (int(t.Weekday()) + 6) % 7
-	return Week(t.AddDate(0, 0, -offset))
-}
-
-func (a WeeklyActivity) Merge(a2 WeeklyActivity) {
-	for k, v := range a2 {
-		if _, exists := a[k]; !exists {
-			a[k] = v
-			continue
-		}
-		a[k].TokensIn.Add(a[k].TokensIn, v.TokensIn)
-		a[k].TokensOut.Add(a[k].TokensOut, v.TokensOut)
-		a[k].UsdtIn.Add(a[k].UsdtIn, v.UsdtIn)
-		a[k].UsdtOut.Add(a[k].UsdtOut, v.UsdtOut)
-	}
+// NewDay creates a new time instant at 00:00 UTC
+func NewDay(t time.Time) Day {
+	return Day(t.UTC().Truncate(24 * time.Hour))
 }
 
 func (h *Holder) TokenBalance() *big.Int {
 	tokens := big.NewInt(0)
-	for _, v := range h.WeeklyActivity {
-		tokens.Add(tokens, v.TokensIn)
-		tokens.Add(tokens, v.TokensOut)
+	for _, a := range h.DailyActivity {
+		tokens.Add(tokens, a.TokensIn)
+		tokens.Add(tokens, a.TokensOut)
 	}
 	return tokens
 }
 
 func (h *Holder) TokenWeekDelta() *big.Int {
-	delta := big.NewInt(0)
-	week := NewWeek(time.Now().UTC())
-	activity := h.WeeklyActivity[week]
-	if activity == nil {
-		return delta
-	}
-	return delta.Add(activity.TokensIn, activity.TokensOut)
+	return h.tokenDelta(7)
 }
 
 func (h *Holder) TokenMonthDelta() *big.Int {
+	return h.tokenDelta(30)
+}
+
+func (h *Holder) tokenDelta(days int) *big.Int {
 	now := time.Now().UTC()
 	delta := big.NewInt(0)
-	for i := range 5 {
-		week := NewWeek(now.AddDate(0, 0, -i*7))
-		activity := h.WeeklyActivity[week]
+	for i := range days {
+		day := NewDay(now.AddDate(0, 0, -i))
+		activity := h.DailyActivity[day]
 		if activity == nil {
 			continue
 		}
-		delta.Add(activity.TokensIn, activity.TokensOut)
+		delta.Add(delta, activity.TokensIn)
+		delta.Add(delta, activity.TokensOut)
 	}
 	return delta
 }
 
 func (h *Holder) UsdtWeekDelta() *big.Int {
-	delta := big.NewInt(0)
-	week := NewWeek(time.Now().UTC())
-	activity := h.WeeklyActivity[week]
-	if activity == nil {
-		return delta
-	}
-	return delta.Add(activity.UsdtIn, activity.UsdtOut)
+	return h.usdtDelta(7)
 }
 
 func (h *Holder) UsdtMonthDelta() *big.Int {
+	return h.usdtDelta(30)
+}
+
+func (h *Holder) usdtDelta(days int) *big.Int {
 	now := time.Now().UTC()
 	delta := big.NewInt(0)
-	for i := range 5 {
-		week := NewWeek(now.AddDate(0, 0, -i*7))
-		activity := h.WeeklyActivity[week]
+	for i := range days {
+		day := NewDay(now.AddDate(0, 0, -i))
+		activity := h.DailyActivity[day]
 		if activity == nil {
 			continue
 		}
-		delta.Add(activity.UsdtIn, activity.UsdtOut)
+		delta.Add(delta, activity.UsdtIn)
+		delta.Add(delta, activity.UsdtOut)
 	}
 	return delta
 }
@@ -131,7 +113,7 @@ func (p *Property) buildHolders() {
 	holderMap := make(map[string]*Holder)
 	for _, t := range p.transfers {
 		v := t.Value
-		week := NewWeek(t.Time)
+		day := NewDay(t.Time)
 
 		// tokens sent from t.From (balance goes down)
 		if t.From != zeroAddr0x && t.From != p.Address {
@@ -139,7 +121,7 @@ func (p *Property) buildHolders() {
 			if p.isP2PTransfer(t.From, t.To) {
 				paid = negBigInt(t.USDT)
 			}
-			updateHolder(holderMap, t.From, new(big.Int).Neg(v), paid, week)
+			updateActivity(holderMap, t.From, new(big.Int).Neg(v), paid, day)
 			from := holderMap[t.From]
 			if from.TokenBalance().Sign() == 0 {
 				from.Exited = t.Time
@@ -149,7 +131,7 @@ func (p *Property) buildHolders() {
 		if t.To != zeroAddr0x && t.To != p.Address {
 			to := holderMap[t.To]
 			opening := to == nil || to.TokenBalance().Sign() == 0
-			updateHolder(holderMap, t.To, v, t.USDT, week)
+			updateActivity(holderMap, t.To, v, t.USDT, day)
 			to = holderMap[t.To]
 			if opening {
 				to.Entered = t.Time
@@ -190,7 +172,7 @@ func (p *Property) buildHolders() {
 	p.Holders = holders
 }
 
-func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week Week) {
+func updateActivity(m map[string]*Holder, addr string, tokens, usdt *big.Int, day Day) {
 	h := m[addr]
 	if h == nil {
 		h = &Holder{
@@ -199,12 +181,12 @@ func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week
 			P2PBought:      big.NewInt(0),
 			InitSaleUSDT:   big.NewInt(0),
 			P2PUSDT:        big.NewInt(0),
-			WeeklyActivity: make(WeeklyActivity),
+			DailyActivity:  make(DailyActivity),
 		}
 		m[addr] = h
 	}
 
-	activity := h.WeeklyActivity[week]
+	activity := h.DailyActivity[day]
 	if activity == nil {
 		activity = &Activity{
 			TokensIn:  big.NewInt(0),
@@ -212,7 +194,7 @@ func updateHolder(m map[string]*Holder, addr string, tokens, usdt *big.Int, week
 			UsdtOut:   big.NewInt(0),
 			UsdtIn:    big.NewInt(0),
 		}
-		h.WeeklyActivity[week] = activity
+		h.DailyActivity[day] = activity
 	}
 	if tokens.Sign() > 0 {
 		activity.TokensIn.Add(activity.TokensIn, tokens)
@@ -250,7 +232,6 @@ func (pr *Project) BuildHolders() {
 					OffPlatformP2P:   hol.OffPlatformP2P,
 					Entered:          hol.Entered,
 					Exited:           hol.Exited,
-					// WeeklyActivity:   hol.WeeklyActivity,
 				}
 				projectHolderMap[hol.Address] = ph
 				continue
@@ -269,7 +250,6 @@ func (pr *Project) BuildHolders() {
 			ph.OffPlatformP2P = ph.OffPlatformP2P || hol.OffPlatformP2P
 			ph.Entered = earlierTime(ph.Entered, hol.Entered)
 			ph.Exited = laterTime(ph.Exited, hol.Exited)
-			// ph.WeeklyActivity.Merge(hol.WeeklyActivity)
 		}
 	}
 
