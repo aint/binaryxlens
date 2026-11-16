@@ -222,6 +222,7 @@ func buildPropertyHoldersPayload(property *binaryx.Property) ([]propertyHolderRo
 		holders = append(holders, propertyHolderRow{
 			Address:          h.Address,
 			TokenBalance:     binaryx.FormatBigInt(h.Tokens.Total, property.Decimal),
+			TotalUSDT:        binaryx.FormatBigInt(h.USDT.Total, polygonscan.USDTDecimal),
 			WeekDeltaTokens:  binaryx.FormatDelta(h.TokenWeekDelta(), property.Decimal),
 			MonthDeltaTokens: binaryx.FormatDelta(h.TokenMonthDelta(), property.Decimal),
 			WeekDeltaUSDT:    binaryx.FormatDelta(h.UsdtWeekDelta(), polygonscan.USDTDecimal),
@@ -254,6 +255,7 @@ func buildHoldersPayload(pr *binaryx.Project) ([]projectHolderPayload, []tierSta
 			Address:          h.Address,
 			PropertyNames:    slices.Sorted(maps.Keys(h.PropertyBalances)),
 			Balance:          binaryx.FormatBigInt(h.Tokens.Total, pr.Decimal),
+			TotalUSDT:        binaryx.FormatBigInt(h.USDT.Total, polygonscan.USDTDecimal),
 			WeekDeltaTokens:  binaryx.FormatDelta(h.WeekDeltaTokens, pr.Decimal),
 			MonthDeltaTokens: binaryx.FormatDelta(h.MonthDeltaTokens, pr.Decimal),
 			WeekDeltaUSDT:    binaryx.FormatDelta(h.WeekDeltaUSDT, polygonscan.USDTDecimal),
@@ -418,6 +420,7 @@ type projectHolderPayload struct {
 	Address          string   `json:"address"`
 	PropertyNames    []string `json:"propertyNames"`
 	Balance          string   `json:"tokenBalance"`
+	TotalUSDT        string   `json:"totalUSDT"`
 	WeekDeltaTokens  string   `json:"weekDeltaTokens"`
 	MonthDeltaTokens string   `json:"monthDeltaTokens"`
 	WeekDeltaUSDT    string   `json:"weekDeltaUSDT"`
@@ -436,6 +439,7 @@ type projectHolderPayload struct {
 type propertyHolderRow struct {
 	Address          string  `json:"address"`
 	TokenBalance     string  `json:"tokenBalance"`
+	TotalUSDT        string  `json:"totalUSDT"`
 	WeekDeltaTokens  string  `json:"weekDeltaTokens"`
 	MonthDeltaTokens string  `json:"monthDeltaTokens"`
 	WeekDeltaUSDT    string  `json:"weekDeltaUSDT"`
