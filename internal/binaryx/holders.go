@@ -31,6 +31,7 @@ type ProjectHolder struct {
 	OffPlatformP2P   bool
 	Entered          time.Time
 	Exited           time.Time
+	DailyActivity    DailyActivity
 }
 
 type Balance struct {
@@ -240,13 +241,15 @@ func (pr *Project) BuildHolders() {
 					MonthDeltaTokens: big.NewInt(0),
 					WeekDeltaUSDT:    big.NewInt(0),
 					MonthDeltaUSDT:   big.NewInt(0),
+					DailyActivity:    make(DailyActivity),
 				}
 				projectHolderMap[hol.Address] = ph
 			}
 
-			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.Tokens.Total)
 			addBalance(ph.Tokens, hol.Tokens)
 			addBalance(ph.USDT, hol.USDT)
+			MergeActivities(ph.DailyActivity, hol.DailyActivity)
+			ph.PropertyBalances[property.Name] = new(big.Int).Set(hol.Tokens.Total)
 			ph.WeekDeltaTokens.Add(ph.WeekDeltaTokens, hol.TokenWeekDelta())
 			ph.MonthDeltaTokens.Add(ph.MonthDeltaTokens, hol.TokenMonthDelta())
 			ph.WeekDeltaUSDT.Add(ph.WeekDeltaUSDT, hol.UsdtWeekDelta())
@@ -274,6 +277,25 @@ func addBalance(dst, src *Balance) {
 	dst.P2P.Add(dst.P2P, src.P2P)
 	if src.Max.Cmp(dst.Max) > 0 {
 		dst.Max.Set(src.Max)
+	}
+}
+
+func MergeActivities(dst, src DailyActivity) {
+	for day, srcActivity := range src {
+		dstActivity := dst[day]
+		if dstActivity != nil {
+			dstActivity.TokensIn.Add(dstActivity.TokensIn, srcActivity.TokensIn)
+			dstActivity.TokensOut.Add(dstActivity.TokensOut, srcActivity.TokensOut)
+			dstActivity.UsdtIn.Add(dstActivity.UsdtIn, srcActivity.UsdtIn)
+			dstActivity.UsdtOut.Add(dstActivity.UsdtOut, srcActivity.UsdtOut)
+		} else {
+			dst[day] = &Activity{
+				TokensIn:  new(big.Int).Set(srcActivity.TokensIn),
+				TokensOut: new(big.Int).Set(srcActivity.TokensOut),
+				UsdtIn:    new(big.Int).Set(srcActivity.UsdtIn),
+				UsdtOut:   new(big.Int).Set(srcActivity.UsdtOut),
+			}
+		}
 	}
 }
 

@@ -29,6 +29,7 @@ type globalHolder struct {
 	TotalUSDT      *big.Int
 	MonthDeltaUSDT *big.Int
 	OffPlatform    bool
+	DailyActivity  binaryx.DailyActivity
 }
 
 func WriteHolders(path string, updated time.Time, projects []*binaryx.Project) error {
@@ -44,9 +45,16 @@ func globalHolders(projects []*binaryx.Project) []globalHolder {
 		for _, h := range pr.Holders {
 			g := byAddress[h.Address]
 			if g == nil {
-				g = &globalHolder{Address: h.Address, TotalUSDT: big.NewInt(0), MonthDeltaUSDT: big.NewInt(0)}
+				g = &globalHolder{
+					Address:        h.Address,
+					TotalUSDT:      big.NewInt(0),
+					MonthDeltaUSDT: big.NewInt(0),
+					DailyActivity:  make(binaryx.DailyActivity),
+				}
 				byAddress[h.Address] = g
 			}
+
+			binaryx.MergeActivities(g.DailyActivity, h.DailyActivity)
 			g.MonthDeltaUSDT.Add(g.MonthDeltaUSDT, h.MonthDeltaUSDT)
 			if h.Tokens.Total.Sign() <= 0 {
 				continue
@@ -57,8 +65,7 @@ func globalHolders(projects []*binaryx.Project) []globalHolder {
 				}
 				g.Properties = append(g.Properties, holderProperty{Name: name, Project: pr.Name})
 			}
-			g.TotalUSDT.Add(g.TotalUSDT, h.USDT.InitSale)
-			g.TotalUSDT.Add(g.TotalUSDT, h.USDT.P2P)
+			g.TotalUSDT.Add(g.TotalUSDT, h.USDT.Total)
 			g.OffPlatform = g.OffPlatform || h.OffPlatformP2P
 		}
 	}
