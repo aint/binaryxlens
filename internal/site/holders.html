@@ -230,6 +230,15 @@
       search.placeholder = t("search.holdersPlaceholder");
       const queryParam = new URLSearchParams(location.search).get("q");
       if (queryParam) search.value = queryParam;
+      rows.forEach(function (row) {
+        const addressEl = row.querySelector(".address");
+        const address = addressEl.textContent.trim();
+        addressEl.dataset.fullAddress = address;
+        addressEl.title = address;
+        if (address.length > 14) {
+          addressEl.textContent = address.slice(0, 8) + "..." + address.slice(-6);
+        }
+      });
       document.querySelectorAll("#holders-body .usdt").forEach(function (el) {
         el.textContent = Number(el.textContent).toLocaleString(window.i18n.lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       });
@@ -257,8 +266,10 @@
         const query = search.value.trim().toLowerCase();
         let shown = 0;
         rows.forEach(function (row) {
-          const address = row.querySelector(".address").textContent.trim().toLowerCase();
-          const match = row.textContent.toLowerCase().indexOf(query) !== -1 && (!limit || shown < limit);
+          const addressEl = row.querySelector(".address");
+          const address = addressEl.dataset.fullAddress.toLowerCase();
+          const rowText = row.textContent.toLowerCase().replace(addressEl.textContent.toLowerCase(), address);
+          const match = rowText.indexOf(query) !== -1 && (!limit || shown < limit);
           row.hidden = !match;
           row.classList.toggle("is-target", match && query !== "" && address === query);
           if (match) shown += 1;
