@@ -1,0 +1,23 @@
+.lang-switch {
+	display: flex;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.lang-switch button {
+	font: inherit;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 2px 8px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	color: #444;
+	cursor: pointer;
+}
+
+.lang-switch button[aria-pressed="true"] {
+	background: #1a1a1a;
+	border-color: #1a1a1a;
+	color: #fff;
+}
