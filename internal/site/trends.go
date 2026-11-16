@@ -36,9 +36,7 @@ type trend struct {
 
 func WriteTrends(path string, updated time.Time, projects []*binaryx.Project) error {
 	payload := []byte(trendHTML(projects))
-	template := bytes.ReplaceAll(trendsTemplateSrc, propertyYieldTrendsPlaceholder, []byte(propertyYieldTrendsHTML(projects)))
-	template = bytes.ReplaceAll(template, p2pTrendsPlaceholder, []byte(p2pTrendsHTML(projects)))
-	return write(path, updated, template, trendsPlaceholder, payload)
+	return write(path, updated, trendsTemplateSrc, trendsPlaceholder, payload)
 }
 
 func trendHTML(projects []*binaryx.Project) string {
