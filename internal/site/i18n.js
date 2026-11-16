@@ -10,8 +10,8 @@
 			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
 
-			"trends.monthDelta": "Month Δ",
-			"trends.monthDeltaNote": "USDT change over the last 30 days.",
+			"trends.monthDelta": "90-day Δ",
+			"trends.monthDeltaNote": "Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.",
 			"trends.type": "Type",
 			"trends.type.150k+": "Holders with 150K+ USDT invested",
 			"trends.type.50k-150k": "Holders with 50K-150K USDT invested",
@@ -161,8 +161,8 @@
 			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
 
-			"trends.monthDelta": "Місяць Δ",
-			"trends.monthDeltaNote": "Зміна USDT за останні 30 днів.",
+			"trends.monthDelta": "Δ за 90 днів",
+			"trends.monthDeltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 90 днів на графіку; графік розбиває її на три 30-денні періоди.",
 			"trends.type": "Тип",
 			"trends.type.150k+": "Власники, які інвестували більше 150 тисяч USDT",
 			"trends.type.50k-150k": "Власники, які інвестували 50-150 тисяч USDT",

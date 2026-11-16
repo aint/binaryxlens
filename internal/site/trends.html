@@ -180,6 +180,8 @@
     .delta.up { color: #1d6b3a; }
     .delta.down { color: #b42318; }
     .delta.flat { color: #555; }
+    .trend-metrics { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .spark { display: block; width: 200px; height: 24px; }
     .item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .name { font-weight: 550; }
     .props { color: #555; font-size: 0.8rem; }
@@ -244,11 +246,11 @@
       <button type="button" id="show-holders"  role="tab" aria-selected="false"  data-i18n="header.holdersButton">Holders</button>
       <button type="button" id="show-trends"   role="tab" aria-selected="true"   data-i18n="header.trendsButton">Trends</button>
     </div>
-    <p class="trends-note" data-i18n="trends.monthDeltaNote">USDT change over the last 30 days.</p>
+    <p class="trends-note" data-i18n="trends.monthDeltaNote">Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.</p>
     <nav>
       <div class="trend-head">
         <span data-i18n="trends.type">Type</span>
-        <span data-i18n="trends.monthDelta">Month Δ</span>
+        <span data-i18n="trends.monthDelta">90-day Δ</span>
       </div>
       __TRENDS__
     </nav>
@@ -257,6 +259,12 @@
   <script>__I18N_SCRIPT__</script>
   <script>
     (function () {
+      document.querySelectorAll(".delta-number").forEach(function (el) {
+        el.textContent = Number(el.textContent).toLocaleString(window.i18n.lang, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      });
       document.getElementById('show-projects').addEventListener('click', function () {
         window.location.href = 'index.html';
       });
