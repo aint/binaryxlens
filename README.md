@@ -66,7 +66,7 @@ Open `index.html` in a browser.
 
 ### Signals
 
-- [ ] Insider trades — platform staff wallets (e.g. `0xdf24253c84f16aac030917c2672720b11610e109`).
+- [x] Insider trades — platform staff wallets (e.g. `0xdf24253c84f16aac030917c2672720b11610e109`).
 - [ ] Platform entry and exit — new and fully exited investors.
 
 ### Analytics
@@ -74,14 +74,14 @@ Open `index.html` in a browser.
 - [ ] Side-by-side property or project comparison.
 - [ ] Sell-out ETA — linear interpolation model in addition to current projections.
 - [ ] Developers — track real-estate developers and delivery terms.
-- [ ] Actual ARR and ROI per property.
+- [x] Actual ARR and ROI per property.
 - [ ] Rent consistency — posted rent vs promised amount; flag missed or skipped months.
 
 ### Property report
 
 - [ ] Show token count (supply) per property on the report.
 - [ ] Explain rent-delay scoring (expected vs actual quarters).
-- [ ] Binaryx initial sale price vs current implied price (from latest token pricing).
+- [x] Binaryx initial sale price vs current implied price (from latest token pricing).
 
 ### UI
 
