@@ -13,9 +13,9 @@ func scoredProperty() *Property {
 		MarketLowValue:  1_000_000,
 		MarketHighValue: 1_000_000,
 		RentalProfitMonths: []RentalProfitMonth{
-			{Month: time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(75_000)},
-			{Month: time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(75_000)},
-			{Month: time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(75_000)},
+			{Month: time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(7_500_000_000)},
+			{Month: time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(7_500_000_000)},
+			{Month: time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), USDT: big.NewInt(7_500_000_000)},
 		},
 	}
 }
