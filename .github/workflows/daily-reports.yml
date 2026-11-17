@@ -38,4 +38,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Daily data refresh (${{ steps.stamp.outputs.ts }})
-          file_pattern: "site/projects/*.html site/holders.html site/trends.html site/markets.html index.html"
+          file_pattern: "site/**/*.html index.html"

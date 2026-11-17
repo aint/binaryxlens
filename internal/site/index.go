@@ -90,7 +90,7 @@ func projectRows(projects []*binaryx.Project) []projectRow {
 		score := project.Score()
 		projectRow := projectRow{
 			Name:      name,
-			Href:      "site/projects/" + projectReportFile(name),
+			Href:      ProjectReportsPath + projectReportFile(name),
 			Flag:      projectCountryFlag(properties),
 			Props:     propertyNames(name, properties),
 			Labels:    propertyStateLabels(properties),

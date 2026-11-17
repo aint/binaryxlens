@@ -39,15 +39,19 @@ func main() {
 		}
 	}
 	stamp := time.Now().UTC()
-	if err := site.WriteIndex("index.html", stamp, projects); err != nil {
+	if err := site.WriteIndex(site.IndexPath, stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write index: %v\n", err)
 		os.Exit(1)
 	}
-	if err := site.WriteHolders("holders.html", stamp, projects); err != nil {
+	if err := os.MkdirAll(site.SiteDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create site directory: %v\n", err)
+		os.Exit(1)
+	}
+	if err := site.WriteHolders(site.HoldersPath, stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write holders: %v\n", err)
 		os.Exit(1)
 	}
-	if err := site.WriteTrends("trends.html", stamp, projects); err != nil {
+	if err := site.WriteTrends(site.TrendsPath, stamp, projects); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write trends: %v\n", err)
 		os.Exit(1)
 	}

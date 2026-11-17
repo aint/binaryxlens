@@ -16,10 +16,6 @@ import (
 	"github.com/aint/binaryxlens/internal/polygonscan"
 )
 
-const (
-	reportsDir = "site/projects"
-)
-
 //go:embed project.html
 var projectReport []byte
 var projectReportDataPlaceholder = []byte("__PROJECT_DATA_JSON__")
@@ -53,13 +49,13 @@ func GenerateReport(pr *binaryx.Project) error {
 		!bytes.Contains(projectReport, i18nPlaceholder) {
 		return fmt.Errorf("project template missing placeholder")
 	}
-	if err := os.MkdirAll(reportsDir, 0o755); err != nil {
+	if err := os.MkdirAll(ProjectsDir, 0o755); err != nil {
 		return fmt.Errorf("create reports dir: %w", err)
 	}
-	reportPath := filepath.Join(reportsDir, projectReportFile(pr.Name))
+	reportPath := filepath.Join(ProjectsDir, projectReportFile(pr.Name))
 	out := bytes.ReplaceAll(projectReport, commonHeaderPlaceholder, withCommonHeader(headerConfig{
 		activePage: "projects",
-		rootPrefix: "../../",
+		rootPrefix: ProjectRootPrefix,
 	}, generatedAt))
 	out = withI18n(out)
 	out = bytes.ReplaceAll(out, projectReportDataPlaceholder, jsonBytes)
