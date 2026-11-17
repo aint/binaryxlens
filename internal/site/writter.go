@@ -55,7 +55,6 @@ func withCommonHeader(config headerConfig, updated time.Time) []byte {
 		"projects": projectsSelectedPlaceholder,
 		"holders":  holdersSelectedPlaceholder,
 		"trends":   trendsSelectedPlaceholder,
-		"markets":  marketsSelectedPlaceholder,
 	}
 	for page, placeholder := range selected {
 		value := []byte("false")
