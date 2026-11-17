@@ -62,7 +62,7 @@ func trendHTML(projects []*binaryx.Project) string {
 		series := append([]*big.Int(nil), t.DeltasUSDT...)
 		spark := ""
 		if delta.Sign() != 0 {
-			spark = sparkline(series, delta.Sign())
+			spark = sparkline(series)
 		}
 		fmt.Fprintf(&b, `
 				<div class="trend-row">
@@ -147,7 +147,7 @@ func activityUSDTDelta(activity binaryx.DailyActivity, window int) *big.Int {
 	return result
 }
 
-func sparkline(values []*big.Int, overallDeltaSign int) string {
+func sparkline(values []*big.Int) string {
 	if len(values) < 2 {
 		return ""
 	}
@@ -172,20 +172,22 @@ func sparkline(values []*big.Int, overallDeltaSign int) string {
 	}
 	innerW, innerH := w-2*pad, h-2*pad
 	span := max - min
-	var pts strings.Builder
+	var segments strings.Builder
 	for i, n := range nums {
 		x := pad + float64(i)*innerW/float64(len(nums)-1)
 		y := pad + (max-n)*innerH/span
-		if i > 0 {
-			pts.WriteByte(' ')
+		if i == 0 {
+			continue
 		}
-		fmt.Fprintf(&pts, "%.1f,%.1f", x, y)
-	}
-	stroke := "#555"
-	if overallDeltaSign > 0 {
-		stroke = "#1d6b3a"
-	} else if overallDeltaSign < 0 {
-		stroke = "#b42318"
+		color := "#a6a5a5"
+		if values[i] != nil && values[i].Sign() > 0 {
+			color = "#26954f"
+		} else if values[i] != nil && values[i].Sign() < 0 {
+			color = "#cf291d"
+		}
+		previousX := pad + float64(i-1)*innerW/float64(len(nums)-1)
+		previousY := pad + (max-nums[i-1])*innerH/span
+		fmt.Fprintf(&segments, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="%s"/>`, previousX, previousY, x, y, color)
 	}
 	var title strings.Builder
 	for i, v := range values {
@@ -195,8 +197,8 @@ func sparkline(values []*big.Int, overallDeltaSign int) string {
 		title.WriteString(formatDelta(v))
 	}
 	return fmt.Sprintf(
-		`<svg class="spark" viewBox="0 0 %.0f %.0f" width="200" height="24" role="img" aria-label="%s"><title>%s</title><polyline fill="none" stroke="%s" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="%s"/></svg>`,
-		w, h, title.String(), title.String(), stroke, pts.String(),
+		`<svg class="spark" viewBox="0 0 %.0f %.0f" width="200" height="24" role="img" aria-label="%s"><title>%s</title><g fill="none" stroke-width="1.5" stroke-linecap="round">%s</g></svg>`,
+		w, h, title.String(), title.String(), segments.String(),
 	)
 }
 
