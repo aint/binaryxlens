@@ -3,187 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="internal/site/site.css">
   <title>Binaryx Lens</title>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f4f5f7;
-      color: #1a1a1a;
-      padding: 32px 16px 48px;
-      line-height: 1.5;
-    }
-    main { max-width: 45rem; margin: 0 auto; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
-    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; flex: 1; min-width: 0; }
-    .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .github-links { display: flex; align-items: center; gap: 6px; }
-    .github-links a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      color: #444;
-      text-decoration: none;
-    }
-    .github-links a:hover { background: #e8e8e8; color: #1a1a1a; }
-    .github-links a:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
-    .github-links svg { display: block; width: 18px; height: 18px; }
-    .lang-switch { display: flex; gap: 2px; flex-shrink: 0; }
-    .lang-switch button {
-      font: inherit;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: #fff;
-      color: #444;
-      cursor: pointer;
-    }
-    .lang-switch button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-    .lede { color: #444; margin: 0 0 16px; font-size: 0.95rem; }
-    .lede a, .report-problem a, td.properties a { color: #0b57d0; }
-    .updated {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0 0 16px;
-      font-size: 0.8rem;
-      color: #555;
-    }
-    .updated time {
-      font-variant-numeric: tabular-nums;
-      font-weight: 650;
-      color: #1a1a1a;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 999px;
-      padding: 2px 10px;
-    }
-    .navigation { display: flex; gap: 4px; margin: 0 0 16px; }
-    .navigation button {
-      font: inherit;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 6px 14px;
-      border: 1px solid #ccc;
-      border-radius: 999px;
-      background: #fff;
-      color: #444;
-      cursor: pointer;
-    }
-    .navigation button[aria-selected="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-    .navigation button:focus-visible { outline: 2px solid #0b57d0; outline-offset: 2px; }
-    .tools { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
-    .tools-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
-    .tools-row .search { flex: 1; max-width: 24rem; }
-    .report-problem { margin: 16px 0 0; font-size: 0.85rem; }
-    .search { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; }
-    .search input {
-      font: inherit;
-      font-size: 0.95rem;
-      font-weight: 400;
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-      color: inherit;
-    }
-    .search input:focus-visible, #state-filters button:focus-visible {
-      outline: 2px solid #0b57d0;
-      outline-offset: 2px;
-    }
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px 12px;
-    }
-    #state-filters { display: flex; flex-wrap: wrap; gap: 4px; }
-    #state-filters button {
-      font: inherit;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border: 1px solid #ccc;
-      border-radius: 999px;
-      background: #fff;
-      color: #444;
-      cursor: pointer;
-    }
-    #state-filters button[aria-pressed="true"] { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-    #project-count, #holder-count { margin: 0; font-size: 0.85rem; color: #555; font-variant-numeric: tabular-nums; }
-    .empty {
-      margin: 0;
-      padding: 12px 14px;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      color: #444;
-    }
-    nav {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    nav a {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
-      color: #1a1a1a;
-      text-decoration: none;
-      border-bottom: 1px solid #eee;
-    }
-    nav a[hidden], nav[hidden] { display: none; }
-    nav a:last-child, nav a.is-last { border-bottom: none; }
-    nav a:hover { background: #f7f8fa; }
-    .item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .name { font-weight: 550; }
-    .props { color: #555; font-size: 0.8rem; }
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .tag {
-      font-size: 0.68rem;
-      font-weight: 600;
-      line-height: 1.2;
-      letter-spacing: 0.02em;
-      text-transform: lowercase;
-      padding: 2px 7px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .tag-construction { background: #f4efe4; color: #7a5b2e; }
-    .tag-rental { background: #e7f2ea; color: #1d6b3a; }
-    .tag-redeemed { background: #e8eef6; color: #1e4a7a; }
-    .tags { align-items: center; }
-    .rating {
-      font-size: 0.72rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      line-height: 1.2;
-      padding: 2px 7px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .rating-high { background: #e7f2ea; color: #1d6b3a; }
-    .rating-mid { background: #fff4d6; color: #8a5a00; }
-    .rating-low { background: #fde8e8; color: #b42318; }
-  </style>
 </head>
 <body>
   <main>
@@ -201,7 +23,7 @@
         <div id="lang-switch" class="lang-switch"></div>
       </div>
     </header>
-    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-16 03:22 UTC</time></p>
+    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-17 05:22 UTC</time></p>
     <p class="lede">
       <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
       <a href="https://binaryx.com">binaryx.com</a>.
@@ -234,7 +56,7 @@
 			</a>
 			<a href="reports/awwa_hotel_by_ribas_report.html">
 				<span class="item"><span class="name">AWWA Hotel by Ribas 🇮🇩</span><span class="props">AWWA Hotel by Ribas B14 · AWWA Hotel by Ribas B22 · AWWA Hotel by Ribas A16</span></span>
-				<span class="tags"><span class="rating rating-low" data-i18n-title="score.note">18/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-low" data-i18n-title="score.note">19/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/bingin_magic_story_villas_report.html">
 				<span class="item"><span class="name">Bingin Magic Story Villas 🇮🇩</span><span class="props">Bingin Magic Story Villa 3</span></span>
@@ -242,7 +64,7 @@
 			</a>
 			<a href="reports/bubbles_boutique_complex_report.html">
 				<span class="item"><span class="name">Bubbles Boutique Complex 🇮🇩</span><span class="props"></span></span>
-				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">55/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-mid" data-i18n-title="score.note">56/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="reports/cascade_villas_report.html">
 				<span class="item"><span class="name">CASCADE Villas 🇮🇩</span><span class="props">CASCADE Villa 2 · CASCADE Villa 3</span></span>
@@ -322,8 +144,8 @@
 			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
 
-			"trends.monthDelta": "Month Δ",
-			"trends.monthDeltaNote": "USDT change over the last 30 days.",
+			"trends.monthDelta": "90-day Δ",
+			"trends.monthDeltaNote": "Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.",
 			"trends.type": "Type",
 			"trends.type.150k+": "Holders with 150K+ USDT invested",
 			"trends.type.50k-150k": "Holders with 50K-150K USDT invested",
@@ -473,8 +295,8 @@
 			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
 
-			"trends.monthDelta": "Місяць Δ",
-			"trends.monthDeltaNote": "Зміна USDT за останні 30 днів.",
+			"trends.monthDelta": "Δ за 90 днів",
+			"trends.monthDeltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 90 днів на графіку; графік розбиває її на три 30-денні періоди.",
 			"trends.type": "Тип",
 			"trends.type.150k+": "Власники, які інвестували більше 150 тисяч USDT",
 			"trends.type.50k-150k": "Власники, які інвестували 50-150 тисяч USDT",
@@ -704,18 +526,9 @@
 	window.i18n = { lang: lang, t: t, has: has };
 })();
 </script>
+  <script src="internal/site/navigation.js"></script>
   <script>
     (function () {
-      document.getElementById('show-projects').addEventListener('click', function () {
-        window.location.href = 'index.html';
-      });
-      document.getElementById('show-holders').addEventListener('click', function () {
-        window.location.href = 'holders.html';
-      });
-      document.getElementById('show-trends').addEventListener('click', function () {
-        window.location.href = 'trends.html';
-      });
-
       const search = document.getElementById("project-search");
       const filters = document.getElementById("state-filters");
       const list = document.querySelector("nav");
