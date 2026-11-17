@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	reportsDir = "reports"
+	reportsDir = "site/projects"
 )
 
 //go:embed project.html
@@ -59,7 +59,7 @@ func GenerateReport(pr *binaryx.Project) error {
 	reportPath := filepath.Join(reportsDir, projectReportFile(pr.Name))
 	out := bytes.ReplaceAll(projectReport, commonHeaderPlaceholder, withCommonHeader(headerConfig{
 		activePage: "projects",
-		rootPrefix: "../",
+		rootPrefix: "../../",
 	}, generatedAt))
 	out = withI18n(out)
 	out = bytes.ReplaceAll(out, projectReportDataPlaceholder, jsonBytes)

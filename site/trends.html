@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="internal/site/site.css">
+  <link rel="stylesheet" href="../internal/site/site.css">
   <title>Trends - Binaryx Lens</title>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
   <style>
@@ -17,6 +17,9 @@
     }
     .trend-row:last-child { border-bottom: none; }
     .trends-note { margin: 0 0 8px; font-size: 0.8rem; color: #555; }
+    .yield-trends { margin-top: 24px; }
+    .p2p-trends { margin-top: 24px; }
+    .trend-section-title { margin: 0 0 8px; font-size: 1.1rem; }
     .trend-head {
       display: flex;
       align-items: center;
@@ -49,30 +52,33 @@
 </head>
 <body>
   <main>
-    <header>
-      <h1>Binaryx Lens</h1>
-      <div class="header-actions">
-        <div class="github-links">
-          <a href="https://github.com/aint/binaryxlens" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.756 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
-          </a>
-          <a href="https://github.com/aint/binaryxlens#binaryx-lens" target="_blank" rel="noopener noreferrer" aria-label="Source code">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.18.82a7.49 7.49 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.51-1.04 2.18-.82 2.18-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.06-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-          </a>
-        </div>
-        <div id="lang-switch" class="lang-switch"></div>
-      </div>
-    </header>
-    <p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-17 05:22 UTC</time></p>
-    <p class="lede">
-      <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
-      <a href="https://binaryx.com">binaryx.com</a>.
-    </p>
-    <div class="navigation" role="tablist">
-      <button type="button" id="show-projects" role="tab" aria-selected="false"  data-i18n="header.projectsButton">Projects</button>
-      <button type="button" id="show-holders"  role="tab" aria-selected="false"  data-i18n="header.holdersButton">Holders</button>
-      <button type="button" id="show-trends"   role="tab" aria-selected="true"   data-i18n="header.trendsButton">Trends</button>
+    <header class="page-header">
+  <h1>Binaryx Lens</h1>
+  <div class="header-actions">
+    <div class="github-links">
+      <a href="https://github.com/aint/binaryxlens" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.756 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      </a>
+      <a href="https://github.com/aint/binaryxlens#binaryx-lens" target="_blank" rel="noopener noreferrer" aria-label="Source code">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.18.82a7.49 7.49 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.51-1.04 2.18-.82 2.18-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.06-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      </a>
     </div>
+    <div id="lang-switch" class="lang-switch"></div>
+  </div>
+</header>
+<p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-17 11:21 UTC</time></p>
+<p class="lede">
+  <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
+  <a href="https://binaryx.com">binaryx.com</a>.
+</p>
+<div class="navigation" role="tablist" data-root-prefix="">
+  <button type="button" id="show-projects" role="tab" aria-selected="false" data-i18n="header.projectsButton">Projects</button>
+  <button type="button" id="show-holders" role="tab" aria-selected="false" data-i18n="header.holdersButton">Holders</button>
+  <button type="button" id="show-trends" role="tab" aria-selected="true" data-i18n="header.trendsButton">Trends</button>
+  <button type="button" id="show-markets" role="tab" aria-selected="false">Markets</button>
+</div>
+
+    <h2 class="trend-section-title" data-i18n="trends.holderTitle">Holder activity trends</h2>
     <p class="trends-note" data-i18n="trends.monthDeltaNote">Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.</p>
     <nav>
       <div class="trend-head">
@@ -83,39 +89,41 @@
 				<div class="trend-row">
 					<span class="item"><span class="name" data-i18n="trends.type.150k+">150k+</span></span>
 					<span class="trend-metrics">
-						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+1438.22, +15141.78, +1243.74"><title>+1438.22, +15141.78, +1243.74</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,21.7 100.0,2.0 198.0,22.0"/></svg>
-						<span class="delta up">+<span class="delta-number">17823.74</span></span>
+						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="0, 0, +516.45"><title>0, 0, +516.45</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,22.0 100.0,22.0 198.0,2.0"/></svg>
+						<span class="delta up">+<span class="delta-number">516.45</span></span>
 					</span>
 				</div>
 				<div class="trend-row">
 					<span class="item"><span class="name" data-i18n="trends.type.50k-150k">50k-150k</span></span>
 					<span class="trend-metrics">
-						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+9083.43, +10364.20, +1917.79"><title>+9083.43, +10364.20, +1917.79</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,5.0 100.0,2.0 198.0,22.0"/></svg>
-						<span class="delta up">+<span class="delta-number">21365.43</span></span>
+						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+596.67, +700.16, +21.85"><title>+596.67, +700.16, +21.85</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,5.1 100.0,2.0 198.0,22.0"/></svg>
+						<span class="delta up">+<span class="delta-number">1318.67</span></span>
 					</span>
 				</div>
 				<div class="trend-row">
 					<span class="item"><span class="name" data-i18n="trends.type.5k-50k">5k-50k</span></span>
 					<span class="trend-metrics">
-						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+8202.36, +86172.33, +416.34"><title>+8202.36, +86172.33, +416.34</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,20.2 100.0,2.0 198.0,22.0"/></svg>
-						<span class="delta up">+<span class="delta-number">94791.04</span></span>
+						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+5003.73, +2354.77, -238.66"><title>+5003.73, +2354.77, -238.66</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,2.0 100.0,12.1 198.0,22.0"/></svg>
+						<span class="delta up">+<span class="delta-number">7119.84</span></span>
 					</span>
 				</div>
 				<div class="trend-row">
 					<span class="item"><span class="name" data-i18n="trends.type.5k-0">5k-0</span></span>
 					<span class="trend-metrics">
-						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+3695.69, +13359.02, +953.61"><title>+3695.69, +13359.02, +953.61</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,17.6 100.0,2.0 198.0,22.0"/></svg>
-						<span class="delta up">+<span class="delta-number">18008.32</span></span>
+						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+118.24, +847.47, +271.88"><title>+118.24, +847.47, +271.88</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,22.0 100.0,2.0 198.0,17.8"/></svg>
+						<span class="delta up">+<span class="delta-number">1237.59</span></span>
 					</span>
 				</div>
 				<div class="trend-row">
 					<span class="item"><span class="name" data-i18n="trends.type.ceo">ceo</span></span>
 					<span class="trend-metrics">
-						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="+747.03, +219.42, 0"><title>+747.03, +219.42, 0</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,2.0 100.0,16.1 198.0,22.0"/></svg>
-						<span class="delta up">+<span class="delta-number">966.45</span></span>
+						<svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="0, +114.54, 0"><title>0, +114.54, 0</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,22.0 100.0,2.0 198.0,22.0"/></svg>
+						<span class="delta up">+<span class="delta-number">114.54</span></span>
 					</span>
 				</div>
     </nav>
+    <section class="p2p-trends"><h2 class="trend-section-title">Most traded properties on P2P</h2><p class="trends-note">Ranked by token volume during the same 90-day period shown above. Each transfer counts as a sale for the sender and a purchase for the recipient.</p><nav><div class="trend-head"><span>Property</span><span>P2P volume / transfers</span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 2 (Ocean Villa 4)</a></span><span class="props">Aurora Villas (Bali Balance Ocean Villas)</span></span><span class="trend-metrics"><span class="delta flat">1380.44 tokens</span><span class="props">85 transfers</span></span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/bingin_magic_story_villas_report.html">Bingin Magic Story Villa 3</a></span><span class="props">Bingin Magic Story Villas</span></span><span class="trend-metrics"><span class="delta flat">659.21 tokens</span><span class="props">224 transfers</span></span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/bubbles_boutique_complex_report.html">Bubbles Boutique Complex</a></span><span class="props">Bubbles Boutique Complex</span></span><span class="trend-metrics"><span class="delta flat">549.83 tokens</span><span class="props">172 transfers</span></span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/aurora_villas_(bali_balance_ocean_villas)_report.html">Villa Aurora 1 (Ocean Villa 3)</a></span><span class="props">Aurora Villas (Bali Balance Ocean Villas)</span></span><span class="trend-metrics"><span class="delta flat">465.41 tokens</span><span class="props">210 transfers</span></span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas B14</a></span><span class="props">AWWA Hotel by Ribas</span></span><span class="trend-metrics"><span class="delta flat">194.52 tokens</span><span class="props">166 transfers</span></span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas A16</a></span><span class="props">AWWA Hotel by Ribas</span></span><span class="trend-metrics"><span class="delta flat">51.26 tokens</span><span class="props">43 transfers</span></span></div><div class="trend-row"><span class="item"><span class="name"><a href="projects/awwa_hotel_by_ribas_report.html">AWWA Hotel by Ribas B22</a></span><span class="props">AWWA Hotel by Ribas</span></span><span class="trend-metrics"><span class="delta flat">51.12 tokens</span><span class="props">44 transfers</span></span></div></nav></section>
+    <section class="yield-trends"><h2>Property rental yield</h2><p class="trends-note">Trailing three-month net rent, annualized as a percentage of each property’s current value. Shows up to 12 completed months.</p><nav><div class="trend-head"><span>Property</span><span>Latest annualized yield</span></div><div class="trend-row"><span class="item"><span class="name">Bubbles Boutique Complex</span><span class="props">Bubbles Boutique Complex</span></span><span class="trend-metrics"><svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="2024-11: 2.88%, 2024-12: 4.26%, 2025-01: 5.88%, 2025-02: 7.81%, 2025-03: 9.38%, 2026-04: 11.00%, 2026-05: 14.90%, 2026-06: 10.90%, 2026-07: 10.90%, 2026-08: 8.11%, 2026-09: 12.08%, 2026-10: 8.02%"><title>2024-11: 2.88%, 2024-12: 4.26%, 2025-01: 5.88%, 2025-02: 7.81%, 2025-03: 9.38%, 2026-04: 11.00%, 2026-05: 14.90%, 2026-06: 10.90%, 2026-07: 10.90%, 2026-08: 8.11%, 2026-09: 12.08%, 2026-10: 8.02%</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,22.0 19.8,19.7 37.6,17.0 55.5,13.8 73.3,11.2 91.1,8.5 108.9,2.0 126.7,8.7 144.5,8.7 162.4,13.3 180.2,6.7 198.0,13.4"/></svg><span class="delta flat">8.02%</span></span></div><div class="trend-row"><span class="item"><span class="name">AWWA Hotel by Ribas B14</span><span class="props">AWWA Hotel by Ribas</span></span><span class="trend-metrics"><svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="2025-12: 12.30%, 2026-01: 12.30%, 2026-02: 12.30%, 2026-03: 12.30%, 2026-04: 12.30%, 2026-05: 12.30%, 2026-06: 19.90%, 2026-07: 7.60%, 2026-08: 7.60%, 2026-09: 0.00%, 2026-10: 0.00%"><title>2025-12: 12.30%, 2026-01: 12.30%, 2026-02: 12.30%, 2026-03: 12.30%, 2026-04: 12.30%, 2026-05: 12.30%, 2026-06: 19.90%, 2026-07: 7.60%, 2026-08: 7.60%, 2026-09: 0.00%, 2026-10: 0.00%</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,9.6 21.6,9.6 41.2,9.6 60.8,9.6 80.4,9.6 100.0,9.6 119.6,2.0 139.2,14.4 158.8,14.4 178.4,22.0 198.0,22.0"/></svg><span class="delta flat">0.00%</span></span></div><div class="trend-row"><span class="item"><span class="name">AWWA Hotel by Ribas B22</span><span class="props">AWWA Hotel by Ribas</span></span><span class="trend-metrics"><svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="2025-12: 12.55%, 2026-01: 12.55%, 2026-02: 12.55%, 2026-03: 12.55%, 2026-04: 12.55%, 2026-05: 12.55%, 2026-06: 20.30%, 2026-07: 7.76%, 2026-08: 7.76%, 2026-09: 0.00%, 2026-10: 0.00%"><title>2025-12: 12.55%, 2026-01: 12.55%, 2026-02: 12.55%, 2026-03: 12.55%, 2026-04: 12.55%, 2026-05: 12.55%, 2026-06: 20.30%, 2026-07: 7.76%, 2026-08: 7.76%, 2026-09: 0.00%, 2026-10: 0.00%</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,9.6 21.6,9.6 41.2,9.6 60.8,9.6 80.4,9.6 100.0,9.6 119.6,2.0 139.2,14.4 158.8,14.4 178.4,22.0 198.0,22.0"/></svg><span class="delta flat">0.00%</span></span></div><div class="trend-row"><span class="item"><span class="name">AWWA Hotel by Ribas A16</span><span class="props">AWWA Hotel by Ribas</span></span><span class="trend-metrics"><svg class="spark" viewBox="0 0 200 24" width="200" height="24" role="img" aria-label="2025-12: 14.68%, 2026-01: 14.68%, 2026-02: 14.68%, 2026-03: 14.68%, 2026-04: 14.68%, 2026-05: 14.68%, 2026-06: 23.75%, 2026-07: 9.07%, 2026-08: 9.07%, 2026-09: 0.00%, 2026-10: 0.00%"><title>2025-12: 14.68%, 2026-01: 14.68%, 2026-02: 14.68%, 2026-03: 14.68%, 2026-04: 14.68%, 2026-05: 14.68%, 2026-06: 23.75%, 2026-07: 9.07%, 2026-08: 9.07%, 2026-09: 0.00%, 2026-10: 0.00%</title><polyline fill="none" stroke="#1d6b3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="2.0,9.6 21.6,9.6 41.2,9.6 60.8,9.6 80.4,9.6 100.0,9.6 119.6,2.0 139.2,14.4 158.8,14.4 178.4,22.0 198.0,22.0"/></svg><span class="delta flat">0.00%</span></span></div></nav></section>
     <p class="report-problem"><a href="https://github.com/aint/binaryxlens/issues" data-i18n="footer.reportProblem">Report a problem</a></p>
   </main>
   <script>(function () {
@@ -131,6 +139,7 @@
 			"footer.reportProblem": "Report a problem",
 
 			"trends.monthDelta": "90-day Δ",
+			"trends.holderTitle": "Holder activity trends",
 			"trends.monthDeltaNote": "Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.",
 			"trends.type": "Type",
 			"trends.type.150k+": "Holders with 150K+ USDT invested",
@@ -282,6 +291,7 @@
 			"footer.reportProblem": "Повідомити про проблему",
 
 			"trends.monthDelta": "Δ за 90 днів",
+			"trends.holderTitle": "Тренди активності власників",
 			"trends.monthDeltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 90 днів на графіку; графік розбиває її на три 30-денні періоди.",
 			"trends.type": "Тип",
 			"trends.type.150k+": "Власники, які інвестували більше 150 тисяч USDT",
@@ -512,7 +522,7 @@
 	window.i18n = { lang: lang, t: t, has: has };
 })();
 </script>
-  <script src="internal/site/navigation.js"></script>
+  <script src="../internal/site/navigation.js"></script>
   <script>
     (function () {
       document.querySelectorAll(".delta-number").forEach(function (el) {

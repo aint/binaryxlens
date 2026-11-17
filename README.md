@@ -24,7 +24,7 @@ The index lists every project, with search and filters for construction, rental,
 
 Reports are available in English and Ukrainian.
 
-`go run .` writes `index.html` and `reports/*.html`. A daily GitHub Action regenerates those files at 00:00 UTC. The property catalog is `internal/properties.go`.
+`go run .` writes `index.html`, analytics pages under `site/`, and property reports under `site/projects/`. A daily GitHub Action regenerates those files at 00:00 UTC. The property catalog is `internal/properties.go`.
 
 ## Screenshots
 

@@ -142,7 +142,7 @@ func holderMonthDeltaHTML(delta *big.Int) string {
 func propertyLinksHTML(properties []holderProperty) string {
 	var b strings.Builder
 	for _, p := range properties {
-		fmt.Fprintf(&b, "\n              <a href=\"reports/%s\">%s</a>", html.EscapeString(projectReportFile(p.Project)), html.EscapeString(p.Name))
+		fmt.Fprintf(&b, "\n              <a href=\"projects/%s\">%s</a>", html.EscapeString(projectReportFile(p.Project)), html.EscapeString(p.Name))
 	}
 	b.WriteString("\n            ")
 	return b.String()
