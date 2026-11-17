@@ -23,10 +23,12 @@ var trendBuckets = []struct {
 	min  *big.Int
 	max  *big.Int
 }{
-	{"150k+", big.NewInt(150_000_000000), nil},
-	{"50k-150k", big.NewInt(50_000_000000), big.NewInt(150_000_000000)},
-	{"5k-50k", big.NewInt(5_000_000000), big.NewInt(50_000_000000)},
-	{"5k-0", big.NewInt(0), big.NewInt(5_000_000000)},
+	{"whale", big.NewInt(100_000_000000), nil},
+	{"shark", big.NewInt(50_000_000000), big.NewInt(100_000_000000)},
+	{"dolphin", big.NewInt(20_000_000000), big.NewInt(50_000_000000)},
+	{"fish", big.NewInt(10_000_000000), big.NewInt(20_000_000000)},
+	{"crab", big.NewInt(5_000_000000), big.NewInt(10_000_000000)},
+	{"shrimp", big.NewInt(0), big.NewInt(5_000_000000)},
 }
 
 type trend struct {
