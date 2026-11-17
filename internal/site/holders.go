@@ -34,7 +34,7 @@ type globalHolder struct {
 
 func WriteHolders(path string, updated time.Time, projects []*binaryx.Project) error {
 	payload := []byte(holderRowsHTML(globalHolders(projects)))
-	return write(path, updated, holdersTemplateSrc, holdersRowsPlaceholder, payload)
+	return write(path, updated, holdersTemplateSrc, holdersRowsPlaceholder, payload, headerConfig{activePage: "holders"})
 }
 
 // globalHolders merges project holders by address. Only properties the wallet

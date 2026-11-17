@@ -36,7 +36,7 @@ type trend struct {
 
 func WriteTrends(path string, updated time.Time, projects []*binaryx.Project) error {
 	payload := []byte(trendHTML(projects))
-	return write(path, updated, trendsTemplateSrc, trendsPlaceholder, payload)
+	return write(path, updated, trendsTemplateSrc, trendsPlaceholder, payload, headerConfig{activePage: "trends"})
 }
 
 func trendHTML(projects []*binaryx.Project) string {

@@ -30,7 +30,7 @@ type projectRow struct {
 
 func WriteIndex(path string, updated time.Time, projects []*binaryx.Project) error {
 	payload := []byte(projectLinksHTML(projectRows(projects)))
-	return write(path, updated, indexTemplateSrc, indexNavPlaceholder, payload)
+	return write(path, updated, indexTemplateSrc, indexNavPlaceholder, payload, headerConfig{activePage: "projects"})
 }
 
 func projectLinksHTML(projects []projectRow) string {

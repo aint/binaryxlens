@@ -25,6 +25,7 @@ var projectReport []byte
 var projectReportDataPlaceholder = []byte("__PROJECT_DATA_JSON__")
 
 func GenerateReport(pr *binaryx.Project) error {
+	generatedAt := time.Now().UTC()
 	var payloads []propertyReportPayload
 	for _, property := range pr.Properties {
 		payload, err := buildPropertyReportPayload(property)
@@ -37,7 +38,7 @@ func GenerateReport(pr *binaryx.Project) error {
 	holders, tierStats := buildHoldersPayload(pr)
 	env := projectEnvelope{
 		Name:        pr.Name,
-		GeneratedAt: time.Now().UTC().Format(time.DateOnly),
+		GeneratedAt: generatedAt.Format(time.DateOnly),
 		Summary:     buildSummary(pr),
 		Properties:  payloads,
 		Holders:     holders,
@@ -47,14 +48,21 @@ func GenerateReport(pr *binaryx.Project) error {
 	if err != nil {
 		return fmt.Errorf("marshal: %w", err)
 	}
-	if !bytes.Contains(projectReport, projectReportDataPlaceholder) || !bytes.Contains(projectReport, i18nPlaceholder) {
+	if !bytes.Contains(projectReport, projectReportDataPlaceholder) ||
+		!bytes.Contains(projectReport, commonHeaderPlaceholder) ||
+		!bytes.Contains(projectReport, i18nPlaceholder) {
 		return fmt.Errorf("project template missing placeholder")
 	}
 	if err := os.MkdirAll(reportsDir, 0o755); err != nil {
 		return fmt.Errorf("create reports dir: %w", err)
 	}
 	reportPath := filepath.Join(reportsDir, projectReportFile(pr.Name))
-	out := bytes.ReplaceAll(withI18n(projectReport), projectReportDataPlaceholder, jsonBytes)
+	out := bytes.ReplaceAll(projectReport, commonHeaderPlaceholder, withCommonHeader(headerConfig{
+		activePage: "projects",
+		rootPrefix: "../",
+	}, generatedAt))
+	out = withI18n(out)
+	out = bytes.ReplaceAll(out, projectReportDataPlaceholder, jsonBytes)
 	if err := os.WriteFile(reportPath, out, 0o644); err != nil {
 		return err
 	}
