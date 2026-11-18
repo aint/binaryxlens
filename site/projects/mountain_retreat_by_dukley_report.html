@@ -3,16 +3,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" href="../internal/site/language-switch.css"/>
+<link rel="stylesheet" href="../../internal/site/site.css"/>
 <title>Project report</title>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; width: 100%; }
-body { font-family: system-ui, sans-serif; padding: 16px; }
+html, body { margin: 0; width: 100%; background: #f4f5f7; }
+body { max-width: 55rem; margin: 0 auto; font-family: system-ui, sans-serif; color: #1a1a1a; padding: 16px; line-height: 1.5; }
 h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.page-header h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; }
+.site-shell { max-width: none; margin: 0; }
+.project-title { font-size: 1.15rem; font-weight: 600; margin: 0 0 8px; }
 .project-summary { font-size: 0.9rem; color: #333; margin: 0 0 20px; line-height: 1.5; }
 .project-summary p { margin: 0 0 4px; }
 .grid {
@@ -374,10 +377,35 @@ td.trend.flat { color: #888; }
 </style>
 </head>
 <body>
-<header class="page-header">
-	<h1 id="project-title" data-i18n="report.title">Project report</h1>
-	<div id="lang-switch" class="lang-switch"></div>
+<div class="site-shell">
+	<header class="page-header">
+  <h1>Binaryx Lens</h1>
+  <div class="header-actions">
+    <div class="github-links">
+      <a href="https://github.com/aint/binaryxlens" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.756 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      </a>
+      <a href="https://github.com/aint/binaryxlens#binaryx-lens" target="_blank" rel="noopener noreferrer" aria-label="Source code">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.18.82a7.49 7.49 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.51-1.04 2.18-.82 2.18-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.06-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      </a>
+    </div>
+    <div id="lang-switch" class="lang-switch"></div>
+  </div>
 </header>
+<p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-18 04:50 UTC</time></p>
+<p class="lede">
+  <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
+  <a href="https://binaryx.com">binaryx.com</a>.
+</p>
+<div class="navigation" role="tablist" data-root-prefix="../../">
+  <button type="button" id="show-projects" role="tab" aria-selected="true" data-i18n="header.projectsButton">Projects</button>
+  <button type="button" id="show-holders" role="tab" aria-selected="false" data-i18n="header.holdersButton">Holders</button>
+  <button type="button" id="show-trends" role="tab" aria-selected="false" data-i18n="header.trendsButton">Trends</button>
+  <button type="button" id="show-markets" role="tab" aria-selected="__MARKETS_SELECTED__">Markets</button>
+</div>
+
+</div>
+<h2 id="project-title" class="project-title" data-i18n="report.title">Project report</h2>
 <div id="project-summary" class="project-summary" aria-label="Project summary" data-i18n-aria="aria.summary"></div>
 
 <div id="grid" class="grid" aria-label="Property charts" data-i18n-aria="aria.charts"></div>
@@ -397,7 +425,7 @@ td.trend.flat { color: #888; }
 	</details>
 </section>
 
-<script type="application/json" id="project-data">{"name":"Mountain Retreat by Dukley","generatedAt":"2026-11-17","summary":{"propertyCount":1,"totalSupply":"10000.00","bought":"10000.00","boughtPct":100,"score":-1,"scoreTier":""},"properties":[{"name":"Mountain Retreat by Dukley","address":"0x51343ee93059cbb11c4bf969a643e09117b3af6b","state":"redeemed","location":"montenegro","score":-1,"scoreTier":"","price":{"areaM2":73,"current":0,"raised":385000,"projected":440000,"marketLow":0,"marketHigh":0,"currentValueTier":"","projectedValueTier":"","raisedValueTier":""},"holders":[],"tierStats":null,"initial_sales":{"labels":["2024-08-05","2024-08-12","2024-08-19","2024-08-26","2024-09-02","2024-09-09","2024-09-16","2024-09-23","2024-09-30","2024-10-07","2024-10-14","2024-10-21","2024-10-28","2024-11-04","2024-11-11","2024-11-18","2024-11-25","2024-12-02"],"weekly":[2144,33,25,288,37,653,87,70,8,160,31,317,239,150,366,1277,2552,1563],"cumulative":[2144,2177,2202,2490,2527,3180,3267,3337,3345,3505,3536,3853,4092,4242,4608,5885,8437,10000],"etas":[{"window":"2024-08-05 - 2024-12-02","rate":"555.6","days":126,"date":"0001-01-01"}]},"p2p_sales":{"txCount":0,"labels":[],"weekly":[],"cumulative":[]}}],"holders":[],"tierStats":null}</script>
+<script type="application/json" id="project-data">{"name":"Mountain Retreat by Dukley","generatedAt":"2026-11-18","summary":{"propertyCount":1,"totalSupply":"10000.00","bought":"10000.00","boughtPct":100,"score":-1,"scoreTier":""},"properties":[{"name":"Mountain Retreat by Dukley","address":"0x51343ee93059cbb11c4bf969a643e09117b3af6b","state":"redeemed","location":"montenegro","score":-1,"scoreTier":"","price":{"areaM2":73,"current":0,"raised":385000,"projected":440000,"marketLow":0,"marketHigh":0,"currentValueTier":"","projectedValueTier":"","raisedValueTier":""},"holders":[],"tierStats":null,"initial_sales":{"labels":["2024-08-05","2024-08-12","2024-08-19","2024-08-26","2024-09-02","2024-09-09","2024-09-16","2024-09-23","2024-09-30","2024-10-07","2024-10-14","2024-10-21","2024-10-28","2024-11-04","2024-11-11","2024-11-18","2024-11-25","2024-12-02"],"weekly":[2144,33,25,288,37,653,87,70,8,160,31,317,239,150,366,1277,2552,1563],"cumulative":[2144,2177,2202,2490,2527,3180,3267,3337,3345,3505,3536,3853,4092,4242,4608,5885,8437,10000],"etas":[{"window":"2024-08-05 - 2024-12-02","rate":"555.6","days":126,"date":"0001-01-01"}]},"p2p_sales":{"txCount":0,"labels":[],"weekly":[],"cumulative":[]}}],"holders":[],"tierStats":null}</script>
 
 <script>(function () {
 	const I18N = {
@@ -414,10 +442,12 @@ td.trend.flat { color: #888; }
 			"trends.monthDelta": "90-day Δ",
 			"trends.monthDeltaNote": "Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.",
 			"trends.type": "Type",
-			"trends.type.150k+": "Holders with 150K+ USDT invested",
-			"trends.type.50k-150k": "Holders with 50K-150K USDT invested",
-			"trends.type.5k-50k": "Holders with 5K-50K USDT invested",
-			"trends.type.5k-0": "Holders with up to 5K USDT invested",
+			"trends.type.shrimp": "🦐 Shrimp (up to 5K USDT)",
+			"trends.type.crab": "🦀 Crab (5K-10K USDT)",
+			"trends.type.fish": "🐟 Fish (10K-20K USDT)",
+			"trends.type.dolphin": "🐬 Dolphin (20K-50K USDT)",
+			"trends.type.shark": "🦈 Shark (50K-100K USDT)",
+			"trends.type.whale": "🐋 Whale (100K+ USDT)",
 			"trends.type.ceo": "CEO",
 
 			"search.title": "Search",
@@ -565,10 +595,12 @@ td.trend.flat { color: #888; }
 			"trends.monthDelta": "Δ за 90 днів",
 			"trends.monthDeltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 90 днів на графіку; графік розбиває її на три 30-денні періоди.",
 			"trends.type": "Тип",
-			"trends.type.150k+": "Власники, які інвестували більше 150 тисяч USDT",
-			"trends.type.50k-150k": "Власники, які інвестували 50-150 тисяч USDT",
-			"trends.type.5k-50k": "Власники, які інвестували 5-50 тисяч USDT",
-			"trends.type.5k-0": "Власники, які інвестували до 5 тисяч USDT",
+			"trends.type.shrimp": "🦐 Креветка (до 5K USDT)",
+			"trends.type.crab": "🦀 Краб (5K-10K USDT)",
+			"trends.type.fish": "🐟 Риба (10K-20K USDT)",
+			"trends.type.dolphin": "🐬 Дельфін (20K-50K USDT)",
+			"trends.type.shark": "🦈 Акула (50K-100K USDT)",
+			"trends.type.whale": "🐋 Кит (100K+ USDT)",
 			"trends.type.ceo": "CEO",
 
 			"search.title": "Пошук",
@@ -793,6 +825,7 @@ td.trend.flat { color: #888; }
 	window.i18n = { lang: lang, t: t, has: has };
 })();
 </script>
+<script src="../../internal/site/navigation.js"></script>
 
 <script>
 (function () {
