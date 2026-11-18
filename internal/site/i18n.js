@@ -10,8 +10,9 @@
 			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
 
-			"trends.monthDelta": "90-day Δ",
-			"trends.monthDeltaNote": "Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.",
+			"trends.delta": "6-month Δ",
+			"trends.holderTitle": "Holder activity trends",
+			"trends.deltaNote": "Change in USDT activity by holder group. The number is the total for the 6 months shown; the chart breaks it into six 30-day periods.",
 			"trends.type": "Type",
 			"trends.type.shrimp": "🦐 Shrimp (up to 5K USDT)",
 			"trends.type.crab": "🦀 Crab (5K-10K USDT)",
@@ -163,8 +164,9 @@
 			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
 
-			"trends.monthDelta": "Δ за 90 днів",
-			"trends.monthDeltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 90 днів на графіку; графік розбиває її на три 30-денні періоди.",
+			"trends.delta": "Δ за 6 місяців",
+			"trends.holderTitle": "Тренди активності власників",
+			"trends.deltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 6 місяців на графіку; графік розбиває її на шість 30-денних періодів.",
 			"trends.type": "Тип",
 			"trends.type.shrimp": "🦐 Креветка (до 5K USDT)",
 			"trends.type.crab": "🦀 Краб (5K-10K USDT)",

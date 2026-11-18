@@ -115,7 +115,7 @@ func trends(holders []globalHolder) []trend {
 }
 
 const (
-	trendWindowCount = 3
+	trendWindowCount = 6
 	trendWindowDays  = 30
 )
 
