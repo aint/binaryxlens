@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Binaryx Lens — on-chain property analytics</title>
+  <desc id="description">Binaryx Lens tracks tokenized property sales, holders, market activity, and posted rent.</desc>
+  <defs>
+    <linearGradient id="mark" x1="170" y1="155" x2="340" y2="345" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#21D4C2"/>
+      <stop offset="1" stop-color="#3478F6"/>
+    </linearGradient>
+    <linearGradient id="background" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="1" stop-color="#E9F3FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" rx="32" fill="url(#background)"/>
+  <circle cx="1040" cy="70" r="250" fill="#21D4C2" opacity=".08"/>
+  <circle cx="80" cy="590" r="250" fill="#3478F6" opacity=".06"/>
+  <g fill="none" stroke="url(#mark)" stroke-linecap="round" stroke-linejoin="round" stroke-width="22">
+    <path d="M198 172h70c40 0 64 20 64 54 0 26-16 44-40 50 30 6 48 26 48 56 0 36-28 58-74 58h-68z"/>
+    <path d="M198 172v218m0-114h80"/>
+    <circle cx="348" cy="320" r="50" stroke-width="18"/>
+    <path d="m384 356 38 38" stroke-width="18"/>
+  </g>
+  <text x="470" y="301" fill="#15233B" font-family="Inter, Avenir, Arial, sans-serif" font-size="84" font-weight="750" letter-spacing="2">BINARYX</text>
+  <text x="476" y="372" fill="#63728A" font-family="Inter, Avenir, Arial, sans-serif" font-size="39" font-weight="650" letter-spacing="11">LENS</text>
+  <path d="M180 466h840" stroke="#CFDDED" stroke-width="2"/>
+  <text x="180" y="523" fill="#34445E" font-family="Inter, Avenir, Arial, sans-serif" font-size="30" font-weight="500">On-chain analytics for tokenized real estate</text>
+</svg>

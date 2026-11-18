@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-labelledby="title description">
+  <title id="title">Binaryx Lens</title>
+  <desc id="description">Binaryx-inspired turquoise and blue mark with a magnifying lens, followed by the Binaryx Lens wordmark.</desc>
+  <defs>
+    <linearGradient id="mark" x1="18" y1="20" x2="130" y2="140" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#21D4C2"/>
+      <stop offset="1" stop-color="#3478F6"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#mark)" stroke-linecap="round" stroke-linejoin="round" stroke-width="13">
+    <path d="M37 30h35c20 0 32 10 32 27 0 13-8 22-20 25 15 3 24 13 24 28 0 18-14 29-37 29H37z"/>
+    <path d="M37 30v109M37 82h40"/>
+    <circle cx="112" cy="105" r="25" stroke-width="10"/>
+    <path d="m130 123 18 18" stroke-width="10"/>
+  </g>
+  <text x="174" y="89" fill="#15233B" font-family="Inter, Avenir, Arial, sans-serif" font-size="47" font-weight="750" letter-spacing="1">BINARYX</text>
+  <text x="177" y="127" fill="#63728A" font-family="Inter, Avenir, Arial, sans-serif" font-size="24" font-weight="600" letter-spacing="5">LENS</text>
+</svg>

@@ -29,12 +29,27 @@ header {
   margin: 0 0 8px;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.brand img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+}
+
 h1 {
   font-size: 1.5rem;
   font-weight: 650;
   letter-spacing: -0.02em;
   margin: 0;
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
 }
 

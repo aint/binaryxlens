@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Binaryx Lens mark</title>
+  <defs>
+    <linearGradient id="mark" x1="20" y1="24" x2="142" y2="140" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#21D4C2"/>
+      <stop offset="1" stop-color="#3478F6"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#mark)" stroke-linecap="round" stroke-linejoin="round" stroke-width="12">
+    <path d="M30 25h34c20 0 32 10 32 27 0 13-8 22-20 25 15 3 24 13 24 28 0 18-14 29-37 29H30z"/>
+    <path d="M30 25v109M30 77h39"/>
+    <circle cx="111" cy="102" r="25" stroke-width="10"/>
+    <path d="m129 120 18 18" stroke-width="10"/>
+  </g>
+</svg>

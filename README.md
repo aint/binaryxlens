@@ -1,5 +1,7 @@
 # Binaryx Lens
 
+![Binaryx Lens logo](logo-readme.svg)
+
 On-chain analytics for tokenized real estate on [binaryx.com](https://binaryx.com).
 
 **Live:** https://binaryxlens.pages.dev/
