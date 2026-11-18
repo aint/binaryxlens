@@ -32,14 +32,16 @@ func TestTrendsAggregatesHolderActivityByBalance(t *testing.T) {
 	}
 
 	want := []trend{
-		{Name: "150k+", DeltasUSDT: []*big.Int{big.NewInt(200), big.NewInt(300), big.NewInt(100)}},
-		{Name: "50k-150k", DeltasUSDT: []*big.Int{big.NewInt(20), big.NewInt(30), big.NewInt(10)}},
-		{Name: "5k-50k", DeltasUSDT: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(1)}},
-		{Name: "5k-0", DeltasUSDT: []*big.Int{big.NewInt(2_020), big.NewInt(3_030), big.NewInt(1_010)}},
+		{Name: "whale", DeltasUSDT: []*big.Int{big.NewInt(200), big.NewInt(300), big.NewInt(100)}},
+		{Name: "shark", DeltasUSDT: []*big.Int{big.NewInt(20), big.NewInt(30), big.NewInt(10)}},
+		{Name: "dolphin", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0)}},
+		{Name: "fish", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0)}},
+		{Name: "crab", DeltasUSDT: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(1)}},
+		{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(2_020), big.NewInt(3_030), big.NewInt(1_010)}},
 	}
 
 	if got := trends(holders); !reflect.DeepEqual(got, want) {
-		t.Errorf("trends() = %v, want %v", got, want)
+		t.Errorf("\ngot: %v,\nwant: %v", got, want)
 	}
 }
 
@@ -51,15 +53,20 @@ func TestTrendsIncludesCEOActivity(t *testing.T) {
 		binaryx.NewDay(today.AddDate(0, 0, -75)): {UsdtIn: big.NewInt(9), UsdtOut: big.NewInt(0)},
 	}
 
-	got := trends([]globalHolder{{Address: ceoWallet, TotalUSDT: big.NewInt(0), DailyActivity: activity}})
-	if len(got) != len(trendBuckets)+1 {
-		t.Fatalf("trends() returned %d entries, want %d", len(got), len(trendBuckets)+1)
+	trends := trends([]globalHolder{{Address: ceoWallet, TotalUSDT: big.NewInt(0), DailyActivity: activity}})
+	if len(trends) != len(trendBuckets)+1 {
+		t.Fatalf("trends() returned %d entries, want %d", len(trends), len(trendBuckets)+1)
 	}
-	want := trend{Name: "ceo", DeltasUSDT: []*big.Int{big.NewInt(8), big.NewInt(9), big.NewInt(7)}}
-	if !reflect.DeepEqual(got[len(got)-1], want) {
-		t.Errorf("CEO trend = %v, want %v", got[len(got)-1], want)
+
+	gotCEOTrend := trends[len(trends)-1]
+	wantCEOTrend := trend{Name: "ceo", DeltasUSDT: []*big.Int{big.NewInt(8), big.NewInt(9), big.NewInt(7)}}
+	if !reflect.DeepEqual(gotCEOTrend, wantCEOTrend) {
+		t.Errorf("CEO trend: %v, want: %v", gotCEOTrend, wantCEOTrend)
 	}
-	if got[3].DeltasUSDT[0].Cmp(big.NewInt(8)) != 0 || got[3].DeltasUSDT[1].Cmp(big.NewInt(9)) != 0 || got[3].DeltasUSDT[2].Cmp(big.NewInt(7)) != 0 {
-		t.Errorf("CEO holder should also contribute to the matching balance group: %v", got[3].DeltasUSDT)
+
+	gotShrimpTrend := trends[len(trends)-2]
+	wantShrimpTrend := trend{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(8), big.NewInt(9), big.NewInt(7)}}
+	if !reflect.DeepEqual(gotShrimpTrend, wantShrimpTrend) {
+		t.Errorf("Shrimp trend: %v, want: %v", gotShrimpTrend, wantShrimpTrend)
 	}
 }
