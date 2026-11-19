@@ -3,6 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <meta name="description" content="On-chain analytics for tokenized real estate on Binaryx: sales, holders, secondary market activity, and posted rent.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Binaryx Lens">
+  <meta property="og:description" content="On-chain analytics for tokenized real estate on Binaryx.">
+  <meta property="og:image" content="https://binaryxlens.pages.dev/logo-social.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://binaryxlens.pages.dev/logo-social.svg">
   <link rel="stylesheet" href="internal/site/site.css">
   <title>Binaryx Lens</title>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="1c14ba43-3bbe-48a2-a65b-b4e12f91d3b4"></script>
@@ -10,7 +18,10 @@
 <body>
   <main>
     <header class="page-header">
-  <h1>Binaryx Lens</h1>
+  <div class="brand">
+    <img src="logo.svg" alt="" width="56" height="56" onerror="this.onerror=null;this.src='../logo.svg'">
+    <h1>Binaryx Lens</h1>
+  </div>
   <div class="header-actions">
     <div class="github-links">
       <a href="https://github.com/aint/binaryxlens" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub">
@@ -23,7 +34,7 @@
     <div id="lang-switch" class="lang-switch"></div>
   </div>
 </header>
-<p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-18 04:50 UTC</time></p>
+<p class="updated"><span data-i18n="header.updated">Updated</span> <time id="reports-updated">2026-11-19 04:41 UTC</time></p>
 <p class="lede">
   <span data-i18n="header.lede">Blockchain data analysis for tokenized properties on</span>
   <a href="https://binaryx.com">binaryx.com</a>.
@@ -126,7 +137,7 @@
 			</a>
 			<a href="site/projects/tropical_loft_villas_report.html">
 				<span class="item"><span class="name">Tropical Loft Villas 🇮🇩</span><span class="props">Tropical Loft Villa 2 · Tropical Loft Villa 3 · Tropical Loft Villa 4</span></span>
-				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">84/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
+				<span class="tags"><span class="rating rating-high" data-i18n-title="score.note">81/100</span><span class="tag tag-rental" data-i18n="state.rental">rental</span></span>
 			</a>
 			<a href="site/projects/vesna_townhouse_report.html">
 				<span class="item"><span class="name">Vesna Townhouse 🇮🇩</span><span class="props"></span></span>
@@ -146,8 +157,9 @@
 			"header.trendsButton": "Trends",
 			"footer.reportProblem": "Report a problem",
 
-			"trends.monthDelta": "90-day Δ",
-			"trends.monthDeltaNote": "Change in USDT activity by holder group. The number is the total for the 90 days shown; the chart breaks it into three 30-day periods.",
+			"trends.delta": "6-month Δ",
+			"trends.holderTitle": "Holder activity trends",
+			"trends.deltaNote": "Change in USDT activity by holder group. The number is the total for the 6 months shown; the chart breaks it into six 30-day periods.",
 			"trends.type": "Type",
 			"trends.type.shrimp": "🦐 Shrimp (up to 5K USDT)",
 			"trends.type.crab": "🦀 Crab (5K-10K USDT)",
@@ -299,8 +311,9 @@
 			"header.trendsButton": "Тренди",
 			"footer.reportProblem": "Повідомити про проблему",
 
-			"trends.monthDelta": "Δ за 90 днів",
-			"trends.monthDeltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 90 днів на графіку; графік розбиває її на три 30-денні періоди.",
+			"trends.delta": "Δ за 6 місяців",
+			"trends.holderTitle": "Тренди активності власників",
+			"trends.deltaNote": "Зміна активності в USDT за групами власників. Число показує суму за 6 місяців на графіку; графік розбиває її на шість 30-денних періодів.",
 			"trends.type": "Тип",
 			"trends.type.shrimp": "🦐 Креветка (до 5K USDT)",
 			"trends.type.crab": "🦀 Краб (5K-10K USDT)",
