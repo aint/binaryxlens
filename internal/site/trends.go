@@ -122,10 +122,7 @@ const (
 func activityUSDTSeries(activity binaryx.DailyActivity) []*big.Int {
 	series := make([]*big.Int, trendWindowCount)
 	for i := range series {
-		window := i + 1
-		if i == trendWindowCount-1 {
-			window = 0
-		}
+		window := trendWindowCount - i - 1
 		series[i] = activityUSDTDelta(activity, window)
 	}
 	return series

@@ -11,33 +11,36 @@ import (
 
 func TestTrendsAggregatesHolderActivityByBalance(t *testing.T) {
 	today := time.Time(binaryx.NewDay(time.Now().UTC()))
-	holder := func(balance int64, recent, previous, older int64) globalHolder {
+	holder := func(balance int64, v1, v2, v3, v4, v5, v6 int64) globalHolder {
 		return globalHolder{
 			Address:   "holder",
 			TotalUSDT: big.NewInt(balance),
 			DailyActivity: binaryx.DailyActivity{
-				binaryx.NewDay(today.AddDate(0, 0, -15)): {UsdtIn: big.NewInt(recent), UsdtOut: big.NewInt(0)},
-				binaryx.NewDay(today.AddDate(0, 0, -45)): {UsdtIn: big.NewInt(previous), UsdtOut: big.NewInt(0)},
-				binaryx.NewDay(today.AddDate(0, 0, -75)): {UsdtIn: big.NewInt(older), UsdtOut: big.NewInt(0)},
+				binaryx.NewDay(today.AddDate(0, 0, -15)):   {UsdtIn: big.NewInt(v1), UsdtOut: big.NewInt(0)},
+				binaryx.NewDay(today.AddDate(0, 0, -45)):   {UsdtIn: big.NewInt(v2), UsdtOut: big.NewInt(0)},
+				binaryx.NewDay(today.AddDate(0, 0, -105)):  {UsdtIn: big.NewInt(v3), UsdtOut: big.NewInt(0)},
+				binaryx.NewDay(today.AddDate(0, 0, -135)):   {UsdtIn: big.NewInt(v4), UsdtOut: big.NewInt(0)},
+				binaryx.NewDay(today.AddDate(0, 0, -75)):  {UsdtIn: big.NewInt(v5), UsdtOut: big.NewInt(0)},
+				binaryx.NewDay(today.AddDate(0, 0, -1000)): {UsdtIn: big.NewInt(v6), UsdtOut: big.NewInt(0)},
 			},
 		}
 	}
 
 	holders := []globalHolder{
-		holder(150_000_000000, 100, 200, 300),
-		holder(50_000_000000, 10, 20, 30),
-		holder(5_000_000000, 1, 2, 3),
-		holder(4_999_000000, 1_000, 2_000, 3_000),
-		holder(4_998_000000, 10, 20, 30),
+		holder(150_000_000000, 100, 200, 300, 400, 500, 600),
+		holder(50_000_000000, 10, 20, 30, 40, 50, 60),
+		holder(5_000_000000, 1, 2, 3, 4, 5, 6),
+		holder(4_999_000000, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000),
+		holder(4_998_000000, 10, 20, 30, 40, 50, 60),
 	}
 
 	want := []trend{
-		{Name: "whale", DeltasUSDT: []*big.Int{big.NewInt(200), big.NewInt(300), big.NewInt(100)}},
-		{Name: "shark", DeltasUSDT: []*big.Int{big.NewInt(20), big.NewInt(30), big.NewInt(10)}},
-		{Name: "dolphin", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0)}},
-		{Name: "fish", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0)}},
-		{Name: "crab", DeltasUSDT: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(1)}},
-		{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(2_020), big.NewInt(3_030), big.NewInt(1_010)}},
+		{Name: "whale", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(400), big.NewInt(300), big.NewInt(500), big.NewInt(200), big.NewInt(100)}},
+		{Name: "shark", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(40), big.NewInt(30), big.NewInt(50), big.NewInt(20), big.NewInt(10)}},
+		{Name: "dolphin", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)}},
+		{Name: "fish", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)}},
+		{Name: "crab", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(4), big.NewInt(3), big.NewInt(5), big.NewInt(2), big.NewInt(1)}},
+		{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(4_040), big.NewInt(3_030), big.NewInt(5_050), big.NewInt(2_020), big.NewInt(1_010)}},
 	}
 
 	if got := trends(holders); !reflect.DeepEqual(got, want) {
@@ -59,13 +62,13 @@ func TestTrendsIncludesCEOActivity(t *testing.T) {
 	}
 
 	gotCEOTrend := trends[len(trends)-1]
-	wantCEOTrend := trend{Name: "ceo", DeltasUSDT: []*big.Int{big.NewInt(8), big.NewInt(9), big.NewInt(7)}}
+	wantCEOTrend := trend{Name: "ceo", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(9), big.NewInt(8), big.NewInt(7)}}
 	if !reflect.DeepEqual(gotCEOTrend, wantCEOTrend) {
 		t.Errorf("CEO trend: %v, want: %v", gotCEOTrend, wantCEOTrend)
 	}
 
 	gotShrimpTrend := trends[len(trends)-2]
-	wantShrimpTrend := trend{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(8), big.NewInt(9), big.NewInt(7)}}
+	wantShrimpTrend := trend{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(9), big.NewInt(8), big.NewInt(7)}}
 	if !reflect.DeepEqual(gotShrimpTrend, wantShrimpTrend) {
 		t.Errorf("Shrimp trend: %v, want: %v", gotShrimpTrend, wantShrimpTrend)
 	}
