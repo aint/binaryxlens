@@ -1,8 +1,10 @@
 package site
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
+	"html"
 	"math/big"
 	"strings"
 	"time"
@@ -17,6 +19,7 @@ const ceoWallet = "0xdf24253c84f16aac030917c2672720b11610e109"
 var trendsTemplateSrc []byte
 
 var trendsPlaceholder = []byte("__TRENDS__")
+var propertyYieldTrendsPlaceholder = []byte("__PROPERTY_YIELD_TRENDS__")
 
 var trendBuckets = []struct {
 	name string
@@ -37,13 +40,14 @@ type trend struct {
 }
 
 func WriteTrends(path string, updated time.Time, projects []*binaryx.Project) error {
-	payload := []byte(trendHTML(projects))
-	return write(path, updated, trendsTemplateSrc, trendsPlaceholder, payload, headerConfig{activePage: "trends"})
+	payload := []byte(holderTierTrendsHTML(projects))
+	template := bytes.ReplaceAll(trendsTemplateSrc, propertyYieldTrendsPlaceholder, []byte(propertyYieldTrendsHTML(projects)))
+	return write(path, updated, template, trendsPlaceholder, payload, headerConfig{activePage: "trends"})
 }
 
-func trendHTML(projects []*binaryx.Project) string {
+func holderTierTrendsHTML(projects []*binaryx.Project) string {
 	var b strings.Builder
-	for _, t := range trends(globalHolders(projects)) {
+	for _, t := range holderTierTrends(globalHolders(projects)) {
 		delta := new(big.Int)
 		for _, window := range t.DeltasUSDT {
 			if window != nil {
@@ -62,7 +66,7 @@ func trendHTML(projects []*binaryx.Project) string {
 		series := append([]*big.Int(nil), t.DeltasUSDT...)
 		spark := ""
 		if delta.Sign() != 0 {
-			spark = sparkline(series)
+			spark = holderSparkline(series)
 		}
 		fmt.Fprintf(&b, `
 				<div class="trend-row">
@@ -82,7 +86,7 @@ func trendHTML(projects []*binaryx.Project) string {
 	return b.String()
 }
 
-func trends(holders []globalHolder) []trend {
+func holderTierTrends(holders []globalHolder) []trend {
 	trends := make([]trend, len(trendBuckets))
 	for i, bucket := range trendBuckets {
 		trends[i] = trend{
@@ -144,24 +148,121 @@ func activityUSDTDelta(activity binaryx.DailyActivity, window int) *big.Int {
 	return result
 }
 
-func sparkline(values []*big.Int) string {
+func holderSparkline(values []*big.Int) string {
 	if len(values) < 2 {
 		return ""
 	}
-	const w, h, pad = 200.0, 24.0, 2.0
 	nums := make([]float64, len(values))
-	min, max := 0.0, 0.0
+	var title strings.Builder
 	for i, v := range values {
-		n := 0.0
+		if i > 0 {
+			title.WriteString(", ")
+		}
+		n := float64(0)
 		if v != nil {
 			n, _ = new(big.Float).SetInt(v).Float64()
 		}
 		nums[i] = n
-		if i == 0 || n < min {
-			min = n
+		title.WriteString(formatDelta(v))
+	}
+	return renderSparkline(nums, title.String(), func(i int) string {
+		if values[i] != nil && values[i].Sign() > 0 {
+			return "#26954f"
+		} else if values[i] != nil && values[i].Sign() < 0 {
+			return "#cf291d"
 		}
-		if i == 0 || n > max {
-			max = n
+		return "#a6a5a5"
+	})
+}
+
+const propertyYieldTrendMonths = 6
+
+func propertyYieldTrendsHTML(projects []*binaryx.Project) string {
+	var rows strings.Builder
+	for _, project := range projects {
+		for _, property := range project.Properties {
+			value := property.CurrentValue.Price
+			profitMonths := property.RentalProfitMonths
+			quarterYield, _, ok := binaryx.TrailingNetRentalYield(profitMonths, value, binaryx.YieldTrailingMonths, false)
+			if !ok {
+				continue
+			}
+
+			yields := make([]float64, 0, len(profitMonths))
+			labels := make([]string, 0, len(profitMonths))
+			for _, month := range profitMonths {
+				yield, ok := binaryx.AllTimeNetRentalYield([]binaryx.RentalProfitMonth{month}, value)
+				if !ok {
+					continue
+				}
+				yields = append(yields, yield)
+				labels = append(labels, month.Month.UTC().Format("2006-01"))
+			}
+			if len(yields) > propertyYieldTrendMonths {
+				yields = yields[len(yields)-propertyYieldTrendMonths:]
+				labels = labels[len(labels)-propertyYieldTrendMonths:]
+			}
+			if len(yields) == 0 {
+				continue
+			}
+			fmt.Fprintf(
+				&rows,
+				`<div class="trend-row">
+					<span class="item">
+						<span class="name">%s</span>
+						<span class="props">%s</span>
+					</span>
+					<span class="trend-metrics">%s<span class="delta flat">%.2f%%</span></span>
+				</div>`,
+				html.EscapeString(property.Name), html.EscapeString(project.Name), yieldSparkline(yields, labels), quarterYield,
+			)
+		}
+	}
+	if rows.Len() == 0 {
+		return ""
+	}
+	return `<section class="yield-trends">
+				<h2>Property rental yield</h2>
+				<p class="trends-note">Net rental yield for past 6 months as a percentage of each property’s current value.</p>
+				<nav>
+					<div class="trend-head">
+						<span>Property</span>
+						<span>3 months net rental yield</span>
+					</div>` + rows.String() +
+		`</nav>
+			</section>`
+}
+
+func yieldSparkline(values []float64, labels []string) string {
+	if len(values) < 2 {
+		return ""
+	}
+	var title strings.Builder
+	for i, value := range values {
+		if i > 0 {
+			title.WriteString(", ")
+		}
+		fmt.Fprintf(&title, "%s: %.2f%%", html.EscapeString(labels[i]), value)
+	}
+	return renderSparkline(values, title.String(), func(i int) string {
+		if values[i] > values[i-1] {
+			return "#26954f"
+		} else if values[i] < values[i-1] {
+			return "#cf291d"
+		}
+		return "#a6a5a5"
+	})
+}
+
+func renderSparkline(values []float64, title string, segmentColor func(int) string) string {
+	const w, h, pad = 200.0, 24.0, 2.0
+	min, max := values[0], values[0]
+	for _, value := range values[1:] {
+		if value < min {
+			min = value
+		}
+		if value > max {
+			max = value
 		}
 	}
 	if min == max {
@@ -170,32 +271,19 @@ func sparkline(values []*big.Int) string {
 	innerW, innerH := w-2*pad, h-2*pad
 	span := max - min
 	var segments strings.Builder
-	for i, n := range nums {
-		x := pad + float64(i)*innerW/float64(len(nums)-1)
-		y := pad + (max-n)*innerH/span
-		if i == 0 {
-			continue
-		}
-		color := "#a6a5a5"
-		if values[i] != nil && values[i].Sign() > 0 {
-			color = "#26954f"
-		} else if values[i] != nil && values[i].Sign() < 0 {
-			color = "#cf291d"
-		}
-		previousX := pad + float64(i-1)*innerW/float64(len(nums)-1)
-		previousY := pad + (max-nums[i-1])*innerH/span
-		fmt.Fprintf(&segments, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="%s"/>`, previousX, previousY, x, y, color)
-	}
-	var title strings.Builder
-	for i, v := range values {
-		if i > 0 {
-			title.WriteString(", ")
-		}
-		title.WriteString(formatDelta(v))
+	for i := 1; i < len(values); i++ {
+		x1 := pad + float64(i-1)*innerW/float64(len(values)-1)
+		y1 := pad + (max-values[i-1])*innerH/span
+		x2 := pad + float64(i)*innerW/float64(len(values)-1)
+		y2 := pad + (max-values[i])*innerH/span
+		fmt.Fprintf(&segments, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="%s"/>`, x1, y1, x2, y2, segmentColor(i))
 	}
 	return fmt.Sprintf(
-		`<svg class="spark" viewBox="0 0 %.0f %.0f" width="200" height="24" role="img" aria-label="%s"><title>%s</title><g fill="none" stroke-width="1.5" stroke-linecap="round">%s</g></svg>`,
-		w, h, title.String(), title.String(), segments.String(),
+		`<svg class="spark" viewBox="0 0 %.0f %.0f" width="200" height="24" role="img" aria-label="%s">
+			<title>%s</title>
+			<g fill="none" stroke-width="1.5" stroke-linecap="round">%s</g>
+		</svg>`,
+		w, h, title, title, segments.String(),
 	)
 }
 

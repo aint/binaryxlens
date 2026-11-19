@@ -34,7 +34,7 @@ var (
 )
 
 const (
-	yieldTrailingMonths = 3
+	YieldTrailingMonths = 3
 	ageWeight           = 0.15
 	priceWeight         = 0.35
 	yieldWeight         = 0.50
@@ -97,8 +97,8 @@ func (p *Property) priceScore() (float64, bool) {
 }
 
 func (p *Property) yieldScore() (float64, bool) {
-	percent, months, ok := TrailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, yieldTrailingMonths, true)
-	if !ok || months < yieldTrailingMonths {
+	percent, months, ok := TrailingNetRentalYield(p.RentalProfitMonths, p.CurrentValue.Price, YieldTrailingMonths, true)
+	if !ok || months < YieldTrailingMonths {
 		return 0, false
 	}
 	return interpolatePart(percent, yieldScoreKnots), true
