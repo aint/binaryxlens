@@ -43,7 +43,7 @@ func TestTrendsAggregatesHolderActivityByBalance(t *testing.T) {
 		{Name: "shrimp", DeltasUSDT: []*big.Int{big.NewInt(0), big.NewInt(4_040), big.NewInt(3_030), big.NewInt(5_050), big.NewInt(2_020), big.NewInt(1_010)}},
 	}
 
-	if got := trends(holders); !reflect.DeepEqual(got, want) {
+	if got := holderTierTrends(holders); !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot: %v,\nwant: %v", got, want)
 	}
 }
@@ -56,9 +56,9 @@ func TestTrendsIncludesCEOActivity(t *testing.T) {
 		binaryx.NewDay(today.AddDate(0, 0, -75)): {UsdtIn: big.NewInt(9), UsdtOut: big.NewInt(0)},
 	}
 
-	trends := trends([]globalHolder{{Address: ceoWallet, TotalUSDT: big.NewInt(0), DailyActivity: activity}})
+	trends := holderTierTrends([]globalHolder{{Address: ceoWallet, TotalUSDT: big.NewInt(0), DailyActivity: activity}})
 	if len(trends) != len(trendBuckets)+1 {
-		t.Fatalf("trends() returned %d entries, want %d", len(trends), len(trendBuckets)+1)
+		t.Fatalf("holderTierTrends() returned %d entries, want %d", len(trends), len(trendBuckets)+1)
 	}
 
 	gotCEOTrend := trends[len(trends)-1]
